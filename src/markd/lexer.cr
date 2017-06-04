@@ -14,9 +14,9 @@ module Markd
       CODE = /^( {4}[^\n]+\n*)+/
       FENCES = /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/
       HEADING = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
+      LHEADING = /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/
+      HR = /^( *[-*_]){3,} *(?:\n+|$)/
 
-      # HR = /^( *[-*_]){3,} *(?:\n+|$)/
-      # LHEADING = /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/
       # INLINE_LINK = /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/
       # BLOCKQUOTE = /^( *>[^\n]+(\n(?!#{INLINE_LINK})[^\n]+)*\n*)+/
       # LIST = /^( *)(#{BULLET}) [\s\S]+?(?:#{LIST_HR}|#{LIST_DEF}|\n{2,}(?! )(?!\1#{BULLET} )\n*|\s*$)/
@@ -28,15 +28,15 @@ module Markd
     end
 
     struct Block
-      property newline, code, fences, heading, paragraph, text
+      property newline, code, fences, heading, lheading, hr, paragraph, text
 
       def initialize
         @newline = Rule::NEWLINE
         @code = Rule::CODE
         @fences = Rule::FENCES
         @heading = Rule::HEADING
-        # @hr = Rule::HR
-        # @lheading = Rule::LHEADING
+        @lheading = Rule::LHEADING
+        @hr = Rule::HR
         # @blockquote = Rule::BLOCKQUOTE
         # @list = Rule::LIST
         # @html = Rule::HTML
@@ -68,7 +68,7 @@ module Markd
         break if src.empty?
 
         # newline
-        if match = src.match(@rules.newline)
+        if match = @rules.newline.match(src)
           src = substring(src, match[0])
           if match[0].size > 1
             @tokens.push({
@@ -77,8 +77,8 @@ module Markd
           end
         end
 
-        # code
-        if match = src.match(@rules.code)
+        # indented code
+        if match = @rules.code.match(src)
           src = substring(src, match[0])
           text = match[0].gsub(/^ {4}/m, "")
           @tokens.push({
@@ -88,8 +88,8 @@ module Markd
           next
         end
 
-        # fences
-        if match = src.match(@rules.fences)
+        # fences code
+        if match = @rules.fences.match(src)
           src = substring(src, match[0])
           token = {
             "type" => :code,
@@ -100,13 +100,33 @@ module Markd
           next
         end
 
-        # heading
+        # ATX heading
         if match = @rules.heading.match(src)
           src = substring(src, match[0])
           @tokens.push({
             "type" => :heading,
             "level" => match[1].size,
             "text" => match[2]
+          })
+          next
+        end
+
+        # setext heading
+        if match = @rules.lheading.match(src)
+          src = substring(src, match[0])
+          @tokens.push({
+            "type" => :heading,
+            "level" => match[2] == "=" ? 1 : 2,
+            "text" => match[1].strip
+          })
+          next
+        end
+
+        # thematic break(hr)
+        if match = @rules.hr.match(src)
+          src = substring(src, match[0])
+          @tokens.push({
+            "type" => :hr,
           })
           next
         end
