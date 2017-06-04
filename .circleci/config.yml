@@ -1,0 +1,17 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: crystallang/crystal
+    branches:
+      ignore:
+        - gh-pages
+    working_directory: ~/markd
+    steps:
+      - checkout
+      - run:
+          name: "Install dependencies"
+          command: crystal deps
+      - run:
+          name: "Spec"
+          command: crystal spec
