@@ -17,8 +17,8 @@ module Markd
       LHEADING = /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/
       HR = /^( *[-*_]){3,} *(?:\n+|$)/
 
-      # INLINE_LINK = /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/
-      # BLOCKQUOTE = /^( *>[^\n]+(\n(?!#{INLINE_LINK})[^\n]+)*\n*)+/
+      INLINE_LINK = /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/
+      BLOCKQUOTE = /^( *>[^\n]+(\n(?!#{INLINE_LINK})[^\n]+)*\n*)+/
       # LIST = /^( *)(#{BULLET}) [\s\S]+?(?:#{LIST_HR}|#{LIST_DEF}|\n{2,}(?! )(?!\1#{BULLET} )\n*|\s*$)/
       # ITEM = /^( *)(#{BULLET}) [^\n]*(?:\n(?!\1#{BULLET} )[^\n]*)*/m
       # HTML = /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/
@@ -28,7 +28,7 @@ module Markd
     end
 
     struct Block
-      property newline, code, fences, heading, lheading, hr, paragraph, text
+      property newline, code, fences, heading, lheading, hr, blockquote, paragraph, text
 
       def initialize
         @newline = Rule::NEWLINE
@@ -37,7 +37,7 @@ module Markd
         @heading = Rule::HEADING
         @lheading = Rule::LHEADING
         @hr = Rule::HR
-        # @blockquote = Rule::BLOCKQUOTE
+        @blockquote = Rule::BLOCKQUOTE
         # @list = Rule::LIST
         # @html = Rule::HTML
         # @inline_link = Rule::INLINE_LINK
@@ -83,7 +83,7 @@ module Markd
           text = match[0].gsub(/^ {4}/m, "")
           @tokens.push({
             "type" => :code,
-            "text" => text.sub(/\n+$/, "")
+            "text" => text_escape(text.strip)
           })
           next
         end
@@ -131,12 +131,30 @@ module Markd
           next
         end
 
+        # blockquote
+        if match = @rules.blockquote.match(src)
+          src = substring(src, match[0])
+
+          @tokens.push({
+            "type" => :blockquote_start
+          })
+
+          text = match[0].gsub(/^ *> ?/m, "")
+          token(text, top, bq: true)
+
+          @tokens.push({
+            "type" => :blockquote_end
+          })
+
+          next
+        end
+
         # top-level paragraph
         if top && (match = src.match(@rules.paragraph))
           src = substring(src, match[0])
           @tokens.push({
             "type" => :paragraph,
-            "text" => match[1].chomp
+            "text" => match[1].strip
           })
           next
         end
