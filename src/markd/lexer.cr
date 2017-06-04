@@ -2,7 +2,7 @@ require "html"
 
 module Markd
   class Lexer
-    alias Token = Hash(String, String | Int32)
+    alias Token = Hash(String, Symbol | String | Int32)
 
     module Rule
       # BULLET = /(?:[*+-]|\d+\.)/
@@ -69,20 +69,20 @@ module Markd
 
         # newline
         if match = @rules.newline.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           if match[0].size > 1
             @tokens.push({
-              "type" => "space",
+              "type" => :space,
             })
           end
         end
 
         # indented code
         if match = @rules.code.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           text = match[0].gsub(/^ {4}/m, "")
           @tokens.push({
-            "type" => "code",
+            "type" => :code,
             "text" => text_escape(text.strip),
           })
           next
@@ -90,9 +90,9 @@ module Markd
 
         # fences code
         if match = @rules.fences.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           token = {
-            "type" => "code",
+            "type" => :code,
             "text" => text_escape(match[3]),
           }
           token["lang"] = match[2].downcase if match[2]?
@@ -102,9 +102,9 @@ module Markd
 
         # ATX heading
         if match = @rules.heading.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           @tokens.push({
-            "type"  => "heading",
+            "type"  => :heading,
             "level" => match[1].size,
             "text"  => match[2],
           })
@@ -113,9 +113,9 @@ module Markd
 
         # setext heading
         if match = @rules.lheading.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           @tokens.push({
-            "type"  => "heading",
+            "type"  => :heading,
             "level" => match[2] == "=" ? 1 : 2,
             "text"  => match[1].strip,
           })
@@ -124,26 +124,26 @@ module Markd
 
         # thematic break(hr)
         if match = @rules.hr.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           @tokens.push({
-            "type" => "hr",
+            "type" => :hr,
           })
           next
         end
 
         # blockquote
         if match = @rules.blockquote.match(src)
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
 
           @tokens.push({
-            "type" => "blockquote_start",
+            "type" => :blockquote_start,
           })
 
           text = match[0].gsub(/^ *> ?/m, "")
           token(text, top, bq: true)
 
           @tokens.push({
-            "type" => "blockquote_end",
+            "type" => :blockquote_end,
           })
 
           next
@@ -151,9 +151,9 @@ module Markd
 
         # top-level paragraph
         if top && (match = src.match(@rules.paragraph))
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           @tokens.push({
-            "type" => "paragraph",
+            "type" => :paragraph,
             "text" => match[1].strip,
           })
           next
@@ -162,9 +162,9 @@ module Markd
         # text
         if match = src.match(@rules.text)
           # Top-level should never reach here.
-          src = substring(src, match[0])
+          src = delete_match_text(src, match)
           @tokens.push({
-            "type" => "text",
+            "type" => :text,
             "text" => match[0],
           })
           next
@@ -174,15 +174,15 @@ module Markd
       @tokens
     end
 
-    private def text_escape(src)
+    protected def text_escape(src)
       src.gsub("&", "&amp;")
          .gsub("<", "&lt;")
          .gsub(">", "&gt;")
          .gsub("\"", "&quot;")
     end
 
-    private def substring(src, match)
-      src[match.size..-1]
+    protected def delete_match_text(src, match, index = 0)
+      src[match[index].size..-1]
     end
   end
 end
