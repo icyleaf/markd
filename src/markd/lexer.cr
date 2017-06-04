@@ -2,7 +2,7 @@ require "html"
 
 module Markd
   class Lexer
-    alias Token = Hash(String, Symbol|String|Int32)
+    alias Token = Hash(String, String | Int32)
 
     module Rule
       # BULLET = /(?:[*+-]|\d+\.)/
@@ -10,21 +10,21 @@ module Markd
       # LIST_HR = /\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))/
       # LIST_DEF = /\\n+(?=#{BULLET})/
 
-      NEWLINE = /^\n+/
-      CODE = /^( {4}[^\n]+\n*)+/
-      FENCES = /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/
-      HEADING = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
+      NEWLINE  = /^\n+/
+      CODE     = /^( {4}[^\n]+\n*)+/
+      FENCES   = /^ *(`{3,}|~{3,})[ \.]*(\S+)? *\n([\s\S]*?)\s*\1 *(?:\n+|$)/
+      HEADING  = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
       LHEADING = /^([^\n]+)\n *(=|-){2,} *(?:\n+|$)/
-      HR = /^( *[-*_]){3,} *(?:\n+|$)/
+      HR       = /^( *[-*_]){3,} *(?:\n+|$)/
 
       INLINE_LINK = /^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +["(]([^\n]+)[")])? *(?:\n+|$)/
-      BLOCKQUOTE = /^( *>[^\n]+(\n(?!#{INLINE_LINK})[^\n]+)*\n*)+/
+      BLOCKQUOTE  = /^( *>[^\n]+(\n(?!#{INLINE_LINK})[^\n]+)*\n*)+/
       # LIST = /^( *)(#{BULLET}) [\s\S]+?(?:#{LIST_HR}|#{LIST_DEF}|\n{2,}(?! )(?!\1#{BULLET} )\n*|\s*$)/
       # ITEM = /^( *)(#{BULLET}) [^\n]*(?:\n(?!\1#{BULLET} )[^\n]*)*/m
       # HTML = /^ *(?:comment *(?:\n|\s*$)|closed *(?:\n{2,}|\s*$)|closing *(?:\n{2,}|\s*$))/
 
       PARAGRAPH = /^((?:[^\n]+\n?(?!hr|heading|lheading|blockquote|tag|def))+)\n*/
-      TEXT = /^[^\n]+/
+      TEXT      = /^[^\n]+/
     end
 
     struct Block
@@ -53,8 +53,8 @@ module Markd
     def initialize(src)
       @src = src.gsub(/\r\n|\r/, "\n")
                 .gsub(/\t/, "    ")
-      .gsub(/\x{00a0}/, " ")
-      .gsub(/\x{2424}/, "\n")
+                .gsub(/\x{00a0}/, " ")
+                .gsub(/\x{2424}/, "\n")
     end
 
     def lex
@@ -72,7 +72,7 @@ module Markd
           src = substring(src, match[0])
           if match[0].size > 1
             @tokens.push({
-              "type" => :space,
+              "type" => "space",
             })
           end
         end
@@ -82,8 +82,8 @@ module Markd
           src = substring(src, match[0])
           text = match[0].gsub(/^ {4}/m, "")
           @tokens.push({
-            "type" => :code,
-            "text" => text_escape(text.strip)
+            "type" => "code",
+            "text" => text_escape(text.strip),
           })
           next
         end
@@ -92,8 +92,8 @@ module Markd
         if match = @rules.fences.match(src)
           src = substring(src, match[0])
           token = {
-            "type" => :code,
-            "text" => text_escape(match[3])
+            "type" => "code",
+            "text" => text_escape(match[3]),
           }
           token["lang"] = match[2].downcase if match[2]?
           @tokens.push(token)
@@ -104,9 +104,9 @@ module Markd
         if match = @rules.heading.match(src)
           src = substring(src, match[0])
           @tokens.push({
-            "type" => :heading,
+            "type"  => "heading",
             "level" => match[1].size,
-            "text" => match[2]
+            "text"  => match[2],
           })
           next
         end
@@ -115,9 +115,9 @@ module Markd
         if match = @rules.lheading.match(src)
           src = substring(src, match[0])
           @tokens.push({
-            "type" => :heading,
+            "type"  => "heading",
             "level" => match[2] == "=" ? 1 : 2,
-            "text" => match[1].strip
+            "text"  => match[1].strip,
           })
           next
         end
@@ -126,7 +126,7 @@ module Markd
         if match = @rules.hr.match(src)
           src = substring(src, match[0])
           @tokens.push({
-            "type" => :hr,
+            "type" => "hr",
           })
           next
         end
@@ -136,14 +136,14 @@ module Markd
           src = substring(src, match[0])
 
           @tokens.push({
-            "type" => :blockquote_start
+            "type" => "blockquote_start",
           })
 
           text = match[0].gsub(/^ *> ?/m, "")
           token(text, top, bq: true)
 
           @tokens.push({
-            "type" => :blockquote_end
+            "type" => "blockquote_end",
           })
 
           next
@@ -153,8 +153,8 @@ module Markd
         if top && (match = src.match(@rules.paragraph))
           src = substring(src, match[0])
           @tokens.push({
-            "type" => :paragraph,
-            "text" => match[1].strip
+            "type" => "paragraph",
+            "text" => match[1].strip,
           })
           next
         end
@@ -164,7 +164,7 @@ module Markd
           # Top-level should never reach here.
           src = substring(src, match[0])
           @tokens.push({
-            "type" => :text,
+            "type" => "text",
             "text" => match[0],
           })
           next
