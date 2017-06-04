@@ -1,0 +1,50 @@
+require "../../spec_helper"
+
+describe Markd::Lexer do
+  assert_lexer_render "```\necho hello world\n```", [{
+    "type" => :code,
+    "text" => "echo hello world"
+  }]
+
+  assert_lexer_render "```bash\necho hello world\npwd```", [{
+    "type" => :code,
+    "lang" => "bash",
+    "text" => "echo hello world\npwd",
+  }]
+
+  assert_lexer_render "`````\nhi ther `` ok ```\n`````", [{
+    "type" => :code,
+    "text" => "hi ther `` ok ```"
+  }]
+
+  assert_lexer_render "```\n<\n >\n```", [{
+    "type" => :code,
+    "text" => "&lt;\n &gt;"
+  }]
+
+  assert_lexer_render "~~~\n<\n >\n~~~", [{
+    "type" => :code,
+    "text" => "&lt;\n &gt;"
+  }]
+
+  assert_lexer_render "```\naaa\n~~~\n```", [{
+    "type" => :code,
+    "text" => "aaa\n~~~"
+  }]
+
+  assert_lexer_render "~~~\naaa\n```\n~~~", [{
+    "type" => :code,
+    "text" => "aaa\n```"
+  }]
+
+  # TODO: fix it
+  # assert_lexer_render "````\naaa\n```\n``````", [{
+  #   "type" => :code,
+  #   "text" => "aaa\n```"
+  # }]
+
+  # assert_lexer_render "~~~~\naaa\n~~~\n~~~~~", [{
+  #   "type" => :code,
+  #   "text" => "aaa\n~~~"
+  # }]
+end

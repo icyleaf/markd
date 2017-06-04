@@ -1,20 +1,14 @@
-require "../spec_helper"
-
-private def assert_render(input, output)
-  it "renders #{input.inspect}" do
-    Markd::Lexer.new(input).lex.should eq(output)
-  end
-end
+require "../../spec_helper"
 
 describe Markd::Lexer do
-  assert_render "", [] of Markd::Lexer::Token
+  assert_lexer_render "", [] of Markd::Lexer::Token
 
-  assert_render "Hello", [{
+  assert_lexer_render "Hello", [{
     "type" => :paragraph,
     "text" => "Hello",
   }]
 
-  assert_render "\n\nHello", [
+  assert_lexer_render "\n\nHello", [
     {
       "type" => :space,
     },
@@ -24,12 +18,12 @@ describe Markd::Lexer do
     },
   ]
 
-  assert_render "Hello\nWorld", [{
+  assert_lexer_render "Hello\nWorld", [{
     "type" => :paragraph,
     "text" => "Hello\nWorld",
   }]
 
-  assert_render "Hello\n\nWorld", [{
+  assert_lexer_render "Hello\n\nWorld", [{
     "type" => :paragraph,
     "text" => "Hello",
   },
@@ -38,7 +32,7 @@ describe Markd::Lexer do
     "text" => "World",
   }]
 
-  assert_render "Hello\n\n\n\n\nWorld", [{
+  assert_lexer_render "Hello\n\n\n\n\nWorld", [{
     "type" => :paragraph,
     "text" => "Hello",
   },
@@ -47,7 +41,7 @@ describe Markd::Lexer do
     "text" => "World",
   }]
 
-  assert_render "Hello\n  \nWorld", [{
+  assert_lexer_render "Hello\n  \nWorld", [{
     "type" => :paragraph,
     "text" => "Hello",
   },
@@ -55,7 +49,7 @@ describe Markd::Lexer do
     "type" => :paragraph,
     "text" => "World",
   }]
-  assert_render "Hello\nWorld\n\nGood\nBye", [{
+  assert_lexer_render "Hello\nWorld\n\nGood\nBye", [{
     "type" => :paragraph,
     "text" => "Hello\nWorld",
   },

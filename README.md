@@ -1,6 +1,6 @@
 # markd
 
-Yet another markdown parser built for speed, written in crystal.
+Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification.
 
 ## Installation
 
