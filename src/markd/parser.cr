@@ -3,7 +3,7 @@ module Markd
     getter context
 
     def initialize(source : String, lexers = [] of Lexer)
-      lexers = lexers.concat(default_lexers)
+      lexers = default_lexers.concat(lexers)
       @context = Lexer::Context.new(source)
       lexer = build_lexer(lexers)
       lexer.call(@context)
@@ -39,7 +39,7 @@ module Markd
     end
 
     private def default_lexers
-      [CommonLexer.new, InlineLexer.new]
+      [CommonLexer.new.as(Lexer), InlineLexer.new.as(Lexer)]
     end
   end
 end
