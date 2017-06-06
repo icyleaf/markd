@@ -1,5 +1,4 @@
 require "../../../spec_helper"
-require "markdown"
 
 describe Markd::Lexer do
   assert_common_lexer_render "Heading 1\n=========\n", [{

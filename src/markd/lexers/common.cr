@@ -26,7 +26,7 @@ module Markd
       LIST_HR = /\\n+(?=\\1?(?:[-*_] *){3,}(?:\\n+|$))/
       LIST_DEF = /\\n+(?=#{BULLET})/
       LIST = /^( *)(#{BULLET}) [\s\S]+?(?:#{LIST_HR}|#{LIST_DEF}|\n{2,}(?! )(?!\1#{BULLET} )\n*|\s*$)/
-      ITEM = /^\s*(a:#{BULLET})\s*[^\n]*(?:\n(?!\1#{BULLET})\s*[^\n]*)*/m
+      ITEM = /^(\s*(?:#{BULLET})) ([^\n]*)(?:\n(?!\1#{BULLET} )[^\n]*)*/m
 
       HTML = /^ *(?:#{HTML_COMMENT} *(?:\n|\s*$)|#{HTML_CLOSED_TAG} *(?:\n{2,}|\s*$)|#{HTML_CLOSING_TAG} *(?:\n{2,}|\s*$))/m
 
@@ -109,20 +109,32 @@ module Markd
         end
 
         # list
-        # if match = @rules.list.match(src)
-        #   src = list(src, match)
-        #   next
-        # end
-
-        # html
-        if match = @rules.html.match(src)
-          src = html(src, match)
+        if match = @rules.list.match(src)
+          src = list(src, match)
           next
         end
+
+        # html
+        # if match = @rules.html.match(src)
+        #   src = html(src, match)
+        #   next
+        # end
 
         # top-level paragraph
         if top && (match = src.match(@rules.paragraph))
           src = paragraph(src, match)
+          next
+        end
+
+        # text
+        if match = @rules.text.match(src)
+          # Top-level should never reach here.
+          src = delete_match(src, match)
+          @document.push({
+            "type" => "text",
+            "source" => match[0],
+            "text" => match[0],
+          })
           next
         end
 
@@ -215,11 +227,33 @@ module Markd
 
       @document.push({
         "type" => "list_start",
-        "ordered" => bullet.size > 1
+        "style" => (bullet.size > 1) ? "ordered" : "unordered"
       })
 
-      # FIXIT: it could not match multiline items with regex
-      cap = @rules.item.match(match[0])
+      # to_next = false
+      items = match[0].scan(@rules.item)
+      items.each do |item|
+        full_space = item[0].size
+        bullet_space = item[1].size
+
+        text = item[0].gsub(/^( *)(?:#{Block::BULLET}) +/, "")
+        if text.includes?("\n ")
+          full_space -= text.size
+          text = text.gsub(/^ {1,#{full_space}}/m, "")
+        end
+
+        # loose =
+
+        @document.push({
+          "type" => "list_item_start",
+        })
+
+        token(text, false)
+
+        @document.push({
+          "type" => "list_item_end",
+        })
+      end
 
       @document.push({
         "type" => "list_end",
@@ -231,7 +265,7 @@ module Markd
     def html(src : String, match : Regex::MatchData)
       @document.push({
         "type" => "html",
-        "pre" => ["pre", "script", "style"].includes?(match[1]),
+        # "pre" => ["pre", "script", "style"].includes?(match[1]),
         "source" => match[0],
         "text" => text_escape(match[0]),
       })
