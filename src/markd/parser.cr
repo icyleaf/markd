@@ -3,8 +3,8 @@ module Markd
     getter context
 
     def initialize(source : String, lexers = [] of Lexer)
-      lexers = default_lexers.concat(lexers)
       @context = Lexer::Context.new(source)
+      lexers = default_lexers if lexers.empty?
       lexer = build_lexer(lexers)
       lexer.call(@context)
     end

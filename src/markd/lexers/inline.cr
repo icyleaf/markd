@@ -2,17 +2,15 @@ module Markd
   class InlineLexer
     include Lexer
 
-    module Rule
-      STRONG = /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/
-      TEXT      = /^[^\n]+/
-    end
-
     struct Block
       property strong, text
 
+      STRONG = /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/
+      TEXT      = /^[^\n]+/
+
       def initialize
-        @strong = Rule::STRONG
-        @text = Rule::TEXT
+        @strong = STRONG
+        @text = TEXT
       end
     end
 
@@ -35,8 +33,8 @@ module Markd
         end
       end
 
-      # context.document = @document
-      # call_next(context)
+      context.document = @document
+      call_next(context)
     end
 
     def paragraph(token : Token, index : Int32)
@@ -47,8 +45,6 @@ module Markd
       token(token["text"], top: true).each_with_index do | new_token, shift|
         @document.insert(index + shift + 1, new_token)
       end
-
-      puts @tokens.size
 
       @document.insert(index + @tokens.size + 1, {
         "type" => "paragaph_end",

@@ -1,6 +1,6 @@
 module Markd
   module Lexer
-    alias Token = Hash(String, String | Int32)
+    alias Token = Hash(String, String | Int32 | Bool)
     alias Document = Array(Token)
 
     property next : Lexer | Nil
@@ -32,3 +32,5 @@ module Markd
     end
   end
 end
+
+require "./lexers/*"

@@ -3,3 +3,5 @@ module Markd
     abstract def render(token)
   end
 end
+
+require "./renderers/*"
