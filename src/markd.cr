@@ -1,5 +1,11 @@
-require "./markd/*"
+require "./markd/lexer"
+require "./markd/renderer"
+require "./markd/parser"
+require "./markd/version"
 
 module Markd
-  # TODO Put your code here
+  def self.to_html(src, renderer = HTMLRenderer.new)
+    parser = Parser.new(src)
+    parser.parser(renderer)
+  end
 end
