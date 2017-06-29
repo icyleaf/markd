@@ -56,6 +56,21 @@ module Markd
       end
     end
 
+    def insert_after(sibling : Node)
+      sibling.unlink
+      sibling.next = @next
+      if sibling.next
+        sibling.next.not_nil!.prev = sibling
+      end
+
+      sibling.prev = self
+      @next = sibling
+      sibling.parent = @parent
+      unless sibling.next
+        sibling.parent.not_nil!.last_child = sibling
+      end
+    end
+
     def unlink
       if @prev
         @prev.not_nil!.next = @next

@@ -25,6 +25,8 @@ module Markd::Lexer
     # getter oldtip : Node?
     # getter last_matched_container : Node?
 
+    property tip
+
     getter current_line, line_size, offset, column, line, next_nonspace, next_nonspace_column,
            indent, indented, blank, partially_consumed_tab, all_closed, last_matched_container,
            refmap, last_line_length
