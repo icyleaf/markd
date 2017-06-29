@@ -1,14 +1,5 @@
 module Markd
   module Lexer
-    property next : Lexer | Nil
-
-    abstract def call(context : Context)
-
-    def call_next(context : Context)
-      if next_handler = @next
-        next_handler.call(context)
-      end
-    end
 
     def text_clean(src)
       src.gsub(/\r\n|\r/, "\n")

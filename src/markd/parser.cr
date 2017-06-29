@@ -4,12 +4,9 @@ module Markd
 
     alias AnyType = String|Bool|Int32
 
-    def initialize(source : String, options = {} of String => AnyType, lexers = [] of Lexer)
+    def initialize(source : String, options = {} of String => AnyType)
       @context = Lexer::Context.new(source, options: options)
-
-      lexers = default_lexers if lexers.empty?
-      lexer = build_lexer(lexers)
-      lexer.call(@context)
+      Lexer::Block.parse(@context)
     end
 
     # def parse(renderer = HTMLRenderer.new)
@@ -33,16 +30,5 @@ module Markd
     #     next
     #   end
     # end
-
-    def build_lexer(lexers)
-      raise ArgumentError.new "You must specify at least one Markd Lexer." if lexers.empty?
-
-      0.upto(lexers.size - 2) { |i| lexers[i].next = lexers[i + 1] }
-      lexers.first
-    end
-
-    private def default_lexers
-      [Lexer::Block.new.as(Lexer), Lexer::Inline.new.as(Lexer)]
-    end
   end
 end

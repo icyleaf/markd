@@ -4,6 +4,7 @@ module Markd
     enum Type
       Document
       Paragraph
+      Text
       Heading
       List
       Item
@@ -21,21 +22,21 @@ module Markd
     property parent : Node?
     property first_child : Node?
     property last_child : Node?
-    property pos_range : Array(Array(Int32))
+    property source_pos : Array(Array(Int32))
     property open
 
     property prev : Node?
     property next : Node?
 
-    property is_fenced : Bool
+    property fenced : Bool
     property last_line_blank : Bool
 
     def initialize(@type, **options)
       @data = {} of String => String|Int32|Bool
       @text = ""
       @open = true
-      @is_fenced = false
-      @pos_range = [[1, 1], [0, 0]]
+      @fenced = false
+      @source_pos = [[1, 1], [0, 0]]
 
       @last_line_blank = false
       @html_block_type = -1
@@ -44,9 +45,10 @@ module Markd
     def append_child(child : Node)
       child.unlink
       child.parent = self
-      if (@last_child)
+
+      if @last_child
         @last_child.not_nil!.next = child
-        @prev = @last_child
+        child.prev = @last_child.not_nil!
         @last_child = child
       else
         @first_child = child
@@ -73,7 +75,7 @@ module Markd
     end
 
     def fenced?
-      @is_fenced == true
+      @fenced == true
     end
 
     def to_s(io : IO)
