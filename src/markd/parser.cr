@@ -2,8 +2,11 @@ module Markd
   class Parser
     getter context
 
-    def initialize(source : String, lexers = [] of Lexer)
-      @context = Lexer::Context.new(source)
+    alias AnyType = String|Bool|Int32
+
+    def initialize(source : String, options = {} of String => AnyType, lexers = [] of Lexer)
+      @context = Lexer::Context.new(source, options: options)
+
       lexers = default_lexers if lexers.empty?
       lexer = build_lexer(lexers)
       lexer.call(@context)
@@ -39,7 +42,7 @@ module Markd
     end
 
     private def default_lexers
-      [CommonLexer.new.as(Lexer), InlineLexer.new.as(Lexer)]
+      [Lexer::Block.new.as(Lexer), Lexer::Inline.new.as(Lexer)]
     end
   end
 end

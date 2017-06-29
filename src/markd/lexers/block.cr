@@ -1,0 +1,289 @@
+module Markd::Lexer
+  class Block
+    include Lexer
+
+    CODE_INDENT = 4
+
+    @rules = {
+      Node::Type::Document => Rule::Document.new,
+      Node::Type::List => Rule::List.new,
+      Node::Type::BlockQuote => Rule::BlockQuote.new,
+      Node::Type::Item => Rule::Item.new,
+      Node::Type::Heading => Rule::Heading.new,
+      Node::Type::ThematicBreak => Rule::ThematicBreak.new,
+      Node::Type::CodeBlock => Rule::CodeBlock.new,
+      Node::Type::HTMLBlock => Rule::HTMLBlock.new,
+      Node::Type::Paragraph => Rule::Paragraph.new
+    }
+
+    # getter document : Node
+    # getter tip : Node?
+    # getter oldtip : Node?
+    # getter last_matched_container : Node?
+
+    getter current_line, line_size, offset, column, line, next_nonspace, next_nonspace_column,
+           indent, indented, blank, partially_consumed_tab, all_closed, last_matched_container,
+           refmap, last_line_length
+
+
+    @document = Node.new(Node::Type::Document) #Document.new
+    @tip = @document
+    @oldtip = @tip
+    @last_matched_container = @document
+
+    @current_line = 0
+    @line_size = 0
+    @offset = 0
+    @column = 0
+
+    @lines = [] of String
+    @line = ""
+
+    @next_nonspace = 0
+    @next_nonspace_column = 0
+
+    @indent = 0
+    @indented = false
+    @blank = false
+    @partially_consumed_tab = false
+    @all_closed = true
+    @last_matched_container = @document
+    @refmap = {} of String => String
+    @last_line_length = 0
+
+    def call(context : Context)
+      @lines = text_clean(context.source).split(/\r\n|\n|\r/)
+      @line_size = @lines.size
+
+      @lines.each do |line|
+        process(line)
+      end
+
+      context.document = @document
+      call_next(context)
+    end
+
+    def process(line : String)
+      all_matched = true
+      container = @document
+      @oldtip = @tip
+      @offset = @column = 0
+      @blank = @partially_consumed_tab = false
+      @current_line += 1
+      @line = line
+
+      while (last_child = container.last_child) && last_child.open
+        container = last_child
+
+        find_next_nonspace!
+
+        case @rules[container.type].continue(self, container)
+        when 0
+          break
+        when 1
+          all_matched = false
+          break
+        when 2
+          @last_line_length = line.size
+          return
+        else
+          raise Exception.new("continue returned illegal value, must be 0, 1, or 2")
+        end
+
+        unless all_matched
+          container = container.parent.not_nil!
+          break
+        end
+      end
+
+      @all_closed = container == @oldtip
+      @last_matched_container = container.not_nil!
+
+      matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
+
+      while !matched_leaf
+        find_next_nonspace!
+
+        if !@indented && !Rule::MAYBE_SPECIAL.match(@next_nonspace.to_s)
+          advance_next_nonspace!
+          break
+        end
+
+        i = 0
+        rules_size = @rules.size
+
+        while i < rules_size
+          puts "[#{i}/#{rules_size-1}] #{container}"
+          case @rules.values[i].match(self, container)
+          when Rule::MatchValue::Container
+            # puts " - container"
+            container = @tip
+            break
+          when Rule::MatchValue::Leaf
+            # puts " - leaf"
+            container = @tip
+            matched_leaf = true
+            break
+          else
+            # puts " - none/skip/other"
+            i += 1
+          end
+        end
+
+        # nothing matched
+        if i == rules_size
+          advance_next_nonspace!
+          break
+        end
+      end
+
+      if !@all_closed && !@blank && @tip.type == Node::Type::Paragraph
+        add_line
+      else
+        close_unmatched_blocks
+        container.last_child.not_nil!.last_line_blank = true if (@blank && container.last_child)
+
+        t = container.type
+        cont = container
+        while cont
+          last_line_blank = @blank &&
+                            !(t == Node::Type::BlockQuote ||
+                            (t == Node::Type::CodeBlock && container.is_fenced) ||
+                            (t == Node::Type::Item && !container.first_child && container.pos_range[0][0] == @current_line))
+
+          cont.last_line_blank = last_line_blank
+          cont = cont.parent
+        end
+
+        if @rules[t].accepts_lines?
+          add_line
+
+          # if HtmlBlock, check for end condition
+          if (t == Node::Type::HTMLBlock && match_html_block?(container))
+            puts "ddddd"
+            token(container, @current_line)
+          end
+        elsif @offset < line.size && !@blank
+          container = add_child(Node::Type::Paragraph, @offset)
+          advance_next_nonspace!
+          add_line
+        end
+
+        @last_line_length = line.size
+      end
+    end
+
+    def token(container : Node, line_number : Int32)
+      above = container.parent
+      container.open = false
+      container.pos_range[1] = [line_number, @last_line_length]
+
+      @rules[container.type].token(self, container)
+
+      @tip = above.not_nil!
+    end
+
+    def add_line
+      if @partially_consumed_tab
+        @offset += 1
+        chars_to_tab = CODE_INDENT - (@column % 4)
+        @tip.text += " " * chars_to_tab
+      end
+
+      @tip.text += @line[@offset..-1] + "\n"
+    end
+
+    def add_child(tag : Node::Type, offset : Int32) : Node
+      while !@rules[@tip.type].can_contain(tag)
+        token(@tip, @current_line - 1)
+      end
+
+      column_number = offset + 1
+      node = Node.new(tag)
+      node.pos_range = [[@current_line, column_number], [0, 0]]
+      @tip.append_child(node)
+      @tip = node
+
+      node
+    end
+
+    def close_unmatched_blocks
+      unless @all_closed
+        puts @last_matched_container
+        while @oldtip != @last_matched_container
+          parent = @oldtip.not_nil!.parent
+          token(@oldtip, @current_line - 1)
+          @oldtip = parent.not_nil!
+        end
+
+        @all_closed = true
+      end
+    end
+
+    def find_next_nonspace!
+      line = @line
+      offset = @offset
+      column = @column
+
+      while char = line[offset] != ""
+        case char
+        when " "
+          offset += 1
+          column += 1
+        when "\t"
+          offset += 1
+          column += (4 - (column % 4))
+        else
+          break
+        end
+      end
+
+      @blank = ["\n", "\r", ""].includes?(char)
+      @next_nonspace = offset
+      @next_nonspace_column = column
+      @indent = @next_nonspace_column - @column
+      @indented = @indent >= CODE_INDENT
+    end
+
+    def advance_next_nonspace!
+      @offset = @next_nonspace
+      @column - @next_nonspace_column
+      @partially_consumed_tab = false
+    end
+
+    def advance_offset(count, columns = false)
+      line = @line
+      while count > 0 && (char = line[@offset])
+        if char == "\t"
+          chars_to_tab = CODE_INDENT - (@column % 4)
+          if columns
+            @partially_consumed_tab = chars_to_tab > count
+            chars_to_advance = chars_to_tab > count ? count : chars_to_tab
+            @column += chars_to_advance
+            @offset += @partially_consumed_tab ? 0 : 1
+            count -= chars_to_advance
+          else
+            @partially_consumed_tab = false
+            @column += chars_to_tab
+            @offset += 1
+            count -= 1
+          end
+        else
+          @partially_consumed_tab = false
+          @column += 1  # assume ascii; block starts are ascii
+          @offset += 1
+          count -= 1
+        end
+      end
+    end
+
+    private def match_html_block?(container)
+      if type = container.data["html_block_type"]
+        type = type.as(Int32)
+        type >= 1 && type <= 5 && Rule::HTMLBLOCKCLOSE[type].match(@line[@offset..-1])
+      else
+        false
+      end
+    end
+  end
+end

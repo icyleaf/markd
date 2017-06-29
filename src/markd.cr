@@ -1,4 +1,7 @@
+require "./markd/node"
+require "./markd/rule"
 require "./markd/lexer"
+require "./markd/context"
 require "./markd/renderer"
 require "./markd/parser"
 require "./markd/version"

@@ -1,8 +1,5 @@
 module Markd
   module Lexer
-    alias Token = Hash(String, String | Int32 | Bool)
-    alias Document = Array(Token)
-
     property next : Lexer | Nil
 
     abstract def call(context : Context)

@@ -1,5 +1,5 @@
-module Markd
-  class InlineLexer
+module Markd::Lexer
+  class Inline
     include Lexer
 
     struct Block
@@ -15,40 +15,36 @@ module Markd
     end
 
     @rules = Block.new
-    @document = Document.new
-    @tokens = Document.new
+    @document = Node.new(Node::Type::Document)
+    @tokens = @document
 
     def initialize(@src = "")
     end
 
     def call(context : Context)
-      @document = context.document
+      # @document = context.document
 
-      @document.each_with_index do |token, i|
-        @tokens = Document.new
+      # @document.each_with_index do |token, i|
+      #   @tokens = Document.new
 
-        case token["type"]
-        when "paragraph"
-          paragraph(token, i)
-        end
-      end
+      #   case token.type
+      #   when Node::Type::Paragraph
+      #     paragraph(token, i)
+      #   end
+      # end
 
-      context.document = @document
-      call_next(context)
+      # context.document = @document
+      # call_next(context)
     end
 
-    def paragraph(token : Token, index : Int32)
-      @document[index] = {
-        "type" => "paragaph_start",
-      }
+    def paragraph(token : Node, index : Int32)
+      @document[index] = Node.new(Node::Type::ParagraphStart)
 
-      token(token["text"], top: true).each_with_index do | new_token, shift|
+      token(token.text, top: true).each_with_index do | new_token, shift |
         @document.insert(index + shift + 1, new_token)
       end
 
-      @document.insert(index + @tokens.size + 1, {
-        "type" => "paragaph_end",
-      })
+      @document.insert(index + @tokens.size + 1, Node.new(Node::Type::ParagraphEnd))
     end
 
     def lex(token : Token, index : Int32)
@@ -65,11 +61,7 @@ module Markd
         if match = @rules.strong.match(src)
 
           src = delete_match(src, match)
-          @tokens.push({
-            "type" => "strong",
-            "source" => match[0],
-            "text" => match[2],
-          })
+          @tokens.push(Node.new(Node::Type::Strong, text: match[2], source: match[0]))
           next
         end
 
@@ -77,11 +69,7 @@ module Markd
         if match = @rules.text.match(src)
           # Top-level should never reach here.
           src = delete_match(src, match)
-          @tokens.push({
-            "type" => "text",
-            "source" => match[0],
-            "text" => match[0],
-          })
+          @tokens.push(Node.new(Node::Type::Text, source: match[0]))
           next
         end
 
