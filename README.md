@@ -1,5 +1,10 @@
 # markd
 
+![Status](https://img.shields.io/badge/status-WIP-blue.svg)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
+[![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
+[![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
+
 Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification.
 
 ## Installation
