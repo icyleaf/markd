@@ -124,7 +124,7 @@ module Markd::Lexer
         rules_size = @rules.size
 
         while i < rules_size
-          # puts "[#{i}/#{rules_size-1}] #{container}"
+          puts "[#{i}/#{rules_size}] #{@rules.keys[i]} #{container}"
           case @rules.values[i].match(self, container.not_nil!)
           when Rule::MatchValue::Container
             # puts " - container"

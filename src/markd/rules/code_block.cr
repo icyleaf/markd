@@ -7,7 +7,7 @@ module Markd::Rule
     end
 
     def match(context : Lexer, node : Node) : MatchValue
-      MatchValue::Skip
+      MatchValue::None
     end
 
     def continue(context : Lexer, node : Node)

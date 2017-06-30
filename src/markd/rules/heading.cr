@@ -2,12 +2,15 @@ module Markd::Rule
   class Heading
     include Rule
 
+    ATX_HEADING_MARKER = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
+    SETEXT_HEADING_MARKER = /^(?:=+|-+)[ \t]*$/
+
     def token(context : Lexer, node : Node)
       # do nothing
     end
 
     def match(context : Lexer, node : Node) : MatchValue
-      if match = match?(context, Rule::ATX_HEADING_MARKER)
+      if match = match?(context, ATX_HEADING_MARKER)
         # ATX Heading matched
         context.advance_next_nonspace!
         context.advance_offset(match[0].size, false)
@@ -20,7 +23,7 @@ module Markd::Rule
         context.advance_offset(context.line.size - context.offset)
 
         MatchValue::Leaf
-      elsif (match = match?(context, Rule::SETEXT_HEADING_MARKER)) &&
+      elsif (match = match?(context, SETEXT_HEADING_MARKER)) &&
              node.type == Node::Type::Paragraph
         # Setext Heading matched
         context.close_unmatched_blocks

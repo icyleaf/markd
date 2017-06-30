@@ -4,9 +4,6 @@ module Markd
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
     NONSPACE = /[^ \t\f\v\r\n]/
 
-    ATX_HEADING_MARKER = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
-    SETEXT_HEADING_MARKER = /^(?:=+|-+)[ \t]*$/
-
     HTMLBLOCKCLOSE = [
       /./, # dummy for 0
       /<\/(?:script|pre|style)>/i,
@@ -25,7 +22,6 @@ module Markd
       None
       Container
       Leaf
-      Skip
     end
 
     # parse

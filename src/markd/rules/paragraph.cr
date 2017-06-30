@@ -5,12 +5,13 @@ module Markd::Rule
     CHAR_CODE_OPEN_BRACKET = 91
 
     def token(context : Lexer, node : Node)
-      # do nothing?
+      # do nothing
     end
 
     def match(context : Lexer, node : Node)
       has_reference_defs = false
 
+      # FIXME: missing inline_lexer
       # && (pos = context.inline_lexer.parser_reference(node.text, context.refmap)
       while node.text.byte_at(0) == CHAR_CODE_OPEN_BRACKET
         # node.text = node.text[pos..-1]
@@ -21,7 +22,7 @@ module Markd::Rule
         end
       end
 
-      MatchValue::Skip
+      MatchValue::None
     end
 
     def continue(context : Lexer, node : Node)
