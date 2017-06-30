@@ -8,24 +8,19 @@ module Markd::Lexer
 
     @rules = {
       Node::Type::Document => Rule::Document.new,
-      Node::Type::List => Rule::List.new,
       Node::Type::BlockQuote => Rule::BlockQuote.new,
-      Node::Type::Item => Rule::Item.new,
       Node::Type::Heading => Rule::Heading.new,
-      Node::Type::ThematicBreak => Rule::ThematicBreak.new,
       Node::Type::CodeBlock => Rule::CodeBlock.new,
       Node::Type::HTMLBlock => Rule::HTMLBlock.new,
+      Node::Type::ThematicBreak => Rule::ThematicBreak.new,
+      Node::Type::List => Rule::List.new,
+      Node::Type::Item => Rule::Item.new,
       Node::Type::Paragraph => Rule::Paragraph.new
     }
 
-    # getter document : Node
-    # getter tip : Node?
-    # getter oldtip : Node?
-    # getter last_matched_container : Node?
+    property tip, offset, column
 
-    property tip
-
-    getter inline_lexer, current_line, line_size, offset, column, line, next_nonspace,
+    getter inline_lexer, current_line, line_size, line, next_nonspace,
            next_nonspace_column, indent, indented, blank, partially_consumed_tab,
            all_closed, last_matched_container, refmap, last_line_length
 
@@ -62,7 +57,7 @@ module Markd::Lexer
       @line_size = @lines.size
 
       @lines.each do |line|
-        process(line)
+        process_line(line)
       end
 
       while @tip
@@ -72,7 +67,7 @@ module Markd::Lexer
       context.document = @document
     end
 
-    def process(line : String)
+    def process_line(line : String)
       all_matched = true
       container = @document
       @oldtip = @tip
@@ -118,29 +113,26 @@ module Markd::Lexer
           break
         end
 
-        i = 0
+        rule_index = 0
         rules_size = @rules.size
 
-        while i < rules_size
-          puts "[#{i}/#{rules_size}] #{@rules.keys[i]} #{container}"
-          case @rules.values[i].match(self, container.not_nil!)
+        while rule_index < rules_size
+          puts "[#{rule_index}/#{rules_size - 1}] #{@rules.keys[rule_index]} #{container}"
+          case @rules.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
-            # puts " - container"
             container = @tip
             break
           when Rule::MatchValue::Leaf
-            # puts " - leaf"
             container = @tip
             matched_leaf = true
             break
           else
-            # puts " - none/skip/other"
-            i += 1
+            rule_index += 1
           end
         end
 
         # nothing matched
-        if i == rules_size
+        if rule_index == rules_size
           advance_next_nonspace
           break
         end
@@ -246,7 +238,7 @@ module Markd::Lexer
           end
         end
 
-        @blank = ['\n', '\r'].includes?(char)
+        @blank = char.whitespace?
       end
 
       @next_nonspace = offset

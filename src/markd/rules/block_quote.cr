@@ -2,15 +2,11 @@ module Markd::Rule
   class BlockQuote
     include Rule
 
-    def token(context : Lexer, node : Node)
-      # do nothing
-    end
-
-    def match(context : Lexer, node : Node)
-      if match?(context)
-        seek(context)
-        context.close_unmatched_blocks
-        context.add_child(Node::Type::BlockQuote, context.next_nonspace)
+    def match(parser : Lexer, container : Node)
+      if match?(parser)
+        seek(parser)
+        parser.close_unmatched_blocks
+        parser.add_child(Node::Type::BlockQuote, parser.next_nonspace)
 
         MatchValue::Container
       else
@@ -18,14 +14,18 @@ module Markd::Rule
       end
     end
 
-    def continue(context : Lexer, node : Node)
-      if match?(context)
-        seek(context)
+    def continue(parser : Lexer, container : Node)
+      if match?(parser)
+        seek(parser)
       else
         1
       end
 
       0
+    end
+
+    def token(parser : Lexer, container : Node)
+      # do nothing
     end
 
     def can_contain(type : Node::Type) : Bool
@@ -36,16 +36,16 @@ module Markd::Rule
       false
     end
 
-    private def match?(context)
-      !context.indented && char_code_at(context) == Rule::CHAR_CODE_GREATERTHAN
+    private def match?(parser)
+      !parser.indented && char_code_at(parser) == Rule::CHAR_CODE_GREATERTHAN
     end
 
-    private def seek(context : Lexer)
-      context.advance_next_nonspace
-      context.advance_offset(1, false)
+    private def seek(parser : Lexer)
+      parser.advance_next_nonspace
+      parser.advance_offset(1, false)
 
-      if [CHAR_CODE_TAB, CHAR_CODE_SPACE].includes?(char_code_at(context, context.offset))
-        context.advance_offset(1, true);
+      if blank?(char_code_at(parser, parser.offset))
+        parser.advance_offset(1, true);
       end
     end
   end

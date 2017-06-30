@@ -2,27 +2,27 @@ module Markd::Rule
   class Paragraph
     include Rule
 
-    def token(context : Lexer, node : Node)
-      # do nothing
-    end
-
-    def match(context : Lexer, node : Node)
+    def match(parser : Lexer, container : Node)
       has_reference_defs = false
 
-      while !node.text.empty? && node.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
-            (pos = context.inline_lexer.parse_reference(node.text, context.refmap))
+      while !container.text.empty? && container.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
+            (pos = parser.inline_lexer.parse_reference(container.text, parser.refmap))
 
-        node.text = node.text[pos..-1]
+        container.text = container.text[pos..-1]
         has_reference_defs = true
       end
 
-      node.unlink if has_reference_defs && node.text.match(Rule::NONSPACE)
+      container.unlink if has_reference_defs && container.text.match(Rule::NONSPACE)
 
       MatchValue::None
     end
 
-    def continue(context : Lexer, node : Node)
-      context.blank ? 1 : 0
+    def continue(parser : Lexer, container : Node)
+      parser.blank ? 1 : 0
+    end
+
+    def token(parser : Lexer, container : Node)
+      # do nothing
     end
 
     def can_contain(t)

@@ -2,17 +2,17 @@ module Markd::Rule
   class ThematicBreak
     include Rule
 
-    def token(context : Lexer, node : Node)
-
-    end
-
-    def match(context : Lexer, node : Node)
+    def match(parser : Lexer, container : Node)
       MatchValue::None
     end
 
-    def continue(context : Lexer, node : Node)
+    def continue(parser : Lexer, container : Node)
       # a thematic break can never container > 1 line, so fail to match:
       1
+    end
+
+    def token(parser : Lexer, container : Node)
+
     end
 
     def can_contain(t)

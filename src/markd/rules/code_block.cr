@@ -2,17 +2,17 @@ module Markd::Rule
   class CodeBlock
     include Rule
 
-    def token(context : Lexer, node : Node)
-
-    end
-
-    def match(context : Lexer, node : Node) : MatchValue
+    def match(parser : Lexer, container : Node) : MatchValue
       MatchValue::None
     end
 
-    def continue(context : Lexer, node : Node)
+    def continue(parser : Lexer, container : Node)
       # 0/1
       0
+    end
+
+    def token(parser : Lexer, container : Node)
+
     end
 
     def can_contain(t)

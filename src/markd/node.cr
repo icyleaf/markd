@@ -14,10 +14,13 @@ module Markd
       HTMLBlock
     end
 
+    alias DataValue = String|Int32|Bool
+    alias DataType = Hash(String, DataValue)
+
     property type : Type
     property text : String
 
-    property data : Hash(String, String|Int32|Bool)
+    property data : Hash(String, DataValue)
 
     property parent : Node?
     property first_child : Node?
@@ -32,7 +35,7 @@ module Markd
     property last_line_blank : Bool
 
     def initialize(@type, **options)
-      @data = {} of String => String|Int32|Bool
+      @data = {} of String => DataValue
       @text = ""
       @open = true
       @fenced = false

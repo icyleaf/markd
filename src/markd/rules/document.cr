@@ -2,16 +2,16 @@ module Markd::Rule
   class Document
     include Rule
 
-    def token(context : Lexer, node : Node)
-      # do nothing
-    end
-
-    def match(context : Lexer, node : Node)
+    def match(parser : Lexer, container : Node)
       MatchValue::None
     end
 
-    def continue(context : Lexer, node : Node)
+    def continue(parser : Lexer, container : Node)
       0
+    end
+
+    def token(parser : Lexer, container : Node)
+      # do nothing
     end
 
     def can_contain(type : Node::Type) : Bool
