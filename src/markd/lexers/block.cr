@@ -6,8 +6,6 @@ module Markd::Lexer
       new.parse(context)
     end
 
-    CODE_INDENT = 4
-
     @rules = {
       Node::Type::Document => Rule::Document.new,
       Node::Type::List => Rule::List.new,
@@ -27,9 +25,9 @@ module Markd::Lexer
 
     property tip
 
-    getter current_line, line_size, offset, column, line, next_nonspace, next_nonspace_column,
-           indent, indented, blank, partially_consumed_tab, all_closed, last_matched_container,
-           refmap, last_line_length
+    getter inline_lexer, current_line, line_size, offset, column, line, next_nonspace,
+           next_nonspace_column, indent, indented, blank, partially_consumed_tab,
+           all_closed, last_matched_container, refmap, last_line_length
 
     @inline_lexer = Lexer::Inline.new
 
@@ -86,7 +84,7 @@ module Markd::Lexer
       while (last_child = container.last_child) && last_child.open
         container = last_child
 
-        find_next_nonspace!
+        find_next_nonspace
 
         case @rules[container.type].continue(self, container)
         when 0
@@ -113,10 +111,10 @@ module Markd::Lexer
       matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
 
       while !matched_leaf
-        find_next_nonspace!
+        find_next_nonspace
 
         if !@indented && !Rule::MAYBE_SPECIAL.match(@next_nonspace.to_s)
-          advance_next_nonspace!
+          advance_next_nonspace
           break
         end
 
@@ -143,7 +141,7 @@ module Markd::Lexer
 
         # nothing matched
         if i == rules_size
-          advance_next_nonspace!
+          advance_next_nonspace
           break
         end
       end
@@ -175,7 +173,7 @@ module Markd::Lexer
           end
         elsif @offset < line.size && !@blank
           container = add_child(Node::Type::Paragraph, @offset)
-          advance_next_nonspace!
+          advance_next_nonspace
           add_line
         end
 
@@ -195,7 +193,7 @@ module Markd::Lexer
     def add_line
       if @partially_consumed_tab
         @offset += 1
-        chars_to_tab = CODE_INDENT - (@column % 4)
+        chars_to_tab = Rule::CODE_INDENT - (@column % 4)
         @tip.not_nil!.text += " " * chars_to_tab
       end
 
@@ -218,7 +216,6 @@ module Markd::Lexer
 
     def close_unmatched_blocks
       unless @all_closed
-        puts @last_matched_container
         while @oldtip != @last_matched_container
           parent = @oldtip.not_nil!.parent
           token(@oldtip.not_nil!, @current_line - 1)
@@ -229,32 +226,36 @@ module Markd::Lexer
       end
     end
 
-    def find_next_nonspace!
-      line = @line
+    def find_next_nonspace
       offset = @offset
       column = @column
 
-      while char = line[offset] != ""
-        case char
-        when " "
-          offset += 1
-          column += 1
-        when "\t"
-          offset += 1
-          column += (4 - (column % 4))
-        else
-          break
+      if @line.empty?
+        @blank = true
+      else
+        while char = @line[offset]
+          case char
+          when ' '
+            offset += 1
+            column += 1
+          when '\t'
+            offset += 1
+            column += (4 - (column % 4))
+          else
+            break
+          end
         end
+
+        @blank = ['\n', '\r'].includes?(char)
       end
 
-      @blank = ["\n", "\r", ""].includes?(char)
       @next_nonspace = offset
       @next_nonspace_column = column
       @indent = @next_nonspace_column - @column
-      @indented = @indent >= CODE_INDENT
+      @indented = @indent >= Rule::CODE_INDENT
     end
 
-    def advance_next_nonspace!
+    def advance_next_nonspace
       @offset = @next_nonspace
       @column - @next_nonspace_column
       @partially_consumed_tab = false
@@ -264,7 +265,7 @@ module Markd::Lexer
       line = @line
       while count > 0 && (char = line[@offset])
         if char == "\t"
-          chars_to_tab = CODE_INDENT - (@column % 4)
+          chars_to_tab = Rule::CODE_INDENT - (@column % 4)
           if columns
             @partially_consumed_tab = chars_to_tab > count
             chars_to_advance = chars_to_tab > count ? count : chars_to_tab
@@ -289,7 +290,7 @@ module Markd::Lexer
     private def match_html_block?(container : Node)
       if type = container.data["html_block_type"]
         type = type.as(Int32)
-        type >= 1 && type <= 5 && Rule::HTMLBLOCKCLOSE[type].match(@line[@offset..-1])
+        type >= 1 && type <= 5 && Rule::HTMLBLOCK_CLOSE[type].match(@line[@offset..-1])
       else
         false
       end

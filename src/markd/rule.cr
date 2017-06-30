@@ -4,7 +4,7 @@ module Markd
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
     NONSPACE = /[^ \t\f\v\r\n]/
 
-    HTMLBLOCKCLOSE = [
+    HTMLBLOCK_CLOSE = [
       /./, # dummy for 0
       /<\/(?:script|pre|style)>/i,
       /-->/,
@@ -12,6 +12,15 @@ module Markd
       />/,
       /\]\]>/
     ]
+
+    CODE_INDENT = 4
+
+    CHAR_CODE_TAB = 9
+    CHAR_CODE_NEWLINE = 10
+    CHAR_CODE_SPACE = 32
+    CHAR_CODE_LESSTHAN = 60
+    CHAR_CODE_GREATERTHAN = 62
+    CHAR_CODE_OPEN_BRACKET = 91
 
     # Match Value
     #
@@ -35,6 +44,16 @@ module Markd
 
     # accepts_line
     abstract def accepts_lines? : Bool
+
+    def text_clean(context : Lexer) : String
+      context.line[context.next_nonspace..-1]
+    end
+
+    def char_code_at(context : Lexer, index = context.next_nonspace) : UInt8?
+      return nil if context.line.empty?
+
+      context.line.byte_at(index)
+    end
   end
 end
 
