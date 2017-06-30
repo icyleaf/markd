@@ -2,81 +2,76 @@ module Markd::Lexer
   class Inline
     include Lexer
 
-    struct Block
-      property strong, text
+    @text = ""
+    @pos = 0
+    @refmap = {} of String => String
 
-      STRONG = /^__([\s\S]+?)__(?!_)|^\*\*([\s\S]+?)\*\*(?!\*)/
-      TEXT      = /^[^\n]+/
+    def parse_reference(text : String, refmap)
+      @text = text
+      @pos = 0
 
-      def initialize
-        @strong = STRONG
-        @text = TEXT
-      end
-    end
+      startpos = @pos
+      # match_chars = parse_link_label
 
-    @rules = Block.new
-    @document = Node.new(Node::Type::Document)
-    @tokens = @document
+      # # label
+      # return 0 if match_chars == 0
+      # raw_label = @text[0..match_chars]
 
-    def initialize(@src = "")
-    end
+      # # colon
+      # if peek == CHAR_CODE_COLON
+      #   @pos += 1
+      # else
+      #   @post = startpos
+      #   return 0
+      # end
 
-    def call(context : Context)
-      # @document = context.document
+      # # link url
+      # spnl
 
-      # @document.each_with_index do |token, i|
-      #   @tokens = Document.new
+      # dest = parse_link_description
+      # if dest.size == 0
+      #   @pos = startpos
+      #   return 0
+      # end
 
-      #   case token.type
-      #   when Node::Type::Paragraph
-      #     paragraph(token, i)
+      # before_title = @pos
+      # spnl
+      # title = parse_link_title
+      # unless title
+      #   title = ""
+      #   @pos = before_title
+      # end
+
+      # at_line_end = true
+      # unless match(Rule::SPACE_AT_END_OF_LINE)
+      #   if title.empty?
+      #     at_line_end = false
+      #   else
+      #     title = ""
+      #     @pos = before_title
+      #     at_line_end = match(Rule::SPACE_AT_END_OF_LINE) != nil
       #   end
       # end
 
-      # context.document = @document
-      # call_next(context)
-    end
+      # unless at_line_end
+      #   @pos = startpos
+      #   return 0
+      # end
 
-    def paragraph(token : Node, index : Int32)
-      @document[index] = Node.new(Node::Type::ParagraphStart)
+      # normal_label = normalize_reference(raw_label)
+      # unless normal_label
+      #   @pos = startpos
+      #   return 0
+      # end
 
-      token(token.text, top: true).each_with_index do | new_token, shift |
-        @document.insert(index + shift + 1, new_token)
-      end
+      # unless refmap[normal_label]
+      #   refmap[normal_label] = {
+      #     "destination" => dest,
+      #     "title" => title
+      #   }
+      # end
 
-      @document.insert(index + @tokens.size + 1, Node.new(Node::Type::ParagraphEnd))
-    end
-
-    def lex(token : Token, index : Int32)
-      token(token.text, top: true)
-    end
-
-    def token(src, top = false)
-      src = src.to_s.gsub(/^ +$/m, "")
-
-      while src
-        break if src.empty?
-
-        # strong
-        if match = @rules.strong.match(src)
-
-          src = delete_match(src, match)
-          @tokens.push(Node.new(Node::Type::Strong, text: match[2], source: match[0]))
-          next
-        end
-
-        # text
-        if match = @rules.text.match(src)
-          # Top-level should never reach here.
-          src = delete_match(src, match)
-          @tokens.push(Node.new(Node::Type::Text, source: match[0]))
-          next
-        end
-
-        break
-      end
-
-      @tokens
+      return @pos - startpos
     end
   end
 end

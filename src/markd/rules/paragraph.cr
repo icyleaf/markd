@@ -2,8 +2,6 @@ module Markd::Rule
   class Paragraph
     include Rule
 
-    CHAR_CODE_OPEN_BRACKET = 91
-
     def token(context : Lexer, node : Node)
       # do nothing
     end
@@ -11,16 +9,14 @@ module Markd::Rule
     def match(context : Lexer, node : Node)
       has_reference_defs = false
 
-      # FIXME: missing inline_lexer
-      # && (pos = context.inline_lexer.parser_reference(node.text, context.refmap)
-      while node.text.byte_at(0) == CHAR_CODE_OPEN_BRACKET
-        # node.text = node.text[pos..-1]
-        has_reference_defs = true
+      while !node.text.empty? && node.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
+            (pos = context.inline_lexer.parse_reference(node.text, context.refmap))
 
-        if has_reference_defs && node.text.match(Rule::NONSPACE)
-          node.unlink
-        end
+        node.text = node.text[pos..-1]
+        has_reference_defs = true
       end
+
+      node.unlink if has_reference_defs && node.text.match(Rule::NONSPACE)
 
       MatchValue::None
     end

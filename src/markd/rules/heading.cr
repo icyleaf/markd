@@ -12,7 +12,7 @@ module Markd::Rule
     def match(context : Lexer, node : Node) : MatchValue
       if match = match?(context, ATX_HEADING_MARKER)
         # ATX Heading matched
-        context.advance_next_nonspace!
+        context.advance_next_nonspace
         context.advance_offset(match[0].size, false)
         context.close_unmatched_blocks
 
@@ -61,10 +61,6 @@ module Markd::Rule
     private def match?(context : Lexer, regex : Regex) : Regex::MatchData?
       match = text_clean(context).match(regex)
       !context.indented && match ? match : nil
-    end
-
-    private def text_clean(context : Lexer) : String
-      context.line[context.next_nonspace..-1]
     end
   end
 end
