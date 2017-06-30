@@ -67,7 +67,7 @@ module Markd::Rule
     end
 
     private def parse_list_marker(parser : Lexer, container : Node) : Node::DataType
-      line = peek(parser)
+      line = text_clean(parser)
 
       empty_data = {} of String => Node::DataValue
       data = {
@@ -98,7 +98,7 @@ module Markd::Rule
       end
 
       if container.type == Node::Type::Paragraph &&
-         !peek(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
+         !text_clean(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
          return empty_data
       end
 

@@ -1,8 +1,14 @@
 module Markd
   module Rule
+    BACKSLASH_OR_AMP = /[\\&]/
     NONSPACE = /[^ \t\f\v\r\n]/
     MAYBE_SPECIAL = /^[#`~*+_=<>0-9-]/
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
+
+    ENTITY = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
+    ESCAPABLE = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
+    ENTITY_OR_ESCAPED_CHAR = /\\\\#{ESCAPABLE}|#{ENTITY}/i
+
     HTMLBLOCK_CLOSE = [
       /./, # dummy for 0
       /<\/(?:script|pre|style)>/i,
@@ -20,6 +26,7 @@ module Markd
     CHAR_CODE_LESSTHAN = 60
     CHAR_CODE_GREATERTHAN = 62
     CHAR_CODE_OPEN_BRACKET = 91
+    CHAR_CODE_BACKSLASH = 92
 
     # Match Value
     #
@@ -44,7 +51,7 @@ module Markd
     # accepts_line
     abstract def accepts_lines? : Bool
 
-    def peek(parser : Lexer, index = parser.next_nonspace) : String
+    def text_clean(parser : Lexer, index = parser.next_nonspace) : String
       parser.line[index..-1]
     end
 
@@ -56,6 +63,22 @@ module Markd
     def blank?(code : UInt8, include_nil = false) : Bool
       # return true if include_nil && !code
       [CHAR_CODE_SPACE, CHAR_CODE_TAB].includes?(code)
+    end
+
+    def unescape_char(text : String)
+      if text.byte_at(0) == CHAR_CODE_BACKSLASH
+        text[1]
+      else
+        HTML.unescape(s)
+      end
+    end
+
+    def unescape_string(text : String)
+      if text =~ BACKSLASH_OR_AMP
+        text.gsub(ENTITY_OR_ESCAPED_CHAR, unescape_char)
+      else
+        text
+      end
     end
   end
 end

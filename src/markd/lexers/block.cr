@@ -107,7 +107,8 @@ module Markd::Lexer
       while !matched_leaf
         find_next_nonspace
 
-        if !@indented && !Rule::MAYBE_SPECIAL.match(@next_nonspace.to_s)
+        # this is a little performance optimization
+        if !@indented && !@line[next_nonspace..-1].match(Rule::MAYBE_SPECIAL)
           advance_next_nonspace
           break
         end

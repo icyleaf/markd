@@ -27,19 +27,30 @@ module Markd
     property last_child : Node?
     property source_pos : Array(Array(Int32))
     property open
+    property last_line_blank : Bool
 
     property prev : Node?
     property next : Node?
 
     property fenced : Bool
-    property last_line_blank : Bool
+    property fence_language : String
+    property literal : String
+    property fence_char : String
+    property fence_length : Int32
+    property fence_offset : Int32
 
     def initialize(@type, **options)
       @data = {} of String => DataValue
+      @source_pos = [[1, 1], [0, 0]]
       @text = ""
       @open = true
+
       @fenced = false
-      @source_pos = [[1, 1], [0, 0]]
+      @literal = ""
+      @fence_language = ""
+      @fence_char = ""
+      @fence_length = 0
+      @fence_offset = 0
 
       @last_line_blank = false
       @html_block_type = -1
