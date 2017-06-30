@@ -44,7 +44,7 @@ module Markd
     # accepts_line
     abstract def accepts_lines? : Bool
 
-    def text_clean(parser : Lexer, index = parser.next_nonspace) : String
+    def peek(parser : Lexer, index = parser.next_nonspace) : String
       parser.line[index..-1]
     end
 

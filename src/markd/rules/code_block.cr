@@ -12,15 +12,16 @@ module Markd::Rule
     end
 
     def token(parser : Lexer, container : Node)
+      # if container.is_fenced
 
     end
 
     def can_contain(t)
-      true
+      false
     end
 
     def accepts_lines?
-      false
+      true
     end
   end
 end

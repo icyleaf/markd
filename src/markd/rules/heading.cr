@@ -58,7 +58,7 @@ module Markd::Rule
     end
 
     private def match?(parser : Lexer, regex : Regex) : Regex::MatchData?
-      match = text_clean(parser).match(regex)
+      match = peek(parser).match(regex)
       !parser.indented && match ? match : nil
     end
   end

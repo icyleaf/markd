@@ -53,9 +53,8 @@ module Markd::Lexer
     @last_line_length = 0
 
     def parse(context : Context)
-      @lines = text_clean(context.source).split(/\r\n|\n|\r/)
+      @lines = context.source.split(/\r\n|\n|\r/)
       @line_size = @lines.size
-
       @lines.each do |line|
         process_line(line)
       end
