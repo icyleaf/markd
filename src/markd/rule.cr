@@ -1,26 +1,43 @@
 module Markd
   module Rule
+    ENTITY_STRING = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
+    ESCAPABLE_STRING = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
+
+    TAG_NAME_STRING = "[A-Za-z][A-Za-z0-9-]*"
+    ATTRIBUTE_NAME_STRING = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
+    UNQUOTED_VALUE_STRING = "[^\"'=<>`\\x00-\\x20]+"
+    SINGLE_QUOTED_VALUE_STRING = "'[^']*'"
+    DOUBLE_QUOTED_VALUE_STRING = "\"[^\"]*\""
+    ATTRIBUTE_VALUE_STRING = "(?:" + UNQUOTED_VALUE_STRING + "|" + SINGLE_QUOTED_VALUE_STRING + "|" + DOUBLE_QUOTED_VALUE_STRING + ")"
+    ATTRIBUTE_VALUE_SPEC_STRING = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE_STRING + ")"
+    ATTRIBUTE = "(?:" + "\\s+" + ATTRIBUTE_NAME_STRING + ATTRIBUTE_VALUE_SPEC_STRING + "?)"
+
+    FINAL_SPACE = / *$/
+    INITIAL_SPACE = /^ */
+
     BACKSLASH_OR_AMP = /[\\&]/
     NONSPACE = /[^ \t\f\v\r\n]/
     MAYBE_SPECIAL = /^[#`~*+_=<>0-9-]/
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
 
-    ENTITY = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
-    ESCAPABLE = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
-    ENTITY_OR_ESCAPED_CHAR = /\\\\#{ESCAPABLE}|#{ENTITY}/i
+    ESCAPABLE = /^#{ESCAPABLE_STRING}/
+    ENTITY_OR_ESCAPED_CHAR = /\\\\#{ESCAPABLE_STRING}|#{ENTITY_STRING}/i
+    ENTITY_HERE = /^#{ENTITY_STRING}/i
 
+    TICKS = /`+/
+    TICKS_HERE = /^`+/
 
-    TAG_NAME = "[A-Za-z][A-Za-z0-9-]*"
-    ATTRIBUTE_NAME = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
-    UNQUOTED_VALUE = "[^\"'=<>`\\x00-\\x20]+"
-    SINGLE_QUOTED_VALUE = "'[^']*'"
-    DOUBLE_QUOTED_VALUE = "\"[^\"]*\""
-    ATTRIBUTE_VALUE = "(?:" + UNQUOTED_VALUE + "|" + SINGLE_QUOTED_VALUE + "|" + DOUBLE_QUOTED_VALUE + ")"
-    ATTRIBUTE_VALUE_SPEC = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE + ")"
-    ATTRIBUTE = "(?:" + "\\s+" + ATTRIBUTE_NAME + ATTRIBUTE_VALUE_SPEC + "?)"
+    OPEN_TAG = "<" + TAG_NAME_STRING + ATTRIBUTE + "*" + "\\s*/?>"
+    CLOSE_TAG = "</" + TAG_NAME_STRING + "\\s*[>]"
 
-    OPEN_TAG = "<" + TAG_NAME + ATTRIBUTE + "*" + "\\s*/?>"
-    CLOSE_TAG = "</" + TAG_NAME + "\\s*[>]"
+    OPEN_TAG_STRING = "<#{TAG_NAME_STRING}#{ATTRIBUTE}*" + "\\s*/?>";
+    CLOSE_TAG_STRING = "</#{TAG_NAME_STRING}\\s*[>]"
+    COMMENT_STRING = "<!---->|<!--(?:-?[^>-])(?:-?[^-])*-->"
+    PROCESSING_INSTRUCTION_STRING = "[<][?].*?[?][>]"
+    DECLARATION_STRING = "<![A-Z]+" + "\\s+[^>]*>"
+    CDATA_STRING = "<!\\[CDATA\\[[\\s\\S]*?\\]\\]>"
+    HTML_TAG_STRING = "(?:#{OPEN_TAG_STRING}|#{CLOSE_TAG_STRING}|#{COMMENT_STRING}|#{PROCESSING_INSTRUCTION_STRING}|#{DECLARATION_STRING}|#{CDATA_STRING})"
+    HTML_TAG = /^#{HTML_TAG_STRING}/i
 
     HTML_BLOCK_OPEN = [
       /^<(?:script|pre|style)(?:\s|>|$)/i,
@@ -40,15 +57,29 @@ module Markd
       /\]\]>/
     ]
 
+    EMAIL_AUTO_LINK = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
+    AUTO_LINK = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
+
     CODE_INDENT = 4
 
     CHAR_CODE_TAB = 9
     CHAR_CODE_NEWLINE = 10
     CHAR_CODE_SPACE = 32
+    CHAR_CODE_BANG = 33
+    CHAR_CODE_AMPERSAND = 38
+    CHAR_CODE_OPEN_PAREN = 40
+    CHAR_CODE_CLOSE_PAREN = 41
+    CHAR_CODE_ASTERISK = 42
+    CHAR_CODE_COLON = 58
     CHAR_CODE_LESSTHAN = 60
     CHAR_CODE_GREATERTHAN = 62
     CHAR_CODE_OPEN_BRACKET = 91
+    CHAR_CODE_CLOSE_BRACKET = 93
     CHAR_CODE_BACKSLASH = 92
+    CHAR_CODE_UNDERSCORE = 95
+    CHAR_CODE_BACKTICK = 96
+    CHAR_CODE_SINGLE_QUOTE = 39
+    CHAR_CODE_DOUBLE_QUOTE = 34
 
     # Match Value
     #

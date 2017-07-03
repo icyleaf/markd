@@ -6,7 +6,7 @@ module Markd::Rule
       has_reference_defs = false
 
       while !container.text.empty? && container.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
-            (pos = parser.inline_lexer.parse_reference(container.text, parser.refmap))
+            (pos = parser.inline_lexer.reference(container.text, parser.refmap))
 
         container.text = container.text[pos..-1]
         has_reference_defs = true

@@ -14,11 +14,11 @@ module Markd::Rule
         parser.close_unmatched_blocks
         if parser.tip.not_nil!.type != Node::Type::List || !list_match?(container.data, data.not_nil!)
           list_node = parser.add_child(Node::Type::List, parser.next_nonspace)
-          list_node.data = data.not_nil!
+          list_node.data = data #.not_nil!
         end
 
         item_node = parser.add_child(Node::Type::Item, parser.next_nonspace)
-        item_node.data = data.not_nil!
+        item_node.data = data #.not_nil!
 
         MatchValue::Container
       else

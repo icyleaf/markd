@@ -59,11 +59,15 @@ module Markd::Lexer
         process_line(line)
       end
 
-      while @tip
-        token(@tip.not_nil!, @line_size)
+      while tip = @tip
+        token(tip, @line_size)
       end
 
+      process_inlines(@document)
+
       context.document = @document
+
+      self
     end
 
     def process_line(line : String)
@@ -117,7 +121,7 @@ module Markd::Lexer
         rules_size = @rules.size
 
         while rule_index < rules_size
-          puts "[#{rule_index}/#{rules_size - 1}] #{@rules.keys[rule_index]} #{container}"
+          # puts "[#{rule_index}/#{rules_size - 1}] #{@rules.keys[rule_index]} #{container}"
           case @rules.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
             container = @tip
@@ -170,6 +174,18 @@ module Markd::Lexer
         end
 
         @last_line_length = line.size
+      end
+    end
+
+    def process_inlines(container)
+      walker = Node::Walker.new(container)
+
+      @inline_lexer.refmap = @refmap
+      while (event = walker.next)
+        node = event["node"].as(Node)
+        if !event["entering"] && [Node::Type::Paragraph, Node::Type::Heading].includes?(node.type)
+          @inline_lexer.parse(node)
+        end
       end
     end
 
