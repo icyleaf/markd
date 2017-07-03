@@ -9,8 +9,30 @@ module Markd
     ESCAPABLE = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
     ENTITY_OR_ESCAPED_CHAR = /\\\\#{ESCAPABLE}|#{ENTITY}/i
 
-    HTMLBLOCK_CLOSE = [
-      /./, # dummy for 0
+
+    TAG_NAME = "[A-Za-z][A-Za-z0-9-]*"
+    ATTRIBUTE_NAME = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
+    UNQUOTED_VALUE = "[^\"'=<>`\\x00-\\x20]+"
+    SINGLE_QUOTED_VALUE = "'[^']*'"
+    DOUBLE_QUOTED_VALUE = "\"[^\"]*\""
+    ATTRIBUTE_VALUE = "(?:" + UNQUOTED_VALUE + "|" + SINGLE_QUOTED_VALUE + "|" + DOUBLE_QUOTED_VALUE + ")"
+    ATTRIBUTE_VALUE_SPEC = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE + ")"
+    ATTRIBUTE = "(?:" + "\\s+" + ATTRIBUTE_NAME + ATTRIBUTE_VALUE_SPEC + "?)"
+
+    OPEN_TAG = "<" + TAG_NAME + ATTRIBUTE + "*" + "\\s*/?>"
+    CLOSE_TAG = "</" + TAG_NAME + "\\s*[>]"
+
+    HTML_BLOCK_OPEN = [
+      /^<(?:script|pre|style)(?:\s|>|$)/i,
+      /^<!--/,
+      /^<[?]/,
+      /^<![A-Z]/,
+      /^<!\[CDATA\[/,
+      /^<[\/]?(?:address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[123456]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|section|source|title|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul)(?:\s|[\/]?[>]|$)/i,
+      /^(?:#{OPEN_TAG}|#{CLOSE_TAG})\\s*$/i
+    ]
+
+    HTML_BLOCK_CLOSE = [
       /<\/(?:script|pre|style)>/i,
       /-->/,
       /\?>/,

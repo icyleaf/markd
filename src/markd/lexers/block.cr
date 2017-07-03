@@ -149,7 +149,7 @@ module Markd::Lexer
         while cont
           last_line_blank = @blank &&
                             !(t == Node::Type::BlockQuote ||
-                            (t == Node::Type::CodeBlock && container.not_nil!.fenced) ||
+                            (t == Node::Type::CodeBlock && container.not_nil!.fenced?) ||
                             (t == Node::Type::Item && !container.not_nil!.first_child && container.not_nil!.source_pos[0][0] == @current_line))
 
           cont.not_nil!.last_line_blank = last_line_blank
@@ -280,9 +280,9 @@ module Markd::Lexer
     end
 
     private def match_html_block?(container : Node)
-      if type = container.data["html_block_type"]
-        type = type.as(Int32)
-        type >= 1 && type <= 5 && Rule::HTMLBLOCK_CLOSE[type].match(@line[@offset..-1])
+      if block_type = container.data["html_block_type"]
+        block_type = block_type.as(Int32)
+        block_type >= 1 && block_type <= 5 && Rule::HTML_BLOCK_CLOSE[block_type].match(@line[@offset..-1])
       else
         false
       end

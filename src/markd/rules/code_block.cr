@@ -38,9 +38,8 @@ module Markd::Rule
     def continue(parser : Lexer, container : Node)
       line = parser.line
       indent = parser.indent
-      if container.fenced
+      if container.fenced?
         # fenced
-        # TODO: indent <= Rule::CODE_INDENT is missing first char
         match = indent <= Rule::CODE_INDENT &&
                 line.byte_at(parser.next_nonspace) == container.fence_char &&
                 line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
@@ -69,7 +68,7 @@ module Markd::Rule
     end
 
     def token(parser : Lexer, container : Node)
-      if container.fenced
+      if container.fenced?
         content = container.text
         newline_pos = content.index("\n")
         newline_pos = -1 unless newline_pos

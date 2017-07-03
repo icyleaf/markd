@@ -25,12 +25,12 @@ module Markd
     property parent : Node?
     property first_child : Node?
     property last_child : Node?
+    property prev : Node?
+    property next : Node?
+
     property source_pos : Array(Array(Int32))
     property open
     property last_line_blank : Bool
-
-    property prev : Node?
-    property next : Node?
 
     property fenced : Bool
     property fence_language : String
@@ -53,7 +53,6 @@ module Markd
       @fence_offset = 0
 
       @last_line_blank = false
-      @html_block_type = -1
     end
 
     def append_child(child : Node)
@@ -110,11 +109,10 @@ module Markd
     def to_s(io : IO)
       io << "#<" << {{@type.name.id.stringify}} << ":0x"
       object_id.to_s(16, io)
-
       io << " @type=#{@type}"
       io << " @parent=#{@parent}" if @parent
       io << " @next=#{@next}" if @next
-
+      io << " @data=#{@data}" if @data.size > 0
       io << ">"
       nil
     end
