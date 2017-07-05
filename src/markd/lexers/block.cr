@@ -63,9 +63,9 @@ module Markd::Lexer
         token(tip, @line_size)
       end
 
-      process_inlines(@document)
-
       context.document = @document
+
+      process_inlines(context)
 
       self
     end
@@ -177,9 +177,10 @@ module Markd::Lexer
       end
     end
 
-    def process_inlines(container)
-      walker = Node::Walker.new(container)
+    def process_inlines(context)
+      walker = Node::Walker.new(context.document)
 
+      @inline_lexer.context = context
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
         node = event["node"].as(Node)

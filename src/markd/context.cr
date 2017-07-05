@@ -1,14 +1,13 @@
 module Markd
   module Lexer
     class Context
-      getter source : String
-      getter options : Hash(String, Parser::AnyType)
-
       property document : Node
+      property source : String
+      property options : Hash(String, Parser::AnyType)
 
       # :nodoc:
       def initialize(
-                     @source : String,
+                     @source = "",
                      @options = {} of String => Parser::AnyType,
                      @document = Node.new(Node::Type::Document)
                     )
