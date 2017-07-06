@@ -118,6 +118,10 @@ module Markd
       @fenced == true
     end
 
+    def walker
+      Walker.new(self)
+    end
+
     def to_s(io : IO)
       io << "#<" << {{@type.name.id.stringify}} << ":0x"
       object_id.to_s(16, io)
@@ -129,7 +133,7 @@ module Markd
       nil
     end
 
-    struct Walker
+    private class Walker
       property current : Node?
       property root : Node
       property entering : Bool

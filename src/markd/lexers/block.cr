@@ -2,8 +2,12 @@ module Markd::Lexer
   class Block
     include Lexer
 
-    def self.parse(context : Context)
-      new.parse(context)
+    def self.parse(source : String)
+      new(Options.new).parse(source)
+    end
+
+    def self.parse(source : String, options : Options)
+      new(options).parse(source)
     end
 
     @rules = {
@@ -18,56 +22,59 @@ module Markd::Lexer
       Node::Type::Paragraph => Rule::Paragraph.new
     }
 
-    property tip, offset, column
+    property tip : Node?
+    property offset, column
 
-    getter inline_lexer, current_line, line_size, line, next_nonspace,
-           next_nonspace_column, indent, indented, blank, partially_consumed_tab,
-           all_closed, last_matched_container, refmap, last_line_length
+    getter line, current_line, blank, inline_lexer,
+           indent, indented, next_nonspace, refmap
 
-    @inline_lexer = Lexer::Inline.new
+    def initialize(@options : Options)
+      @inline_lexer = Lexer::Inline.new(@options)
 
-    @document = Node.new(Node::Type::Document)
-    @tip : Node?
-    @tip = @document
-    @oldtip = @tip
-    @last_matched_container = @document
+      @document = Node.new(Node::Type::Document)
+      @tip = @document
+      @oldtip = @tip
+      @last_matched_container = @tip
 
-    @lines = [] of String
-    @line = ""
+      @lines = [] of String
+      @line = ""
 
-    @current_line = 0
-    @line_size = 0
-    @offset = 0
-    @column = 0
+      @current_line = 0
+      @line_size = 0
+      @offset = 0
+      @column = 0
+      @last_line_length = 0
 
-    @next_nonspace = 0
-    @next_nonspace_column = 0
+      @next_nonspace = 0
+      @next_nonspace_column = 0
 
-    @indent = 0
-    @indented = false
-    @blank = false
-    @partially_consumed_tab = false
-    @all_closed = true
-    @last_matched_container = @document
-    @refmap = {} of String => String
-    @last_line_length = 0
+      @indent = 0
+      @indented = false
+      @blank = false
+      @partially_consumed_tab = false
+      @all_closed = true
+      @refmap = {} of String => String
+    end
 
-    def parse(context : Context)
-      @lines = context.source.split(/\r\n|\n|\r/)
+    def parse(source : String)
+      start_time("preparing input") if @options.time
+      @lines = source.split(Rule::LINE_ENDING)
       @line_size = @lines.size
-      @lines.each do |line|
-        process_line(line)
-      end
+      @line_size -=1 if source.byte_at(source.size - 1) == Rule::CHAR_CODE_NEWLINE
+      end_time("preparing input") if @options.time
 
+      start_time("block parsing") if @options.time
+      @lines.each { |line| process_line(line) }
       while tip = @tip
         token(tip, @line_size)
       end
+      end_time("block parsing") if @options.time
 
-      context.document = @document
+      start_time("inline parsing") if @options.time
+      process_inlines
+      end_time("inline parsing") if @options.time
 
-      process_inlines(context)
-
-      self
+      @document
     end
 
     def process_line(line : String)
@@ -177,14 +184,12 @@ module Markd::Lexer
       end
     end
 
-    def process_inlines(context)
-      walker = Node::Walker.new(context.document)
-
-      @inline_lexer.context = context
+    def process_inlines
+      walker = @document.walker
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
         node = event["node"].as(Node)
-        if !event["entering"] && [Node::Type::Paragraph, Node::Type::Heading].includes?(node.type)
+        if !event["entering"].as(Bool) && [Node::Type::Paragraph, Node::Type::Heading].includes?(node.type)
           @inline_lexer.parse(node)
         end
       end

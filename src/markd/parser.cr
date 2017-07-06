@@ -1,12 +1,23 @@
 module Markd
   class Parser
-    getter context
+    def self.parse(source)
+      self.new(source)
+    end
 
-    alias AnyType = String|Bool|Int32
+    def self.parse(source, options)
+      self.new(source, options)
+    end
 
-    def initialize(source : String, options = {} of String => AnyType)
-      @context = Lexer::Context.new(source, options: options)
-      Lexer::Block.parse(@context)
+    getter document
+
+    @document : Node
+
+    def initialize(source : String)
+      @document = Lexer::Block.parse(source, Options.new)
+    end
+
+    def initialize(source : String, options : Options)
+      @document = Lexer::Block.parse(source, options)
     end
   end
 end

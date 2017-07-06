@@ -5,63 +5,63 @@ module Markd::Lexer
     include Lexer
 
     property refmap
-    property context : Context
 
     @text = ""
     @pos = 0
     @refmap = {} of String => String
-    @context = Context.new
     @delimiters : Delimiter?
 
-    def parse(document : Node)
-      @text = document.text.strip
+    def initialize(@options : Options)
+    end
+
+    def parse(node : Node)
+      @text = node.text.strip
+      puts "Line: " + @text
       loop do
-        break unless process_line(document)
+        break unless process_line(node)
       end
 
-      @context.document = document
+      node.text = ""
+      process_emphasis(nil)
     end
 
     def process_line(node : Node)
       char = peek
       return false if char == -1
 
-      puts "#{char.unsafe_chr} => #{char}"
+      puts "#{node.type}: #{char.unsafe_chr} => #{char}"
 
-      case char
-      when Rule::CHAR_CODE_NEWLINE
-        puts "CHAR_CODE_NEWLINE"
-        res = newline(node)
-      when Rule::CHAR_CODE_BACKSLASH
-        puts "CHAR_CODE_BACKSLASH"
-        res = backslash(node)
-      when Rule::CHAR_CODE_BACKTICK
-        puts "CHAR_CODE_BACKTICK"
-        res = backtick(node)
-      when Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE
-        puts "CHAR_CODE_ASTERISK/CHAR_CODE_UNDERSCORE"
-        res = handle_delim(char, node)
-      # when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
-      #   res = handle_delim(char, node)
-      when Rule::CHAR_CODE_OPEN_BRACKET
-        puts "CHAR_CODE_OPEN_BRACKET"
-        res = open_bracket(node)
-      when Rule::CHAR_CODE_BANG
-        puts "CHAR_CODE_BANG"
-        res = bang(node)
-      when Rule::CHAR_CODE_CLOSE_BRACKET
-        puts "CHAR_CODE_CLOSE_BRACKET"
-        res = close_bracket(node)
-      when Rule::CHAR_CODE_LESSTHAN
-        puts "CHAR_CODE_LESSTHAN"
-        res = auto_link(node) || html_tag(node)
-      when Rule::CHAR_CODE_AMPERSAND
-        puts "CHAR_CODE_AMPERSAND"
-        res = entity(node)
-      else
-        puts "Text"
-        res = string(node)
-      end
+      res = case char
+            when Rule::CHAR_CODE_NEWLINE
+              newline(node)
+            when Rule::CHAR_CODE_BACKSLASH
+              puts "CHAR_CODE_BACKSLASH"
+              backslash(node)
+            when Rule::CHAR_CODE_BACKTICK
+              puts "CHAR_CODE_BACKTICK"
+              backtick(node)
+            when Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE
+              handle_delim(char, node)
+            # when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
+            #   handle_delim(char, node)
+            when Rule::CHAR_CODE_OPEN_BRACKET
+              puts "CHAR_CODE_OPEN_BRACKET"
+              open_bracket(node)
+            when Rule::CHAR_CODE_BANG
+              puts "CHAR_CODE_BANG"
+              bang(node)
+            when Rule::CHAR_CODE_CLOSE_BRACKET
+              puts "CHAR_CODE_CLOSE_BRACKET"
+              close_bracket(node)
+            when Rule::CHAR_CODE_LESSTHAN
+              puts "CHAR_CODE_LESSTHAN"
+              auto_link(node) || html_tag(node)
+            when Rule::CHAR_CODE_AMPERSAND
+              puts "CHAR_CODE_AMPERSAND"
+              entity(node)
+            else
+              string(node)
+            end
 
       unless res
         @pos += 1
@@ -71,19 +71,18 @@ module Markd::Lexer
       true
     end
 
-    def newline(container : Node)
+    def newline(node : Node)
       @pos += 1 # assume we're at a \n
-      last_child = container.last_child
+      last_child = node.last_child
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
          last_child.literal[last_child.literal.size - 1] == " "
 
         hard_break = last_child.literal[last_child.literal.size - 2]
         last_child.literal = last_child.literal.gsub(Rule::FINAL_SPACE, "")
-        node = Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak)
-        container.append_child(node)
+        node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else
-        container.append_child(Node.new(Node::Type::SoftBreak))
+        node.append_child(Node.new(Node::Type::SoftBreak))
       end
 
       # gobble leading spaces in next line
@@ -92,94 +91,95 @@ module Markd::Lexer
       true
     end
 
-    def backslash(container : Node)
+    def backslash(node : Node)
       @pos += 1
-      if peek == Rule::CHAR_CODE_NEWLINE
-        @pos += 1
-        node = Node.new(Node::Type::Linebreak)
-        container.append_child(node)
-      elsif @text.byte_at(@pos).to_s.match(Rule::ESCAPABLE)
-        container.append_child(text(@text.byte_at(@pos).to_s))
-        @pos += 1
-      else
-        container.append_child(text("\\"))
-      end
+      child = if peek == Rule::CHAR_CODE_NEWLINE
+                @pos += 1
+                Node.new(Node::Type::Linebreak)
+              elsif @text.byte_at(@pos).to_s.match(Rule::ESCAPABLE)
+                c = text(@text.byte_at(@pos).to_s)
+                @pos += 1
+                c
+              else
+                text("\\")
+              end
+
+      node.append_child(child)
 
       true
     end
 
-    def backtick(container : Node)
+    def backtick(node : Node)
       ticks = match(Rule::TICKS_HERE)
       return false unless ticks
 
       after_open_ticks = @pos
       while text = match(Rule::TICKS)
         if text == ticks
-          node = Node.new(Node::Type::Code)
-          end_index = @pos - ticks.size
-          container.literal = @text[after_open_ticks..end_index]
-          container.append_child(node)
+          child = Node.new(Node::Type::Code)
+          child.literal = @text[after_open_ticks..(@pos - ticks.size)]
+          node.append_child(child)
 
           return true
         end
       end
 
       @pos = after_open_ticks
-      container.append_child(text(ticks))
+      node.append_child(text(ticks))
 
       true
     end
 
-    def bang(container : Node)
+    def bang(node : Node)
       start_pos = @pos
       @pos += 1
       if peek == Rule::CHAR_CODE_OPEN_BRACKET
         @pos += 1
-        node = text("![")
-        container.append_child(node)
+        child = text("![")
+        node.append_child(child)
 
-        add_bracket(node, start_pos + 1, true)
+        add_bracket(child, start_pos + 1, true)
       else
-        container.append_child(text("!"))
+        node.append_child(text("!"))
       end
 
       true
     end
 
-    def add_bracket(container : Node, index : Int32, image = false)
+    def add_bracket(node : Node, index : Int32, image = false)
       @brackets.not_nil!.bracket_after = true if @brackets
-      @brackets = Bracket.new(container, @brackets, @delimiters, index, image, true)
+      @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
     end
 
     def remove_bracket
       @brackets = @brackets.not_nil!.previous
     end
 
-    def open_bracket(container : Node)
+    def open_bracket(node : Node)
       start_pos = @pos
       @pos += 1
 
-      node = text("[")
-      container.append_child(node)
+      child = text("[")
+      node.append_child(child)
 
-      add_bracket(node, start_pos, false)
+      add_bracket(child, start_pos, false)
 
       true
     end
 
-    def close_bracket(container : Node)
+    def close_bracket(node : Node)
       matched = false
       @pos += 1
       start_pos = @pos
 
       opener = @brackets
       unless opener
-        container.append_child(text("]"))
+        node.append_child(text("]"))
         return true
       end
 
       unless opener.active
-        container.append_child(text("]"))
+        node.append_child(text("]"))
         remove_bracket
         return true
       end
@@ -202,19 +202,19 @@ module Markd::Lexer
       end
 
       unless matched
-        node = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
-        node.data["destination"] = dest.not_nil!
-        node.data["title"] = title || ""
+        child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
+        child.data["destination"] = dest.not_nil!
+        child.data["title"] = title || ""
 
         tmp = opener.node.next
         while tmp
           next_node = tmp.next
           tmp.unlink
-          node.append_child(tmp)
+          child.append_child(tmp)
           tmp = next_node
         end
 
-        container.append_child(node)
+        node.append_child(child)
         process_emphasis(opener.previous_delimiter.not_nil!)
         remove_bracket
         opener.node.unlink
@@ -229,19 +229,19 @@ module Markd::Lexer
       else
         remove_bracket
         @pos = start_pos
-        container.append_child(text("]"))
+        node.append_child(text("]"))
       end
 
       true
     end
 
-    def process_emphasis(delimiter : Delimiter)
+    def process_emphasis(delimiter : Delimiter?)
       openers_bottom = {
         Rule::CHAR_CODE_UNDERSCORE => delimiter,
         Rule::CHAR_CODE_ASTERISK => delimiter,
         Rule::CHAR_CODE_SINGLE_QUOTE => delimiter,
         Rule::CHAR_CODE_DOUBLE_QUOTE => delimiter,
-      } of Int32 => Delimiter
+      } of Int32 => Delimiter?
 
       closer = @delimiters
       while closer && closer.previous != delimiter
@@ -333,44 +333,41 @@ module Markd::Lexer
       end
     end
 
-    def auto_link(container : Node)
+    def auto_link(node : Node)
       if text = match(Rule::EMAIL_AUTO_LINK)
-        node = link(text, true)
-        container.append_child(node)
+        node.append_child(link(text, true))
         return true
       elsif text = match(Rule::AUTO_LINK)
-        node = link(text, false)
-        container.append_child(node)
+        node.append_child(link(text, false))
         return true
       end
 
       false
     end
 
-    def html_tag(container : Node)
+    def html_tag(node : Node)
       if text = match(Rule::HTML_TAG)
-        node = Node.new(Node::Type::HTMLInline)
-        node.literal = text
-        container.append_child(node)
-
+        child = Node.new(Node::Type::HTMLInline)
+        child.literal = text
+        node.append_child(child)
         true
       else
         false
       end
     end
 
-    def entity(container : Node)
+    def entity(node : Node)
       if text = match(Rule::ENTITY_HERE)
-        container.append_child(text(HTML.unescape(text)))
+        node.append_child(text(HTML.unescape(text)))
         true
       else
         false
       end
     end
 
-    def string(container : Node)
+    def string(node : Node)
       if text = match(Rule::MAIN)
-        container.append_child(text(text))
+        node.append_child(text(text))
         true
       else
         false
@@ -424,19 +421,13 @@ module Markd::Lexer
       HTML.unescape(res)
     end
 
-    def handle_delim(codepoint : Int32, container : Node)
+    def handle_delim(codepoint : Int32, node : Node)
       res = scan_delims(codepoint)
       return false unless res
-
-      pp res
 
       num_delims = res["num_delims"].as(Int32)
       start_pos = @pos
       @pos += num_delims
-      puts start_pos
-      puts @pos
-
-
       text = case codepoint
               when Rule::CHAR_CODE_SINGLE_QUOTE
                 "\u{2019}"
@@ -446,12 +437,10 @@ module Markd::Lexer
                 @text[start_pos..@pos-1]
               end
 
-      puts text
+      child = text(text)
+      node.append_child(child)
 
-      node = text(text)
-      container.append_child(node)
-
-      @delimiters = Delimiter.new(codepoint, num_delims, num_delims, node, @delimiters, nil,
+      @delimiters = Delimiter.new(codepoint, num_delims, num_delims, child, @delimiters, nil,
                                    res["can_open"].as(Bool), res["can_close"].as(Bool))
 
       @delimiters.not_nil!.previous.not_nil!.next = @delimiters if @delimiters.not_nil!.previous

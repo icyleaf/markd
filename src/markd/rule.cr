@@ -13,6 +13,7 @@ module Markd
     ATTRIBUTE_VALUE_SPEC_STRING = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE_STRING + ")"
     ATTRIBUTE = "(?:" + "\\s+" + ATTRIBUTE_NAME_STRING + ATTRIBUTE_VALUE_SPEC_STRING + "?)"
 
+    LINE_ENDING = /\r\n|\n|\r/
     FINAL_SPACE = / *$/
     INITIAL_SPACE = /^ */
 
