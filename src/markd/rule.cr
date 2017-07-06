@@ -31,6 +31,9 @@ module Markd
     TICKS = /`+/
     TICKS_HERE = /^`+/
 
+    ELLIPSES = /\.\.\./
+    DASH = /--+/
+
     OPEN_TAG = "<" + TAG_NAME_STRING + ATTRIBUTE + "*" + "\\s*/?>"
     CLOSE_TAG = "</" + TAG_NAME_STRING + "\\s*[>]"
 

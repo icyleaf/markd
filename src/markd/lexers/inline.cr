@@ -42,8 +42,8 @@ module Markd::Lexer
               backtick(node)
             when Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE
               handle_delim(char, node)
-            # when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
-            #   handle_delim(char, node)
+            when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
+              @options.smart && handle_delim(char, node)
             when Rule::CHAR_CODE_OPEN_BRACKET
               puts "CHAR_CODE_OPEN_BRACKET"
               open_bracket(node)
@@ -367,6 +367,27 @@ module Markd::Lexer
 
     def string(node : Node)
       if text = match(Rule::MAIN)
+        if @options.smart
+          text = text.gsub(Rule::ELLIPSES, "\u{2026}")
+                     .gsub(Rule::DASH) do |chars|
+                         en_count = em_count = 0
+                         chars_length = chars.size
+
+                         if chars_length % 3 == 0
+                           em_count = chars_length / 3
+                         elsif chars_length % 2 == 0
+                           en_count = chars_length / 2
+                         elsif chars_length % 3 == 2
+                           en_count = 1
+                           em_count = (chars_length - 2) / 3
+                         else
+                           en_count = 2
+                           em_count = (chars_length - 4) / 3
+                         end
+
+                         "\u{2014}" * em_count + "\u{2013}" * en_count
+                     end
+        end
         node.append_child(text(text))
         true
       else
