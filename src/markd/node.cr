@@ -46,7 +46,6 @@ module Markd
 
     property fenced : Bool
     property fence_language : String
-    property literal : String
     property fence_char : String
     property fence_length : Int32
     property fence_offset : Int32
@@ -58,7 +57,6 @@ module Markd
       @open = true
 
       @fenced = false
-      @literal = ""
       @fence_language = ""
       @fence_char = ""
       @fence_length = 0

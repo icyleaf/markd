@@ -6,17 +6,19 @@ module Markd::Lexer
 
     property refmap
 
-    @text = ""
-    @pos = 0
-    @refmap = {} of String => String
     @delimiters : Delimiter?
 
     def initialize(@options : Options)
+      @text = ""
+      @pos = 0
+      @refmap = {} of String => Hash(String, String)|String
     end
 
     def parse(node : Node)
+      @pos = 0
+      @delimiters = nil
       @text = node.text.strip
-      puts "Line: " + @text
+      puts "Line: #{@text}"
       loop do
         break unless process_line(node)
       end
@@ -76,10 +78,10 @@ module Markd::Lexer
       last_child = node.last_child
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
-         last_child.literal[last_child.literal.size - 1] == " "
+         last_child.text[last_child.text.size - 1] == " "
 
-        hard_break = last_child.literal[last_child.literal.size - 2]
-        last_child.literal = last_child.literal.gsub(Rule::FINAL_SPACE, "")
+        hard_break = last_child.text[last_child.text.size - 2]
+        last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else
         node.append_child(Node.new(Node::Type::SoftBreak))
@@ -117,7 +119,7 @@ module Markd::Lexer
       while text = match(Rule::TICKS)
         if text == ticks
           child = Node.new(Node::Type::Code)
-          child.literal = @text[after_open_ticks..(@pos - ticks.size)]
+          child.text = @text[after_open_ticks..(@pos - ticks.size)]
           node.append_child(child)
 
           return true
@@ -279,8 +281,8 @@ module Markd::Lexer
               # remove used delimiters from stack elts and inlines
               opener.not_nil!.num_delims -= use_delims
               closer.not_nil!.num_delims -= use_delims
-              opener_inl.not_nil!.literal = opener_inl.not_nil!.literal[0..(opener_inl.literal.size - use_delims)]
-              closer_inl.not_nil!.literal = closer_inl.not_nil!.literal[0..(closer_inl.literal.size - use_delims)]
+              opener_inl.not_nil!.text = opener_inl.not_nil!.text[0..(opener_inl.text.size - use_delims)]
+              closer_inl.not_nil!.text = closer_inl.not_nil!.text[0..(closer_inl.text.size - use_delims)]
 
               # build contents for new emph element
               emph = Node.new(use_delims ? Node::Type::Emphasis : Node::Type::Strong)
@@ -312,12 +314,12 @@ module Markd::Lexer
               end
             end
           elsif closer_codepoint == Rule::CHAR_CODE_SINGLE_QUOTE
-            closer.not_nil!.node.literal = "\u{2019}"
-            opener.not_nil!.node.literal = "\u{2018}" if opener_found
+            closer.not_nil!.node.text = "\u{2019}"
+            opener.not_nil!.node.text = "\u{2018}" if opener_found
             closer = closer.next
           elsif closer_codepoint == Rule::CHAR_CODE_DOUBLE_QUOTE
-            closer.not_nil!.node.literal = "\u{201D}"
-            opener.not_nil!.node.literal = "\u{201C}" if opener_found
+            closer.not_nil!.node.text = "\u{201D}"
+            opener.not_nil!.node.text = "\u{201C}" if opener_found
             closer = closer.next
           end
 
@@ -348,7 +350,7 @@ module Markd::Lexer
     def html_tag(node : Node)
       if text = match(Rule::HTML_TAG)
         child = Node.new(Node::Type::HTMLInline)
-        child.literal = text
+        child.text = text
         node.append_child(child)
         true
       else
@@ -404,6 +406,15 @@ module Markd::Lexer
       node.data["destination"] = destination
       node.append_child(text(dest))
       node
+    end
+
+    def link_label
+      text = match(Rule::LINK_LABEL)
+      if !text || text.not_nil!.size > 1001 || text =~ /[^\\]\\\]$/
+        0
+      else
+        text.not_nil!.size
+      end
     end
 
     def link_title
@@ -540,24 +551,24 @@ module Markd::Lexer
       @pos = 0
 
       startpos = @pos
-      # match_chars = parse_link_label
+      match_chars = link_label
 
       # # label
       # return 0 if match_chars == 0
       # raw_label = @text[0..match_chars]
 
       # # colon
-      # if peek == CHAR_CODE_COLON
+      # if peek == Rule::CHAR_CODE_COLON
       #   @pos += 1
       # else
-      #   @post = startpos
+      #   @pos = startpos
       #   return 0
       # end
 
       # # link url
       # spnl
 
-      # dest = parse_link_description
+      # dest = link_destination
       # if dest.size == 0
       #   @pos = startpos
       #   return 0
@@ -565,7 +576,7 @@ module Markd::Lexer
 
       # before_title = @pos
       # spnl
-      # title = parse_link_title
+      # title = link_title
       # unless title
       #   title = ""
       #   @pos = before_title
@@ -587,7 +598,7 @@ module Markd::Lexer
       #   return 0
       # end
 
-      # normal_label = normalize_reference(raw_label)
+      # normal_label = HTML.escape(raw_label)
       # unless normal_label
       #   @pos = startpos
       #   return 0

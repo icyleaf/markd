@@ -1,11 +1,11 @@
 module Markd
   class Parser
     def self.parse(source)
-      self.new(source)
+      self.new(source).document
     end
 
     def self.parse(source, options)
-      self.new(source, options)
+      self.new(source, options).document
     end
 
     getter document

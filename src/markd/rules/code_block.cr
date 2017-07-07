@@ -75,9 +75,9 @@ module Markd::Rule
         first_line = content[0..newline_pos]
         text = content[newline_pos + 1..-1]
         container.fence_language = first_line.strip
-        container.literal = text
+        container.text = text
       else
-        container.literal = container.text.gsub(/(\n *)+$/, "\n")
+        container.text = container.text.gsub(/(\n *)+$/, "\n")
       end
 
       # container.text = ""

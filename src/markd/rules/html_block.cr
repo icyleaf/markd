@@ -30,8 +30,7 @@ module Markd::Rule
     end
 
     def token(parser : Lexer, container : Node)
-      container.literal = container.text.gsub(/(\n *)+$/, "")
-      container.text = ""
+      container.text = container.text.gsub(/(\n *)+$/, "")
     end
 
     def can_contain(t)

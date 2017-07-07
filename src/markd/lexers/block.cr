@@ -53,7 +53,7 @@ module Markd::Lexer
       @blank = false
       @partially_consumed_tab = false
       @all_closed = true
-      @refmap = {} of String => String
+      @refmap = {} of String => Hash(String, String)|String
     end
 
     def parse(source : String)

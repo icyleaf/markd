@@ -16,6 +16,7 @@ module Markd
     LINE_ENDING = /\r\n|\n|\r/
     FINAL_SPACE = / *$/
     INITIAL_SPACE = /^ */
+    SPACE_AT_END_OF_LINE = /^ *(?:\n|$)/
 
     BACKSLASH_OR_AMP = /[\\&]/
     NONSPACE = /[^ \t\f\v\r\n]/
@@ -67,6 +68,8 @@ module Markd
     LINK_TITLE = Regex.new("^(?:\"(#{ESCAPED_CHAR_STRING}|[^\"\\x00])*\"" +
                  "|\'(#{ESCAPED_CHAR_STRING}|[^\'\\x00])*\'" +
                  "|\\((#{ESCAPED_CHAR_STRING}|[^)\\x00])*\\))")
+
+    LINK_LABEL = Regex.new("^\\[(?:[^\\\\\\[\\]]|" + ESCAPED_CHAR_STRING + "|\\\\){0,1000}\\]")
 
     LINK_DESTINATION_BRACES = /^(?:[<](?:[^ <>\\t\\n\\\\\\x00]|#{ESCAPED_CHAR_STRING}|\\\\)*[>])/
 
