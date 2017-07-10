@@ -28,19 +28,33 @@ module Markd
         node = event["node"].as(Node)
         entering = event["entering"].as(Bool)
 
-        puts "#{node.type}: #{node.text}"
-
         case node.type
         when Node::Type::Heading
           heading(node, entering)
+        when Node::Type::List
+          list(node, entering)
+        when Node::Type::Item
+          item(node, entering)
+        when Node::Type::BlockQuote
+          block_quote(node, entering)
+        when Node::Type::ThematicBreak
+          thematic_break(node, entering)
+        when Node::Type::CodeBlock
+          code_block(node, entering)
+        when Node::Type::Code
+          code(node, entering)
         when Node::Type::Paragraph
           paragraph(node, entering)
+        when Node::Type::Emphasis
+          emphasis(node, entering)
+        when Node::Type::Strong
+          strong(node, entering)
         else
           text(node, entering)
         end
       end
 
-      @output_io
+      @output_io.to_s.lstrip
     end
   end
 end

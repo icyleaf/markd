@@ -9,6 +9,7 @@ require "./markd/version"
 module Markd
   def self.to_html(source, renderer = HTMLRenderer.new(Options.new))
     document = Parser.parse(source)
+
     renderer.render(document)
   end
 end

@@ -8,10 +8,9 @@ module Markd
 
     def heading(node : Node, entering : Bool)
       tag_name = "h#{node.data["level"]}"
-      attrs = attrs(node)
       if entering
         cr
-        tag(tag_name, attrs)
+        tag(tag_name, attrs(node))
         toc(node) if @options.toc
       else
         tag("/#{tag_name}")
@@ -19,21 +18,90 @@ module Markd
       end
     end
 
-    def paragraph(node : Node, entering : Bool)
-      grand_parant = node.parent.not_nil!.parent
+    def code(node : Node, entering : Bool)
+      tag("code")
+      out(node.text)
+      tag("/code")
+    end
+
+    def code_block(node : Node, entering : Bool)
+      languages = node.fence_language ? node.fence_language.split(/\s+/) : [] of String
       attrs = attrs(node)
 
+      if languages.size > 0 && (lang = languages[0]) && !lang.empty?
+        attrs["class"] = "language-#{lang.strip}"
+      end
+
+      cr
+      tag("pre")
+      tag("code", attrs)
+      out(node.text)
+      tag("/code")
+      tag("/pre")
+      cr
+    end
+
+    def thematic_break(node : Node, entering : Bool)
+      cr
+      tag("hr", attrs(node), true)
+      cr
+    end
+
+    def block_quote(node : Node, entering : Bool)
+      cr
+      entering ? tag("blockquote", attrs(node)) : tag("/blockquote")
+      cr
+    end
+
+    def list(node : Node, entering : Bool)
+      attrs = attrs(node)
+      tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
+      if entering && (start = node.data["start"].as(Int32)) && start != -1
+        attrs["start"] = start.to_s
+      end
+
+      cr
+      entering ? tag(tag_name, attrs) : tag("/#{tag_name}")
+      cr
+    end
+
+    def item(node : Node, entering : Bool)
+      if entering
+        tag("li", attrs(node))
+      else
+        tag("/li")
+        cr
+      end
+    end
+
+    def html_inline(node : Node, entering : Bool)
+      cr
+      content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
+      lit(content)
+      cr
+    end
+
+    def paragraph(node : Node, entering : Bool)
+      grand_parant = node.parent.not_nil!.parent
       if grand_parant  && grand_parant.type == Node::Type::List
-        return if grand_parant.data["list_tight"]
+        return if grand_parant.data["tight"]
       end
 
       if entering
         cr
-        tag("p", attrs)
+        tag("p", attrs(node))
       else
         tag("/p")
         cr
       end
+    end
+
+    def emphasis(node : Node, entering : Bool)
+      tag(entering ? "em" : "/em");
+    end
+
+    def strong(node : Node, entering : Bool)
+      tag(entering ? "strong" : "/strong");
     end
 
     def text(node : Node, entering : Bool)
