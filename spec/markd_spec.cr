@@ -1,7 +1,6 @@
 require "./spec_helper"
 
-# describe Markd do
-#   it "works" do
-#     false.should eq(true)
-#   end
-# end
+examples = extract_spec_tests("spec/spec.txt")
+examples.each do |section, tests|
+  assert_section(section, tests)
+end

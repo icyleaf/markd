@@ -7,8 +7,8 @@ require "./markd/parser"
 require "./markd/version"
 
 module Markd
-  # def self.to_html(source : String, renderer = HTMLRenderer.new) : String
-  #   parser = Parser.parse(source)
-  #   parser.parser(renderer)
-  # end
+  def self.to_html(source, renderer = HTMLRenderer.new(Options.new))
+    document = Parser.parse(source)
+    renderer.render(document)
+  end
 end
