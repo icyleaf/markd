@@ -18,7 +18,6 @@ module Markd::Lexer
       @pos = 0
       @delimiters = nil
       @text = node.text.strip
-      puts "Line: #{@text}"
       loop do
         break unless process_line(node)
       end
@@ -31,35 +30,26 @@ module Markd::Lexer
       char = peek
       return false if char == -1
 
-      puts "#{node.type}: #{char.unsafe_chr} => #{char}"
-
       res = case char
             when Rule::CHAR_CODE_NEWLINE
               newline(node)
             when Rule::CHAR_CODE_BACKSLASH
-              puts "CHAR_CODE_BACKSLASH"
               backslash(node)
             when Rule::CHAR_CODE_BACKTICK
-              puts "CHAR_CODE_BACKTICK"
               backtick(node)
             when Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE
               handle_delim(char, node)
             when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
               @options.smart && handle_delim(char, node)
             when Rule::CHAR_CODE_OPEN_BRACKET
-              puts "CHAR_CODE_OPEN_BRACKET"
               open_bracket(node)
             when Rule::CHAR_CODE_BANG
-              puts "CHAR_CODE_BANG"
               bang(node)
             when Rule::CHAR_CODE_CLOSE_BRACKET
-              puts "CHAR_CODE_CLOSE_BRACKET"
               close_bracket(node)
             when Rule::CHAR_CODE_LESSTHAN
-              puts "CHAR_CODE_LESSTHAN"
               auto_link(node) || html_tag(node)
             when Rule::CHAR_CODE_AMPERSAND
-              puts "CHAR_CODE_AMPERSAND"
               entity(node)
             else
               string(node)
@@ -551,7 +541,7 @@ module Markd::Lexer
       @pos = 0
 
       startpos = @pos
-      match_chars = link_label
+      # match_chars = link_label
 
       # # label
       # return 0 if match_chars == 0
