@@ -40,13 +40,16 @@ module Markd::Rule
       indent = parser.indent
       if container.fenced?
         # fenced
-        match = indent <= Rule::CODE_INDENT &&
-                line.byte_at(parser.next_nonspace) == container.fence_char &&
+        match = indent <= 3 &&
+                line[parser.next_nonspace].to_s == container.fence_char &&
                 line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
+
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
+          # closing fence - we're at end of line, so we can return
           parser.token(container, parser.current_line)
           return 2
         else
+          # skip optional spaces of fence offset
           index = container.fence_offset
           while index > 0 && blank?(char_code_at(parser, parser.offset))
             parser.advance_offset(1, true)
@@ -73,14 +76,14 @@ module Markd::Rule
         newline_pos = content.index("\n")
         newline_pos = -1 unless newline_pos
         first_line = content[0..newline_pos]
-        text = content[newline_pos + 1..-1]
+
+        text = content[(newline_pos + 1)..-1]
+
         container.fence_language = first_line.strip
         container.text = text
       else
         container.text = container.text.gsub(/(\n *)+$/, "\n")
       end
-
-      # container.text = ""
     end
 
     def can_contain(t)
