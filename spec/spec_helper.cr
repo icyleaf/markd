@@ -51,14 +51,15 @@ def assert_section(section, tests)
   describe section do
     tests.each do |index, test|
       assert_test(index, test)
-      exit
+
+      exit if index == 4
     end
   end
 end
 
 def assert_test(index, test)
-  markdown = test["markdown"]
-  html = test["html"]
+  markdown = test["markdown"].gsub("→", "\t")
+  html = test["html"].gsub("→", "\t")
   it "- #{index}" do
     output = Markd.to_html(markdown)
     output.should eq html
