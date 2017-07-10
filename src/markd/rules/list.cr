@@ -73,7 +73,9 @@ module Markd::Rule
       data = {
         "delimiter" => 0,
         "marker_offset" => parser.indent,
-        "bullet_char" => ""
+        "bullet_char" => "",
+        "tight" => true,
+        "start" => -1
       } of String => Node::DataValue
 
       if match = line.match(BULLET_LIST_MARKER)
