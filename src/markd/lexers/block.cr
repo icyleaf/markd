@@ -128,7 +128,6 @@ module Markd::Lexer
         rules_size = @rules.size
 
         while rule_index < rules_size
-          # puts "[#{rule_index}/#{rules_size - 1}] #{@rules.keys[rule_index]} #{container}"
           case @rules.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
             container = @tip
@@ -277,8 +276,8 @@ module Markd::Lexer
 
     def advance_offset(count, columns = false)
       line = @line
-      while count > 0 && (char = line[@offset])
-        if char == "\t"
+      while count > 0 && (char = line[@offset].ord)
+        if char == Rule::CHAR_CODE_TAB
           chars_to_tab = Rule::CODE_INDENT - (@column % 4)
           if columns
             @partially_consumed_tab = chars_to_tab > count
