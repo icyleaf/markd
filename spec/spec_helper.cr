@@ -13,7 +13,7 @@ def assert_section(section, tests)
     tests.each do |index, test|
       assert_test(index, test)
 
-      exit if index == 10
+      exit if index == 11
     end
   end
 end
