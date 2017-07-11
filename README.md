@@ -5,7 +5,7 @@
 [![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
 
-Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification.
+Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification. Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
 ## Installation
 
@@ -21,17 +21,23 @@ dependencies:
 
 ```crystal
 require "markd"
+
+markdown = <<-MD
+# Hello Markd
+
+> Yet another markdown parser built for speed, written in Crystal, Compliant to CommonMark specification.
+MD
+
+html = Markd.to_html(markdown)
 ```
 
-TODO: Write usage instructions here
+## Todo
 
-## Development
-
-TODO: Write development instructions here
+See [#1](https://github.com/icyleaf/markd/issues/1)
 
 ## Contributing
 
-1. Fork it ( https://github.com/[your-github-name]/markd/fork )
+1. Fork it ( https://github.com/icyleaf/markd/fork )
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Add some feature')
 4. Push to the branch (git push origin my-new-feature)
