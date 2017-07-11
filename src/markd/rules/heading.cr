@@ -2,7 +2,7 @@ module Markd::Rule
   class Heading
     include Rule
 
-    ATX_HEADING_MARKER = /^ *(\#{1,6}) +([^\n]+?) *#* *(?:\n+|$)/
+    ATX_HEADING_MARKER = /^\#{1,6}(?:[ \t]+|$)/
     SETEXT_HEADING_MARKER = /^(?:=+|-+)[ \t]*$/
 
     def match(parser : Lexer, container : Node) : MatchValue
