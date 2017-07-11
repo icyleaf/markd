@@ -13,8 +13,10 @@ module Markd::Rule
         parser.close_unmatched_blocks
 
         container = parser.add_child(Node::Type::Heading, parser.next_nonspace)
-        container.data["level"] = match[1].chomp.size
-        container.text = match[2]
+        container.data["level"] = match[0].strip.size
+        container.text = parser.line[parser.offset..-1]
+                               .sub(/^ *#+ *$/, "")
+                               .sub(/ +#+ *$/, "")
 
         parser.advance_offset(parser.line.size - parser.offset)
 
