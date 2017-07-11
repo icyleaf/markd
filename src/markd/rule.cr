@@ -131,7 +131,11 @@ module Markd
     end
 
     def char_code_at(parser : Lexer, index = parser.next_nonspace) : Int32
-      parser.line[index].ord
+      if index < parser.line.size
+        parser.line[index].ord
+      else
+        -1
+      end
     end
 
     def blank?(code : Int32) : Bool

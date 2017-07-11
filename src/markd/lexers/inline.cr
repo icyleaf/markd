@@ -23,6 +23,7 @@ module Markd::Lexer
       end
 
       node.text = ""
+      puts "@@@"
       process_emphasis(nil)
     end
 
@@ -207,7 +208,7 @@ module Markd::Lexer
         end
 
         node.append_child(child)
-        process_emphasis(opener.previous_delimiter.not_nil!)
+        process_emphasis(opener.previous_delimiter)
         remove_bracket
         opener.node.unlink
 
@@ -228,6 +229,7 @@ module Markd::Lexer
     end
 
     def process_emphasis(delimiter : Delimiter?)
+      puts "1111"
       openers_bottom = {
         Rule::CHAR_CODE_UNDERSCORE => delimiter,
         Rule::CHAR_CODE_ASTERISK => delimiter,
@@ -247,7 +249,9 @@ module Markd::Lexer
         else
           opener = closer.previous
           opener_found = false
-          while opener && opener != delimiter && opener != openers_bottom[closer_codepoint]
+          while !opener.nil? && !openers_bottom[closer_codepoint].nil? && !delimiter.nil? &&
+                opener != delimiter && opener != openers_bottom[closer_codepoint]
+
             odd_match = (closer.can_open || opener.can_close) &&
                         (opener.orig_delims + closer.orig_delims) % 3 == 0
             if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
@@ -264,7 +268,7 @@ module Markd::Lexer
               closer = closer.next
             else
               # calculate actual number of delimiters used from closer
-              use_delims = (closer.not_nil!.num_delims >= 2 && opener.not_nil!.num_delims >= 2) ? 2 : 1
+              use_delims = (closer.num_delims >= 2 && opener.not_nil!.num_delims >= 2) ? 2 : 1
               opener_inl = opener.not_nil!.node
               closer_inl = closer.not_nil!.node
 
@@ -314,7 +318,7 @@ module Markd::Lexer
           end
 
           if !opener_found && !odd_match
-            openers_bottom[closer_codepoint] = old_closer.previous.not_nil!
+            openers_bottom[closer_codepoint] = old_closer.previous
             remove_delimiter(old_closer) if !old_closer.can_open
           end
         end
@@ -506,10 +510,10 @@ module Markd::Lexer
       char_before = start_pos == 0 ? '\n'  : @text[start_pos - 1]
       char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
 
-      after_is_whitespace = char_after =~ Rule::UNICODE_WHITESPACE_CHAR
-      after_is_punctuation = char_after =~ Rule::PUNCTUATION
-      before_is_whitespace = char_before =~ Rule::UNICODE_WHITESPACE_CHAR
-      before_is_punctuation = char_before =~ Rule::PUNCTUATION
+      after_is_whitespace = (char_after =~ Rule::UNICODE_WHITESPACE_CHAR).nil? ? false : true
+      after_is_punctuation = (char_after =~ Rule::PUNCTUATION).nil? ? false : true
+      before_is_whitespace = (char_before =~ Rule::UNICODE_WHITESPACE_CHAR).nil? ? false : true
+      before_is_punctuation = (char_before =~ Rule::PUNCTUATION).nil? ? false : true
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
