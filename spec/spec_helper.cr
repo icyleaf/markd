@@ -1,6 +1,33 @@
 require "spec"
 require "../src/markd"
 
+def describe_spec(file)
+  examples = extract_spec_tests(file)
+  examples.each do |section, tests|
+    assert_section(section, tests)
+  end
+end
+
+def assert_section(section, tests)
+  describe section do
+    tests.each do |index, test|
+      assert_test(index, test)
+
+      exit if index == 10
+    end
+  end
+end
+
+def assert_test(index, test)
+  markdown = test["markdown"].gsub("→", "\t")
+  html = test["html"].gsub("→", "\t")
+
+  it "- #{index}\n#{show_space(markdown)}" do
+    output = Markd.to_html(markdown)
+    output.should eq html
+  end
+end
+
 def extract_spec_tests(file)
   data = [] of String
   delimiter = "`" * 32
@@ -46,26 +73,6 @@ def extract_spec_tests(file)
 
   examples
 end
-
-def assert_section(section, tests)
-  describe section do
-    tests.each do |index, test|
-      assert_test(index, test)
-
-      exit if index == 4
-    end
-  end
-end
-
-def assert_test(index, test)
-  markdown = test["markdown"].gsub("→", "\t")
-  html = test["html"].gsub("→", "\t")
-  it "- #{index}\n#{show_space(markdown)}" do
-    output = Markd.to_html(markdown)
-    output.should eq html
-  end
-end
-
 
 def show_space(text)
   text.gsub("\t", "→").gsub(/ /, '␣')
