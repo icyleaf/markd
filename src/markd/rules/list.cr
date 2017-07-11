@@ -38,10 +38,10 @@ module Markd::Rule
           break
         end
 
-        subitem = item.first_child
+        subitem = item.first_child.not_nil!
         while subitem
           if ends_with_blankline?(subitem) && (item.next || subitem.next)
-            subitem.data["tight"] = false
+            container.data["tight"] = false
             break
           end
 
@@ -135,11 +135,8 @@ module Markd::Rule
       while container
         return true if container.last_line_blank
 
-        if [Node::Type::List, Node::Type::Item].includes?(container.type)
-          container = container.last_child
-        else
-          break
-        end
+        break unless [Node::Type::List, Node::Type::Item].includes?(container.type)
+        container = container.last_child
       end
 
       false
