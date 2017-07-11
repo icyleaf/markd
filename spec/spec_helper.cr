@@ -60,10 +60,13 @@ end
 def assert_test(index, test)
   markdown = test["markdown"].gsub("→", "\t")
   html = test["html"].gsub("→", "\t")
-  it "- #{index}" do
+  it "- #{index}\n#{show_space(markdown)}" do
     output = Markd.to_html(markdown)
     output.should eq html
-
-    # renderer.should eq(output)
   end
+end
+
+
+def show_space(text)
+  text.gsub("\t", "→").gsub(/ /, '␣')
 end
