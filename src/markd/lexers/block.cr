@@ -60,7 +60,8 @@ module Markd::Lexer
       start_time("preparing input") if @options.time
       @lines = source.split(Rule::LINE_ENDING)
       @line_size = @lines.size
-      @line_size -=1 if source.byte_at(source.size - 1) == Rule::CHAR_CODE_NEWLINE
+      # ignore last blank line created by final newline
+      @line_size -= 1 if source.byte_at(source.size - 1) == Rule::CHAR_CODE_NEWLINE
       end_time("preparing input") if @options.time
 
       start_time("block parsing") if @options.time
@@ -84,6 +85,8 @@ module Markd::Lexer
       @offset = @column = 0
       @blank = @partially_consumed_tab = false
       @current_line += 1
+
+      line = line.gsub(/\0/, "\u{FFFD}") if line.includes?("\u{0000}")
       @line = line
 
       while (last_child = container.last_child) && last_child.open
@@ -130,10 +133,10 @@ module Markd::Lexer
         while rule_index < rules_size
           case @rules.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
-            container = @tip
+            container = @tip.not_nil!
             break
           when Rule::MatchValue::Leaf
-            container = @tip
+            container = @tip.not_nil!
             matched_leaf = true
             break
           else
@@ -152,15 +155,15 @@ module Markd::Lexer
         add_line
       else
         close_unmatched_blocks
-        container.not_nil!.last_child.not_nil!.last_line_blank = true if (@blank && container.not_nil!.last_child)
+        container.last_child.not_nil!.last_line_blank = true if (@blank && container.last_child)
 
         t = container.not_nil!.type
         cont = container
         while cont
           last_line_blank = @blank &&
                             !(t == Node::Type::BlockQuote ||
-                            (t == Node::Type::CodeBlock && container.not_nil!.fenced?) ||
-                            (t == Node::Type::Item && !container.not_nil!.first_child && container.not_nil!.source_pos[0][0] == @current_line))
+                            (t == Node::Type::CodeBlock && container.fenced?) ||
+                            (t == Node::Type::Item && !container.first_child && container.source_pos[0][0] == @current_line))
 
           cont.not_nil!.last_line_blank = last_line_blank
           cont = cont.parent
@@ -170,8 +173,8 @@ module Markd::Lexer
           add_line
 
           # if HtmlBlock, check for end condition
-          if (t == Node::Type::HTMLBlock && match_html_block?(container.not_nil!))
-            token(container.not_nil!, @current_line)
+          if (t == Node::Type::HTMLBlock && match_html_block?(container))
+            token(container, @current_line)
           end
         elsif @offset < line.size && !@blank
           container = add_child(Node::Type::Paragraph, @offset)
@@ -213,13 +216,13 @@ module Markd::Lexer
       @tip.not_nil!.text += @line[@offset..-1] + "\n"
     end
 
-    def add_child(tag : Node::Type, offset : Int32) : Node
-      while !@rules[@tip.not_nil!.type].can_contain(tag)
+    def add_child(type : Node::Type, offset : Int32) : Node
+      while !@rules[@tip.not_nil!.type].can_contain(type)
         token(@tip.not_nil!, @current_line - 1)
       end
 
       column_number = offset + 1
-      node = Node.new(tag)
+      node = Node.new(type)
       node.source_pos = [[@current_line, column_number], [0, 0]]
       @tip.not_nil!.append_child(node)
       @tip = node
