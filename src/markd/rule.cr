@@ -130,13 +130,11 @@ module Markd
       parser.line[index..-1]
     end
 
-    def char_code_at(parser : Lexer, index = parser.next_nonspace) : UInt8
-      # return nil if parser.line.empty?
-      parser.line.byte_at(index)
+    def char_code_at(parser : Lexer, index = parser.next_nonspace) : Int32
+      parser.line[index].ord
     end
 
-    def blank?(code : UInt8, include_nil = false) : Bool
-      # return true if include_nil && !code
+    def blank?(code : Int32) : Bool
       [CHAR_CODE_SPACE, CHAR_CODE_TAB].includes?(code)
     end
 

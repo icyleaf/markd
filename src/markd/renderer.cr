@@ -4,6 +4,12 @@ module Markd
     # @output_io : IO
     # @last_output : String
 
+    def initialize
+      @options = Options.new
+      @output_io = IO::Memory.new
+      @last_output = ""
+    end
+
     def initialize(@options : Options)
       @output_io = IO::Memory.new
       @last_output = ""
