@@ -96,11 +96,12 @@ module Markd::Lexer
 
         case @rules[container.type].continue(self, container)
         when 0
-          break
+          # we've matched, keep going
         when 1
+          # we've failed to match a block
           all_matched = false
-          break
         when 2
+          # we've hit end of line for fenced code close and can return
           @last_line_length = line.size
           return
         else
@@ -108,6 +109,7 @@ module Markd::Lexer
         end
 
         unless all_matched
+          # back up to last matching block
           container = container.parent.not_nil!
           break
         end
@@ -118,6 +120,7 @@ module Markd::Lexer
 
       matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
 
+      rules_size = @rules.size
       while !matched_leaf
         find_next_nonspace
 
@@ -128,8 +131,6 @@ module Markd::Lexer
         end
 
         rule_index = 0
-        rules_size = @rules.size
-
         while rule_index < rules_size
           case @rules.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
@@ -146,37 +147,43 @@ module Markd::Lexer
 
         # nothing matched
         if rule_index == rules_size
+          # nothing matched
           advance_next_nonspace
           break
         end
       end
 
       if !@all_closed && !@blank && @tip.not_nil!.type == Node::Type::Paragraph
+        # lazy paragraph continuation
         add_line
       else
+        # not a lazy continuation
         close_unmatched_blocks
-        container.last_child.not_nil!.last_line_blank = true if (@blank && container.last_child)
+        if (@blank && container.last_child)
+          container.last_child.not_nil!.last_line_blank = true
+        end
 
-        t = container.not_nil!.type
+        container_type = container.type
+        last_line_blank = @blank &&
+                          !(container_type == Node::Type::BlockQuote ||
+                          (container_type == Node::Type::CodeBlock && container.fenced?) ||
+                          (container_type == Node::Type::Item && !container.first_child && container.source_pos[0][0] == @current_line))
+
         cont = container
         while cont
-          last_line_blank = @blank &&
-                            !(t == Node::Type::BlockQuote ||
-                            (t == Node::Type::CodeBlock && container.fenced?) ||
-                            (t == Node::Type::Item && !container.first_child && container.source_pos[0][0] == @current_line))
-
           cont.not_nil!.last_line_blank = last_line_blank
           cont = cont.parent
         end
 
-        if @rules[t].accepts_lines?
+        if @rules[container_type].accepts_lines?
           add_line
 
           # if HtmlBlock, check for end condition
-          if (t == Node::Type::HTMLBlock && match_html_block?(container))
+          if (container_type == Node::Type::HTMLBlock && match_html_block?(container))
             token(container, @current_line)
           end
         elsif @offset < line.size && !@blank
+          # create paragraph container for line
           container = add_child(Node::Type::Paragraph, @offset)
           advance_next_nonspace
           add_line
@@ -208,7 +215,8 @@ module Markd::Lexer
 
     def add_line
       if @partially_consumed_tab
-        @offset += 1
+        @offset += 1 # skip over tab
+        # add space characters
         chars_to_tab = Rule::CODE_INDENT - (@column % 4)
         @tip.not_nil!.text += " " * chars_to_tab
       end
@@ -221,9 +229,11 @@ module Markd::Lexer
         token(@tip.not_nil!, @current_line - 1)
       end
 
-      column_number = offset + 1
+      column_number = offset + 1 # offset 0 = column 1
+
       node = Node.new(type)
       node.source_pos = [[@current_line, column_number], [0, 0]]
+      node.text = ""
       @tip.not_nil!.append_child(node)
       @tip = node
 
@@ -271,12 +281,6 @@ module Markd::Lexer
       @indented = @indent >= Rule::CODE_INDENT
     end
 
-    def advance_next_nonspace
-      @offset = @next_nonspace
-      @column - @next_nonspace_column
-      @partially_consumed_tab = false
-    end
-
     def advance_offset(count, columns = false)
       line = @line
       while count > 0 && (char = line[@offset].ord)
@@ -301,6 +305,12 @@ module Markd::Lexer
           count -= 1
         end
       end
+    end
+
+    def advance_next_nonspace
+      @offset = @next_nonspace
+      @column - @next_nonspace_column
+      @partially_consumed_tab = false
     end
 
     private def match_html_block?(container : Node)
