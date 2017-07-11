@@ -74,7 +74,7 @@ module Markd::Rule
         "delimiter" => 0,
         "marker_offset" => parser.indent,
         "bullet_char" => "",
-        "tight" => true,
+        "tight" => true,  # lists are tight by default
         "start" => -1
       } of String => Node::DataValue
 
@@ -135,8 +135,7 @@ module Markd::Rule
       while container
         return true if container.last_line_blank
 
-        type = container.type
-        if [Node::Type::List, Node::Type::Item].includes?(type)
+        if [Node::Type::List, Node::Type::Item].includes?(container.type)
           container = container.last_child
         else
           break

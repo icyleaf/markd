@@ -14,6 +14,7 @@ module Markd::Rule
         if container.first_child
           parser.advance_next_nonspace
         else
+          # Blank line after empty list item
           return 1
         end
       elsif parser.indent >= indent_offset
@@ -21,6 +22,8 @@ module Markd::Rule
       else
         return 1
       end
+
+      0
     end
 
     def token(parser : Lexer, container : Node)
