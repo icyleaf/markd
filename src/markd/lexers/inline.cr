@@ -18,6 +18,7 @@ module Markd::Lexer
       @pos = 0
       @delimiters = nil
       @text = node.text.strip
+
       loop do
         break unless process_line(node)
       end
@@ -88,8 +89,8 @@ module Markd::Lexer
       child = if peek == Rule::CHAR_CODE_NEWLINE
                 @pos += 1
                 Node.new(Node::Type::Linebreak)
-              elsif @text.byte_at(@pos).to_s.match(Rule::ESCAPABLE)
-                c = text(@text.byte_at(@pos).to_s)
+              elsif @text[@pos].to_s.match(Rule::ESCAPABLE)
+                c = text(@text[@pos])
                 @pos += 1
                 c
               else
