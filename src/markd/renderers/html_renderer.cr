@@ -99,6 +99,15 @@ module Markd
       tag(entering ? "em" : "/em");
     end
 
+    def soft_break(node : Node, entering : Bool)
+      lit("\n")
+    end
+
+    def line_break(node : Node, entering : Bool)
+      tag("br", self_closing: true)
+      cr
+    end
+
     def strong(node : Node, entering : Bool)
       tag(entering ? "strong" : "/strong");
     end

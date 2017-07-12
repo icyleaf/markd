@@ -53,6 +53,10 @@ module Markd
           paragraph(node, entering)
         when Node::Type::Emphasis
           emphasis(node, entering)
+        when Node::Type::SoftBreak
+          soft_break(node, entering)
+        when Node::Type::LineBreak
+          line_break(node, entering)
         when Node::Type::Strong
           strong(node, entering)
         else

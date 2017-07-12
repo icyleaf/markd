@@ -19,6 +19,7 @@ module Markd
       CodeBlock
       HTMLBlock
       HTMLInline
+
       CustomInLine
       CustomBlock
 
