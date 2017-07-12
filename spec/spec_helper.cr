@@ -2,26 +2,36 @@ require "spec"
 require "../src/markd"
 
 def describe_spec(file)
-  examples = extract_spec_tests(file)
-  examples.each do |section, tests|
-    next if tests.empty?
-    assert_section(file, section, tests)
+  specs = extract_spec_tests(file)
+
+  # puts "Run Describe [#{file}] examples"
+  # specs_count = 0
+  # examples_count = 0
+  # specs.each do |section, examples|
+  #   specs_count += 1
+  #   examples_count += examples.size
+  #   puts "#{specs_count.to_s.rjust(2)}. #{section} (#{examples.size})"
+  # end
+  # puts "Total #{specs_count} describes and #{examples_count} examples"
+
+  specs.each_with_index do |(section, examples), index|
+    exit if index == 3
+    assert_section(file, section, examples)
   end
 end
 
-def assert_section(file, section, tests)
+def assert_section(file, section, examples)
   describe section do
-    tests.each do |index, test|
-      assert_test(file, section, index, test)
-      exit if index == 13
+    examples.each do |index, example|
+      assert_exapmle(file, section, index, example)
     end
   end
 end
 
-def assert_test(file, section, index, test)
-  markdown = test["markdown"].gsub("→", "\t")
-  html = test["html"].gsub("→", "\t")
-  line = test["line"].to_i
+def assert_exapmle(file, section, index, example)
+  markdown = example["markdown"].gsub("→", "\t")
+  html = example["html"].gsub("→", "\t")
+  line = example["line"].to_i
 
   it "- #{index}\n#{show_space(markdown)}", file, line do
     output = Markd.to_html(markdown)
@@ -75,6 +85,8 @@ def extract_spec_tests(file)
     end
   end
 
+  # Remove empty examples
+  examples.keys.each {|k| examples.delete(k) if examples[k].empty? }
   examples
 end
 
