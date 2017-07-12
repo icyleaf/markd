@@ -4,27 +4,28 @@ require "../src/markd"
 def describe_spec(file)
   examples = extract_spec_tests(file)
   examples.each do |section, tests|
-    assert_section(section, tests)
+    next if tests.empty?
+    assert_section(file, section, tests)
   end
 end
 
-def assert_section(section, tests)
+def assert_section(file, section, tests)
   describe section do
     tests.each do |index, test|
-      assert_test(index, test)
-
-      exit if index == 12
+      assert_test(file, section, index, test)
+      exit if index == 13
     end
   end
 end
 
-def assert_test(index, test)
+def assert_test(file, section, index, test)
   markdown = test["markdown"].gsub("→", "\t")
   html = test["html"].gsub("→", "\t")
+  line = test["line"].to_i
 
-  it "- #{index}\n#{show_space(markdown)}" do
+  it "- #{index}\n#{show_space(markdown)}", file, line do
     output = Markd.to_html(markdown)
-    output.should eq html
+    output.should eq(html), file, line
   end
 end
 
@@ -40,7 +41,9 @@ def extract_spec_tests(file)
   result_start = false
 
   File.open(file) do |f|
+    line_number = 0
     while line = f.read_line
+      line_number += 1
       line = line.gsub(/\r\n?/, "\n")
       break if line.includes?("<!-- END TESTS -->")
 
@@ -59,6 +62,7 @@ def extract_spec_tests(file)
           example_count += 1
         elsif test_start && !result_start
           examples[current_section][example_count] ||= {
+            "line" => line_number.to_s,
             "markdown" => "",
             "html" => ""
           } of String => String
