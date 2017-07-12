@@ -259,12 +259,12 @@ module Markd::Lexer
       if @line.empty?
         @blank = true
       else
-        while char = @line[offset]
+        while char = peek(@line, offset)
           case char
-          when ' '
+          when Rule::CHAR_CODE_SPACE
             offset += 1
             column += 1
-          when '\t'
+          when Rule::CHAR_CODE_TAB
             offset += 1
             column += (4 - (column % 4))
           else
@@ -272,7 +272,9 @@ module Markd::Lexer
           end
         end
 
-        @blank = char.whitespace?
+        @blank = [Rule::CHAR_CODE_NONE,
+                  Rule::CHAR_CODE_NEWLINE,
+                  Rule::CHAR_CODE_CARRIAGE].includes?(char)
       end
 
       @next_nonspace = offset
@@ -311,6 +313,14 @@ module Markd::Lexer
       @offset = @next_nonspace
       @column - @next_nonspace_column
       @partially_consumed_tab = false
+    end
+
+    private def peek(text : String, index = 0) : Int32
+      if index < text.size
+        text[index].ord
+      else
+        -1
+      end
     end
 
     private def match_html_block?(container : Node)
