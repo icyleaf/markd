@@ -4,18 +4,18 @@ require "../src/markd"
 def describe_spec(file)
   specs = extract_spec_tests(file)
 
-  # puts "Run Describe [#{file}] examples"
-  # specs_count = 0
-  # examples_count = 0
-  # specs.each do |section, examples|
-  #   specs_count += 1
-  #   examples_count += examples.size
-  #   puts "#{specs_count.to_s.rjust(2)}. #{section} (#{examples.size})"
-  # end
-  # puts "Total #{specs_count} describes and #{examples_count} examples"
+  puts "Run [#{file}] examples"
+  specs_count = 0
+  examples_count = 0
+  specs.each do |section, examples|
+    specs_count += 1
+    examples_count += examples.size
+    puts "#{specs_count.to_s.rjust(2)}. #{section} (#{examples.size})"
+  end
+  puts "Total #{specs_count} describes and #{examples_count} examples"
 
   specs.each_with_index do |(section, examples), index|
-    exit if index == 3
+    exit if index == 6
     assert_section(file, section, examples)
   end
 end
@@ -29,7 +29,7 @@ def assert_section(file, section, examples)
 end
 
 def assert_exapmle(file, section, index, example)
-  markdown = example["markdown"].gsub("→", "\t")
+  markdown = example["markdown"].gsub("→", "\t").chomp
   html = example["html"].gsub("→", "\t")
   line = example["line"].to_i
 
