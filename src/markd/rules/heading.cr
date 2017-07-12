@@ -22,7 +22,9 @@ module Markd::Rule
 
         MatchValue::Leaf
       elsif (match = match?(parser, SETEXT_HEADING_MARKER)) &&
-             container.type == Node::Type::Paragraph
+             container.type == Node::Type::Paragraph && container.parent &&
+             container.parent.not_nil!.type != Node::Type::BlockQuote
+
         # Setext Heading matched
         parser.close_unmatched_blocks
         heading = Node.new(Node::Type::Heading)
