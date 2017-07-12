@@ -18,7 +18,7 @@ module Markd::Rule
       if match?(parser)
         seek(parser)
       else
-        1
+        return 1
       end
 
       0
