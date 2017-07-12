@@ -247,9 +247,7 @@ module Markd::Lexer
         else
           opener = closer.previous
           opener_found = false
-          while !opener.nil? && !openers_bottom[closer_codepoint].nil? && !delimiter.nil? &&
-                opener != delimiter && opener != openers_bottom[closer_codepoint]
-
+          while !opener.nil? && opener != delimiter && opener != openers_bottom[closer_codepoint]
             odd_match = (closer.can_open || opener.can_close) &&
                         (opener.orig_delims + closer.orig_delims) % 3 == 0
             if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
