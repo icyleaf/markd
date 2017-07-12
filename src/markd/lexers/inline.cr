@@ -86,11 +86,13 @@ module Markd::Lexer
 
     def backslash(node : Node)
       @pos += 1
+
+      char = @text.size > @pos ? @text[@pos].to_s : nil
       child = if peek == Rule::CHAR_CODE_NEWLINE
                 @pos += 1
                 Node.new(Node::Type::Linebreak)
-              elsif @text[@pos].to_s.match(Rule::ESCAPABLE)
-                c = text(@text[@pos])
+              elsif char && char.match(Rule::ESCAPABLE)
+                c = text(char)
                 @pos += 1
                 c
               else
