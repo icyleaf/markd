@@ -56,7 +56,7 @@ module Markd
     def list(node : Node, entering : Bool)
       attrs = attrs(node)
       tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
-      if entering && (start = node.data["start"].as(Int32)) && start != -1
+      if entering && (start = node.data["start"].as(Int32)) && start > 1
         attrs["start"] = start.to_s
       end
 
