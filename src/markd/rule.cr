@@ -136,6 +136,11 @@ module Markd
       parser.line[index..-1]
     end
 
+    def substring(text : String, index = 0) : String
+      return "" unless index < text.size
+      text[index].to_s
+    end
+
     def char_code_at(parser : Lexer, index = parser.next_nonspace) : Int32
       if index < parser.line.size
         parser.line[index].ord

@@ -41,7 +41,7 @@ module Markd::Rule
       if container.fenced?
         # fenced
         match = indent <= 3 &&
-                line[parser.next_nonspace].to_s == container.fence_char &&
+                substring(line, parser.next_nonspace) == container.fence_char &&
                 line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
 
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
