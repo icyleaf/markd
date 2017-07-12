@@ -152,7 +152,7 @@ module Markd
 
     def unescape_string(text : String)
       if text =~ BACKSLASH_OR_AMP
-        text.gsub(ENTITY_OR_ESCAPED_CHAR, unescape_char)
+        text.sub(ENTITY_OR_ESCAPED_CHAR, unescape_char)
       else
         text
       end

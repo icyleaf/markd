@@ -72,6 +72,7 @@ module Markd::Rule
 
     def token(parser : Lexer, container : Node)
       if container.fenced?
+        # fenced
         content = container.text
         newline_pos = content.index("\n")
         newline_pos = -1 unless newline_pos
@@ -82,6 +83,7 @@ module Markd::Rule
         container.fence_language = first_line.strip
         container.text = text
       else
+        # indented
         container.text = container.text.gsub(/(\n *)+$/, "\n")
       end
     end
