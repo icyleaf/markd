@@ -16,7 +16,7 @@ module Markd
     end
 
     def out(string : String)
-      lit(string)
+      lit(escape(string))
     end
 
     def lit(string : String)
@@ -26,6 +26,22 @@ module Markd
 
     def cr
       lit("\n") if @last_output != "\n"
+    end
+
+    def escape(text, preserve_entities = false)
+      if text.match(Rule::XML_SPECIAL)
+        regex = preserve_entities ? Rule::XML_SPECIAL_OR_ENTITY : Rule::XML_SPECIAL
+        text.gsub(Rule::XML_SPECIAL_OR_ENTITY) do |char|
+          case char
+          when "&", "<", ">", "\""
+            HTML.escape(char)
+          else
+            char
+          end
+        end
+      else
+        text
+      end
     end
 
     def render(document : Node)
