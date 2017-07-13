@@ -78,13 +78,12 @@ module Markd::Rule
         "start" => -1
       } of String => Node::DataValue
 
+
       if match = line.match(BULLET_LIST_MARKER)
         data["type"] = "bullet"
         data["bullet_char"] = match[0][0].to_s
       elsif (match = line.match(ORDERED_LIST_MARKER)) &&
-            container.type != Node::Type::Paragraph &&
-            match[1] == "1"
-
+            (container.type != Node::Type::Paragraph || match[1] == "1")
         data["type"] = "ordered"
         data["start"] = match[1].to_i
         data["delimiter"] = match[2]
