@@ -11,7 +11,7 @@ module Markd
       if entering
         cr
         tag(tag_name, attrs(node))
-        toc(node) if @options.toc
+        # toc(node) if @options.toc
       else
         tag("/#{tag_name}")
         cr
