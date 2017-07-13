@@ -71,7 +71,7 @@ module Markd::Lexer
       if last_child && last_child.type == Node::Type::Text &&
          last_child.text[last_child.text.size - 1] == ' '
 
-        hard_break = last_child.text[last_child.text.size - 2]
+        hard_break = last_child.text[last_child.text.size - 2] == ' '
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else

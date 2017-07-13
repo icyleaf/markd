@@ -5,18 +5,17 @@ def describe_spec(file)
   specs = extract_spec_tests(file)
 
   puts "Run [#{file}] examples"
-  specs_count = 0
   examples_count = 0
-  specs.each do |section, examples|
-    specs_count += 1
+  specs.each_with_index do |(section, examples), index|
     examples_count += examples.size
-    puts "#{specs_count.to_s.rjust(2)}. #{section} (#{examples.size})"
+    puts "#{(index + 1).to_s.rjust(2)}. #{section} (#{examples.size})"
   end
-  puts "Total #{specs_count} describes and #{examples_count} examples"
+  puts "Total #{specs.size} describes and #{examples_count} examples"
 
   specs.each_with_index do |(section, examples), index|
-    next if index == 7 || index == 8
-    exit if index == 10
+    no = index + 1
+    exit if no == 26
+    next if [8, 9, 13, 14, 16, 17,18,19,20,21,22,23,24].includes?(no)
     assert_section(file, section, examples)
   end
 end
