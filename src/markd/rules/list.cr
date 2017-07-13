@@ -38,7 +38,7 @@ module Markd::Rule
           break
         end
 
-        subitem = item.first_child.not_nil!
+        subitem = item.first_child
         while subitem
           if ends_with_blankline?(subitem) && (item.next || subitem.next)
             container.data["tight"] = false
@@ -75,9 +75,8 @@ module Markd::Rule
         "marker_offset" => parser.indent,
         "bullet_char" => "",
         "tight" => true,  # lists are tight by default
-        "start" => -1
+        "start" => 1
       } of String => Node::DataValue
-
 
       if match = line.match(BULLET_LIST_MARKER)
         data["type"] = "bullet"

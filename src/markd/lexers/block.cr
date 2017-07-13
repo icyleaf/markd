@@ -205,6 +205,8 @@ module Markd::Lexer
           @inline_lexer.parse(node)
         end
       end
+
+      nil
     end
 
     def token(container : Node, line_number : Int32)
@@ -214,6 +216,8 @@ module Markd::Lexer
       @rules[container.type].token(self, container)
 
       @tip = above
+
+      nil
     end
 
     def add_line
@@ -225,6 +229,8 @@ module Markd::Lexer
       end
 
       @tip.not_nil!.text += slice(@line, @offset) + "\n"
+
+      nil
     end
 
     def add_child(type : Node::Type, offset : Int32) : Node
@@ -253,6 +259,7 @@ module Markd::Lexer
 
         @all_closed = true
       end
+      nil
     end
 
     def find_next_nonspace
@@ -284,6 +291,8 @@ module Markd::Lexer
       @next_nonspace_column = column
       @indent = @next_nonspace_column - @column
       @indented = @indent >= Rule::CODE_INDENT
+
+      nil
     end
 
     def advance_offset(count, columns = false)
@@ -310,12 +319,16 @@ module Markd::Lexer
           count -= 1
         end
       end
+
+      nil
     end
 
     def advance_next_nonspace
       @offset = @next_nonspace
       @column - @next_nonspace_column
       @partially_consumed_tab = false
+
+      nil
     end
 
     private def match_html_block?(container : Node)

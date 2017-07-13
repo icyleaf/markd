@@ -14,7 +14,7 @@ def describe_spec(file)
 
   specs.each_with_index do |(section, examples), index|
     no = index + 1
-    next if [8, 9, 13, 16, 17, 18, 19, 20, 21, 22].includes?(no)
+    next if [8, 9, 16, 17, 18, 19, 20, 21, 22].includes?(no)
     assert_section(file, section, examples)
   end
 end
