@@ -5,7 +5,6 @@ module Markd
       Document
       Paragraph
       Text
-      Linebreak
       Strong
       Emphasis
       Link

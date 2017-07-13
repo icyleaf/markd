@@ -90,7 +90,7 @@ module Markd::Lexer
       char = @text.size > @pos ? @text[@pos].to_s : nil
       child = if peek == Rule::CHAR_CODE_NEWLINE
                 @pos += 1
-                Node.new(Node::Type::Linebreak)
+                Node.new(Node::Type::LineBreak)
               elsif char && char.match(Rule::ESCAPABLE)
                 c = text(char)
                 @pos += 1
