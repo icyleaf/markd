@@ -74,7 +74,7 @@ module Markd
       end
     end
 
-    def html_inline(node : Node, entering : Bool)
+    def html_block(node : Node, entering : Bool)
       cr
       content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
       lit(content)

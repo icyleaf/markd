@@ -65,6 +65,8 @@ module Markd
           code_block(node, entering)
         when Node::Type::Code
           code(node, entering)
+        when Node::Type::HTMLBlock, Node::Type::HTMLInline
+          html_block(node, entering)
         when Node::Type::Paragraph
           paragraph(node, entering)
         when Node::Type::Emphasis
