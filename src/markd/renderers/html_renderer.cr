@@ -74,6 +74,44 @@ module Markd
       end
     end
 
+    def link(node : Node, entering : Bool)
+      if entering
+        attrs = attrs(node)
+        if !(@options.safe && potentially_unsafe(node.data["destination"].as(String)))
+          attrs["href"] = escape(node.data["destination"].as(String), true)
+        end
+
+        if (title = node.data["title"].as(String)) && !title.empty?
+          attrs["title"] = escape(title, true)
+        end
+
+        tag("a", attrs)
+      else
+        tag("/a")
+      end
+    end
+
+    def image(node : Node, entering : Bool)
+      if entering
+        if @disable_tag == 0
+          if @options.safe && potentially_unsafe(node.data["destionation"].as(String))
+            lit("<img src=\"\" alt=\"\"")
+          else
+            lit("<img src=\"#{escape(node.data["destination"].as(String), true)}\" alt=\"")
+          end
+        end
+        @disable_tag += 1
+      else
+        @disable_tag -= 1
+        if @disable_tag == 0
+          if (title = node.data["title"].as(String)) && !title.empty?
+            lit("\" title=\"#{escape(title, true)}\"")
+          end
+          lit("\" />")
+        end
+      end
+    end
+
     def html_block(node : Node, entering : Bool)
       cr
       content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
@@ -132,6 +170,10 @@ module Markd
       @output_io << " /" if self_closing
       @output_io << ">"
       @last_output = ">"
+    end
+
+    private def potentially_unsafe(url : String)
+      url.match(Rule::UNSAFE_PROTOCOL) && !url.match(Rule::UNSAFE_DATA_PROTOCOL)
     end
 
     private def toc(node : Node)

@@ -18,12 +18,11 @@ module Markd
       CodeBlock
       HTMLBlock
       HTMLInline
+      LineBreak
+      SoftBreak
 
       CustomInLine
       CustomBlock
-
-      LineBreak
-      SoftBreak
     end
 
     alias DataValue = String|Int32|Bool
