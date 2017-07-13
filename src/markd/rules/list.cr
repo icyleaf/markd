@@ -14,11 +14,11 @@ module Markd::Rule
         parser.close_unmatched_blocks
         if parser.tip.not_nil!.type != Node::Type::List || !list_match?(container.data, data.not_nil!)
           list_node = parser.add_child(Node::Type::List, parser.next_nonspace)
-          list_node.data = data #.not_nil!
+          list_node.data = data
         end
 
         item_node = parser.add_child(Node::Type::Item, parser.next_nonspace)
-        item_node.data = data #.not_nil!
+        item_node.data = data
 
         MatchValue::Container
       else
@@ -34,7 +34,7 @@ module Markd::Rule
       item = container.first_child
       while item
         if ends_with_blankline?(item) && item.next
-          item.data["tight"] = false
+          container.data["tight"] = false
           break
         end
 
@@ -94,7 +94,7 @@ module Markd::Rule
       # make sure we have spaces after
       first_match_size = match[0].size
       next_char = char_code_at(parser, parser.next_nonspace + first_match_size)
-      if !(next_char.nil? || blank?(next_char))
+      if !(next_char == -1 || blank?(next_char))
         return empty_data
       end
 
