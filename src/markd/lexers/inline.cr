@@ -69,7 +69,7 @@ module Markd::Lexer
       last_child = node.last_child
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
-         last_child.text[last_child.text.size - 1] == " "
+         last_child.text[last_child.text.size - 1] == ' '
 
         hard_break = last_child.text[last_child.text.size - 2]
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")

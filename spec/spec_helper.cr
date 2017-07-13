@@ -15,7 +15,8 @@ def describe_spec(file)
   puts "Total #{specs_count} describes and #{examples_count} examples"
 
   specs.each_with_index do |(section, examples), index|
-    exit if index == 6
+    next if index == 7 || index == 8
+    exit if index == 10
     assert_section(file, section, examples)
   end
 end
