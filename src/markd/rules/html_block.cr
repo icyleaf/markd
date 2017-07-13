@@ -5,17 +5,17 @@ module Markd::Rule
     def match(parser : Lexer, container : Node)
       if !parser.indented && char_code_at(parser) == CHAR_CODE_LESSTHAN
         text = text_clean(parser)
-        block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
+        block_type_size = Rule::HTML_BLOCK_OPEN.size
 
-        0.upto(block_type_size) do |block_type|
-          if (text =~ Rule::HTML_BLOCK_OPEN[block_type]) &&
-             (block_type < block_type_size || container.type != Node::Type::Paragraph)
+        Rule::HTML_BLOCK_OPEN.each_with_index do |regex, index|
+          if (text.match(regex) &&
+             (index < block_type_size || container.type != Node::Type::Paragraph))
 
             parser.close_unmatched_blocks
             # We don't adjust parser.offset;
             # spaces are part of the HTML block:
             node = parser.add_child(Node::Type::HTMLBlock, parser.offset)
-            node.data["html_block_type"] = block_type + 1
+            node.data["html_block_type"] = index
 
             return MatchValue::Leaf
           end
