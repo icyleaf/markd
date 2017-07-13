@@ -114,7 +114,7 @@ module Markd::Rule
         break unless parser.column - spaces_start_column < 5 && space_or_tab?(next_char)
       end
 
-      blank_item = char_code(parser, parser.offset).nil?
+      blank_item = char_code(parser, parser.offset) == -1
       spaces_after_marker = parser.column - spaces_start_column
       if spaces_after_marker >= 5 || spaces_after_marker < 1 || blank_item
         data["padding"] = match[0].size + 1
