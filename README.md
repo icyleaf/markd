@@ -61,17 +61,16 @@ Run [spec/spec.txt] examples
 10. Paragraphs (8)
 11. Blank lines (1)
 12. Block quotes (25)
+13. List items (48)
 15. Inlines (1)
+23. Raw HTML (21)
+24. Hard line breaks (15)
 25. Soft line breaks (2)
 26. Textual content (3)
 Total 26 describes and 621 examples
-..........................................................................................................................................................
-
-Finished in 29.72 milliseconds
-154 examples, 0 failures, 0 errors, 0 pending
-./bin/spec  0.01s user 0.01s system 58% cpu 0.037 total
+..................................................................
 ```
-
+./bin/spec  0.02s user 0.01s system 69% cpu 0.038 total
 ## Roadmap
 
 - [Features](https://github.com/icyleaf/markd/issues/1)
