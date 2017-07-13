@@ -14,7 +14,7 @@ module Markd::Rule
 
         container = parser.add_child(Node::Type::Heading, parser.next_nonspace)
         container.data["level"] = match[0].strip.size
-        container.text = parser.line[parser.offset..-1]
+        container.text = slice(parser.line, parser.offset)
                                .sub(/^ *#+ *$/, "")
                                .sub(/ +#+ *$/, "")
 
@@ -62,7 +62,7 @@ module Markd::Rule
     end
 
     private def match?(parser : Lexer, regex : Regex) : Regex::MatchData?
-      match = text_clean(parser).match(regex)
+      match = slice(parser).match(regex)
       !parser.indented && match ? match : nil
     end
   end

@@ -3,8 +3,8 @@ module Markd::Rule
     include Rule
 
     def match(parser : Lexer, container : Node)
-      if !parser.indented && char_code_at(parser) == CHAR_CODE_LESSTHAN
-        text = text_clean(parser)
+      if !parser.indented && char_code(parser) == CHAR_CODE_LESSTHAN
+        text = slice(parser)
         block_type_size = Rule::HTML_BLOCK_OPEN.size
 
         Rule::HTML_BLOCK_OPEN.each_with_index do |regex, index|

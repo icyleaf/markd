@@ -67,7 +67,7 @@ module Markd::Rule
     end
 
     private def parse_list_marker(parser : Lexer, container : Node) : Node::DataType
-      line = text_clean(parser)
+      line = slice(parser)
 
       empty_data = {} of String => Node::DataValue
       data = {
@@ -93,13 +93,13 @@ module Markd::Rule
 
       # make sure we have spaces after
       first_match_size = match[0].size
-      next_char = char_code_at(parser, parser.next_nonspace + first_match_size)
-      if !(next_char == -1 || blank?(next_char))
+      next_char = char_code(parser, parser.next_nonspace + first_match_size)
+      if !(next_char == -1 || space_or_tab?(next_char))
         return empty_data
       end
 
       if container.type == Node::Type::Paragraph &&
-         !text_clean(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
+         !slice(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
          return empty_data
       end
 
@@ -110,19 +110,19 @@ module Markd::Rule
 
       loop do
         parser.advance_offset(1, true)
-        next_char = char_code_at(parser, parser.offset)
+        next_char = char_code(parser, parser.offset)
 
-        break unless parser.column - spaces_start_column < 5 && blank?(next_char)
+        break unless parser.column - spaces_start_column < 5 && space_or_tab?(next_char)
       end
 
-      blank_item = char_code_at(parser, parser.offset).nil?
+      blank_item = char_code(parser, parser.offset).nil?
       spaces_after_marker = parser.column - spaces_start_column
       if spaces_after_marker >= 5 || spaces_after_marker < 1 || blank_item
         data["padding"] = match[0].size + 1
         parser.column = spaces_start_column
         parser.offset = spaces_start_offset
 
-        parser.advance_offset(1, true) if blank?(char_code_at(parser, parser.offset))
+        parser.advance_offset(1, true) if space_or_tab?(char_code(parser, parser.offset))
       else
         data["padding"] = match[0].size + spaces_after_marker
       end

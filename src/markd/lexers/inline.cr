@@ -3,6 +3,7 @@ require "html"
 module Markd::Lexer
   class Inline
     include Lexer
+    include Utils
 
     property refmap
 
@@ -69,9 +70,9 @@ module Markd::Lexer
       last_child = node.last_child
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
-         last_child.text[last_child.text.size - 1] == ' '
+         char(last_child.text, last_child.text.size - 1) == ' '
 
-        hard_break = last_child.text[last_child.text.size - 2] == ' '
+        hard_break = char(last_child.text, last_child.text.size - 2) == ' '
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else
@@ -163,6 +164,7 @@ module Markd::Lexer
     end
 
     def close_bracket(node : Node)
+      dest = ""
       matched = false
       @pos += 1
       start_pos = @pos
@@ -186,7 +188,7 @@ module Markd::Lexer
         @pos += 1
         if spnl &&
            ((dest = link_destination != nil) &&
-           spnl && (@text[@pos-1..-1] &&
+           spnl && (slice(@text, @pos - 1) &&
            (title = link_title || true)) &&
            spnl && peek == Rule::CHAR_CODE_CLOSE_PAREN)
           @pos += 1
@@ -198,7 +200,7 @@ module Markd::Lexer
 
       unless matched
         child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
-        child.data["destination"] = dest.not_nil!
+        child.data["destination"] = dest
         child.data["title"] = title || ""
 
         tmp = opener.node.next
@@ -274,8 +276,8 @@ module Markd::Lexer
               # remove used delimiters from stack elts and inlines
               opener.not_nil!.num_delims -= use_delims
               closer.not_nil!.num_delims -= use_delims
-              opener_inl.not_nil!.text = opener_inl.not_nil!.text[0..(opener_inl.text.size - use_delims)]
-              closer_inl.not_nil!.text = closer_inl.not_nil!.text[0..(closer_inl.text.size - use_delims)]
+              opener_inl.not_nil!.text = slice(opener_inl.not_nil!.text, 0, opener_inl.text.size - use_delims)
+              closer_inl.not_nil!.text = slice(closer_inl.not_nil!.text, 0, closer_inl.text.size - use_delims)
 
               # build contents for new emph element
               emph = Node.new(use_delims ? Node::Type::Emphasis : Node::Type::Strong)
@@ -391,7 +393,7 @@ module Markd::Lexer
     end
 
     def link(match : String, email = false) : Node
-      dest = match[1..match.size-1]
+      dest = slice(match, 1, match.size - 1)
       destination = email ? "mailto:#{dest}" : dest
 
       node = Node.new(Node::Type::Link)
@@ -414,12 +416,12 @@ module Markd::Lexer
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      HTML.unescape(title[1..title.size-2])
+      HTML.unescape(slice(title, 1, title.size - 2))
     end
 
     def link_destination
       res = match(Rule::LINK_DESTINATION_BRACES)
-      return HTML.unescape(res[1..res.size-2]) if res
+      return HTML.unescape(slice(res, 1, res.size - 2)) if res
 
       save_pos = @pos
       open_parens = 0
@@ -442,7 +444,7 @@ module Markd::Lexer
         end
       end
 
-      res = @text[save_pos..(@pos - save_pos)]
+      res = slice(@text, save_pos, @pos - save_pos)
       HTML.unescape(res)
     end
 
@@ -459,7 +461,7 @@ module Markd::Lexer
               when Rule::CHAR_CODE_DOUBLE_QUOTE
                 "\u{201C}"
               else
-                @text[start_pos..@pos-1]
+                slice(@text, start_pos, @pos - 1)
               end
 
       child = text(text)
@@ -608,7 +610,7 @@ module Markd::Lexer
     end
 
     private def peek : Int32
-      @pos < @text.size ? @text[@pos].ord : -1
+      char_code(@text, @pos)
     end
 
     private def spnl
@@ -617,7 +619,7 @@ module Markd::Lexer
     end
 
     private def match(regex : Regex) : String?
-      text = @text[@pos..-1]
+      text = slice(@text, @pos, -1)
       if match = text.match(regex)
         @pos += text.index(regex).not_nil! + match[0].size
         return match[0]

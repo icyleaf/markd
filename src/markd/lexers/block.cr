@@ -1,6 +1,7 @@
 module Markd::Lexer
   class Block
     include Lexer
+    include Utils
 
     def self.parse(source : String)
       new(Options.new).parse(source)
@@ -125,7 +126,7 @@ module Markd::Lexer
         find_next_nonspace
 
         # this is a little performance optimization
-        if !@indented && !@line[next_nonspace..-1].match(Rule::MAYBE_SPECIAL)
+        if !@indented && !slice(@line, @next_nonspace).match(Rule::MAYBE_SPECIAL)
           advance_next_nonspace
           break
         end
@@ -191,6 +192,8 @@ module Markd::Lexer
 
         @last_line_length = line.size
       end
+
+      nil
     end
 
     def process_inlines
@@ -221,7 +224,7 @@ module Markd::Lexer
         @tip.not_nil!.text += " " * chars_to_tab
       end
 
-      @tip.not_nil!.text += @line[@offset..-1] + "\n"
+      @tip.not_nil!.text += slice(@line, @offset) + "\n"
     end
 
     def add_child(type : Node::Type, offset : Int32) : Node
@@ -259,7 +262,7 @@ module Markd::Lexer
       if @line.empty?
         @blank = true
       else
-        while char = peek(@line, offset)
+        while char = char_code(@line, offset)
           case char
           when Rule::CHAR_CODE_SPACE
             offset += 1
@@ -285,7 +288,7 @@ module Markd::Lexer
 
     def advance_offset(count, columns = false)
       line = @line
-      while count > 0 && (char = line[@offset].ord)
+      while count > 0 && (char = char_code(line, @offset))
         if char == Rule::CHAR_CODE_TAB
           chars_to_tab = Rule::CODE_INDENT - (@column % 4)
           if columns
@@ -315,18 +318,10 @@ module Markd::Lexer
       @partially_consumed_tab = false
     end
 
-    private def peek(text : String, index = 0) : Int32
-      if index < text.size
-        text[index].ord
-      else
-        -1
-      end
-    end
-
     private def match_html_block?(container : Node)
       if block_type = container.data["html_block_type"]
         block_type = block_type.as(Int32)
-        block_type >= 1 && block_type <= 5 && Rule::HTML_BLOCK_CLOSE[block_type].match(@line[@offset..-1])
+        block_type >= 1 && block_type <= 5 && Rule::HTML_BLOCK_CLOSE[block_type].match(slice(@line, @offset))
       else
         false
       end

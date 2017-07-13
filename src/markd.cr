@@ -1,3 +1,4 @@
+require "./markd/utils"
 require "./markd/node"
 require "./markd/rule"
 require "./markd/options"

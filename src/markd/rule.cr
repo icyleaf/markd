@@ -1,5 +1,7 @@
 module Markd
   module Rule
+    include Utils
+
     ENTITY_STRING = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
     ESCAPABLE_STRING = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
     ESCAPED_CHAR_STRING = "\\\\#{ESCAPABLE_STRING}"
@@ -132,41 +134,16 @@ module Markd
     # accepts_line
     abstract def accepts_lines? : Bool
 
-    def text_clean(parser : Lexer, index = parser.next_nonspace) : String
-      parser.line[index..-1]
+    def slice(parser : Lexer, index = parser.next_nonspace) : String
+      slice(parser.line, index)
     end
 
-    def substring(text : String, index = 0) : String
-      return "" unless index < text.size
-      text[index].to_s
+    def char_code(parser : Lexer, index = parser.next_nonspace) : Int32
+      char_code(parser.line, index)
     end
 
-    def char_code_at(parser : Lexer, index = parser.next_nonspace) : Int32
-      if index < parser.line.size
-        parser.line[index].ord
-      else
-        -1
-      end
-    end
-
-    def blank?(code : Int32) : Bool
+    def space_or_tab?(code : Int32) : Bool
       [CHAR_CODE_SPACE, CHAR_CODE_TAB].includes?(code)
-    end
-
-    def unescape_char(text : String)
-      if text.byte_at(0) == CHAR_CODE_BACKSLASH
-        text[1]
-      else
-        HTML.unescape(s)
-      end
-    end
-
-    def unescape_string(text : String)
-      if text =~ BACKSLASH_OR_AMP
-        text.sub(ENTITY_OR_ESCAPED_CHAR, unescape_char)
-      else
-        text
-      end
     end
   end
 end

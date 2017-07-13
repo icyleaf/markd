@@ -8,7 +8,7 @@ module Markd::Rule
       while !container.text.empty? && container.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
             (pos = parser.inline_lexer.reference(container.text, parser.refmap))
 
-        container.text = container.text[pos..-1]
+        container.text = slice(container.text, pos)
         has_reference_defs = true
       end
 

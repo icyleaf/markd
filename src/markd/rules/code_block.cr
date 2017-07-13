@@ -7,7 +7,7 @@ module Markd::Rule
 
     def match(parser : Lexer, container : Node) : MatchValue
       if !parser.indented &&
-         (match = text_clean(parser).match(CODE_FENCE))
+         (match = slice(parser).match(CODE_FENCE))
         # fenced
         fence_length = match[0].size
 
@@ -43,8 +43,8 @@ module Markd::Rule
       if container.fenced?
         # fenced
         match = indent <= 3 &&
-                substring(line, parser.next_nonspace) == container.fence_char &&
-                line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
+                char(line, parser.next_nonspace).to_s == container.fence_char &&
+                slice(line, parser.next_nonspace).match(CLOSING_CODE_FENCE)
 
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
           # closing fence - we're at end of line, so we can return
@@ -53,7 +53,7 @@ module Markd::Rule
         else
           # skip optional spaces of fence offset
           index = container.fence_offset
-          while index > 0 && blank?(char_code_at(parser, parser.offset))
+          while index > 0 && space_or_tab?(char_code(parser, parser.offset))
             parser.advance_offset(1, true)
             index -= 1
           end
@@ -78,9 +78,9 @@ module Markd::Rule
         content = container.text
         newline_pos = content.index("\n")
         newline_pos = -1 unless newline_pos
-        first_line = content[0..newline_pos]
+        first_line = slice(content, 0, newline_pos)
 
-        text = content[(newline_pos + 1)..-1]
+        text = slice(content, newline_pos + 1)
 
         container.fence_language = first_line.strip
         container.text = text
