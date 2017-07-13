@@ -1,5 +1,6 @@
 module Markd
   abstract class Renderer
+    include Utils
 
     def initialize
       @options = Options.new
@@ -42,6 +43,7 @@ module Markd
     end
 
     def render(document : Node)
+      start_time("renderering") if @options.time
       walker = document.walker
       while event = walker.next
         node = event["node"].as(Node)
@@ -84,6 +86,8 @@ module Markd
           text(node, entering)
         end
       end
+
+      end_time("renderering") if @options.time
 
       @output_io.to_s.lstrip
     end

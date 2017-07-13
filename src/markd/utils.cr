@@ -1,5 +1,15 @@
 module Markd
   module Utils
+    @time_table = {} of String => Time
+
+    def start_time(label : String)
+      @time_table[label] = Time.now
+    end
+
+    def end_time(label : String)
+      raise Exception.new("Not found time label: #{label}") unless @time_table[label]
+      puts "#{label}: #{(Time.now - @time_table[label]).total_milliseconds}ms"
+    end
 
     def slice(text : String, starts = 0, ends = -1) : String
       return "" unless starts < text.size
