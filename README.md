@@ -36,7 +36,7 @@ html = Markd.to_html(markdown)
 Name | Type | Default value | Description |
 ---|---|---|---
 time | `Bool` | false |
-smart | `Bool` | false |if **true**, straight quotes will be made curly,<br />`--` will be changed to an en dash,<br />`---` will be changed to an em dash, and ... will be changed to ellipses.
+smart | `Bool` | false |if **true**, straight quotes will be made curly,<br />`--` will be changed to an en dash,<br />`---` will be changed to an em dash, and<br />`...` will be changed to ellipses.
 source_pos | `Bool` | false | if **true**, source position information for block-level elements<br />will be rendered in the data-sourcepos attribute (for HTML)
 safe | `Bool` | false | if **true**, raw HTML will not be passed through to HTML output (it will be replaced by comments)
 gfm | `Bool` | false | **Not support for now**
