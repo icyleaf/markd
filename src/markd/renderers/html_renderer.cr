@@ -81,6 +81,11 @@ module Markd
       cr
     end
 
+    def html_inline(node : Node, entering : Bool)
+      content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
+      lit(content)
+    end
+
     def paragraph(node : Node, entering : Bool)
       if (grand_parant = node.parent.not_nil!.parent) && grand_parant.type == Node::Type::List
         return if grand_parant.data["tight"]
