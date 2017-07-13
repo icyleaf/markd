@@ -112,7 +112,7 @@ module Markd::Lexer
       while text = match(Rule::TICKS)
         if text == ticks
           child = Node.new(Node::Type::Code)
-          child.text = @text[after_open_ticks..(@pos - ticks.size)]
+          child.text = @text[after_open_ticks..(@pos - ticks.size - 1)].strip.gsub(Rule::WHITESPACE, " ")
           node.append_child(child)
 
           return true
