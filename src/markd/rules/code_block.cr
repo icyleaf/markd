@@ -22,8 +22,10 @@ module Markd::Rule
         parser.advance_offset(fence_length, false)
 
         MatchValue::Leaf
-      elsif parser.indented && !parser.blank &&
-            parser.tip.not_nil!.type != Node::Type::Paragraph
+      elsif parser.indented && !parser.blank && (tip = parser.tip) &&
+            tip.type != Node::Type::Paragraph &&
+            container.type != Node::Type::List
+
         # indented
         parser.advance_offset(Rule::CODE_INDENT, true)
         parser.close_unmatched_blocks
