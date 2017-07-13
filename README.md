@@ -31,9 +31,58 @@ MD
 html = Markd.to_html(markdown)
 ```
 
-## Todo
+## Options
 
-See [#1](https://github.com/icyleaf/markd/issues/1)
+Name | Type | Default value | Description |
+---|---|---|---
+time | `Bool` | false |
+smart | `Bool` | false |if **true**, straight quotes will be made curly,<br />`--` will be changed to an en dash,<br />`---` will be changed to an em dash, and ... will be changed to ellipses.
+source_pos | `Bool` | false | if **true**, source position information for block-level elements<br />will be rendered in the data-sourcepos attribute (for HTML)
+safe | `Bool` | false | if **true**, raw HTML will not be passed through to HTML output (it will be replaced by comments)
+gfm | `Bool` | false | **Not support for now**
+toc | `Bool` | false | **Not support for now**
+
+## Performance
+
+For now, i have not pass all specs, the result was ran with `--release` flag with `crystal spec` running with Crystal 0.23.0 (2017-06-30) LLVM 4.0.1 on OS X 10.12.5.
+
+Machine information: MacBook Pro (Retina, 15-inch, Mid 2015), 2.2 GHz Intel Core i7, 16 GB 1600 MHz DDR3.
+
+```
+$ time ./bin/spec
+Run [spec/spec.txt] examples
+ 1. Tabs (11)
+ 2. Precedence (1)
+ 3. Thematic breaks (19)
+ 4. ATX headings (18)
+ 5. Setext headings (26)
+ 6. Indented code blocks (12)
+ 7. Fenced code blocks (27)
+10. Paragraphs (8)
+11. Blank lines (1)
+12. Block quotes (25)
+15. Inlines (1)
+25. Soft line breaks (2)
+26. Textual content (3)
+Total 26 describes and 621 examples
+..........................................................................................................................................................
+
+Finished in 29.72 milliseconds
+154 examples, 0 failures, 0 errors, 0 pending
+./bin/spec  0.01s user 0.01s system 58% cpu 0.037 total
+```
+
+## Roadmap
+
+- [Features](https://github.com/icyleaf/markd/issues/1)
+- [Pass CommonMark Specs](https://github.com/icyleaf/markd/issues/3)
+
+## Milestore
+
+- v1.0
+  - 100% Compliant to commonmark
+- v1.1
+  - GFM support
 
 ## Contributing
 
