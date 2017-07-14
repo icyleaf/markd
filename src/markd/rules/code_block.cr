@@ -6,6 +6,8 @@ module Markd::Rule
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
     def match(parser : Lexer, container : Node) : MatchValue
+
+      # pp container
       if !parser.indented &&
          (match = slice(parser).match(CODE_FENCE))
         # fenced
@@ -24,7 +26,8 @@ module Markd::Rule
         MatchValue::Leaf
       elsif parser.indented && !parser.blank && (tip = parser.tip) &&
             tip.type != Node::Type::Paragraph &&
-            container.type != Node::Type::List
+            (container.type != Node::Type::List ||
+            (container.type == Node::Type::List && container.data["padding"].as(Int32) >= 4))
 
         # indented
         parser.advance_offset(Rule::CODE_INDENT, true)
