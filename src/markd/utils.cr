@@ -29,17 +29,23 @@ module Markd
       end
     end
 
-    def unescape_char(text : String)
+    def normalize_uri(uri : String)
+      URI.escape(HTML.unescape(URI.unescape(uri)))
+    end
+
+    def unescape_char(text : String) : String
       if char_code(text, 0) == Rule::CHAR_CODE_BACKSLASH
-        text[1]
+        text[1].to_s
       else
         HTML.unescape(text)
       end
     end
 
-    def unescape_string(text : String)
+    def unescape_string(text : String) : String
       if text.match(Rule::BACKSLASH_OR_AMP)
-        text.sub(Rule::ENTITY_OR_ESCAPED_CHAR, unescape_char)
+        text.gsub(Rule::ENTITY_OR_ESCAPED_CHAR) do |chars|
+          unescape_char(chars)
+        end
       else
         text
       end

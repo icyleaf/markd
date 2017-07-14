@@ -2,7 +2,6 @@ require "uri"
 
 module Markd
   class HTMLRenderer < Renderer
-
     @disable_tag = 0
     @last_output = "\n"
 
@@ -139,7 +138,7 @@ module Markd
     end
 
     def emphasis(node : Node, entering : Bool)
-      tag(entering ? "em" : "/em");
+      tag(entering ? "em" : "/em")
     end
 
     def soft_break(node : Node, entering : Bool)
@@ -152,7 +151,7 @@ module Markd
     end
 
     def strong(node : Node, entering : Bool)
-      tag(entering ? "strong" : "/strong");
+      tag(entering ? "strong" : "/strong")
     end
 
     def text(node : Node, entering : Bool)

@@ -2,7 +2,7 @@ module Markd::Rule
   class Heading
     include Rule
 
-    ATX_HEADING_MARKER = /^\#{1,6}(?:[ \t]+|$)/
+    ATX_HEADING_MARKER    = /^\#{1,6}(?:[ \t]+|$)/
     SETEXT_HEADING_MARKER = /^(?:=+|-+)[ \t]*$/
 
     def match(parser : Lexer, container : Node) : MatchValue
@@ -15,16 +15,15 @@ module Markd::Rule
         container = parser.add_child(Node::Type::Heading, parser.next_nonspace)
         container.data["level"] = match[0].strip.size
         container.text = slice(parser.line, parser.offset)
-                               .sub(/^ *#+ *$/, "")
-                               .sub(/ +#+ *$/, "")
+                 .sub(/^ *#+ *$/, "")
+                 .sub(/ +#+ *$/, "")
 
         parser.advance_offset(parser.line.size - parser.offset)
 
         MatchValue::Leaf
       elsif (match = match?(parser, SETEXT_HEADING_MARKER)) &&
-             container.type == Node::Type::Paragraph && container.parent &&
-             container.parent.not_nil!.type != Node::Type::BlockQuote
-
+            container.type == Node::Type::Paragraph && container.parent &&
+            container.parent.not_nil!.type != Node::Type::BlockQuote
         # Setext Heading matched
         parser.close_unmatched_blocks
         heading = Node.new(Node::Type::Heading)

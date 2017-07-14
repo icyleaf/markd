@@ -2,7 +2,7 @@ module Markd::Rule
   class CodeBlock
     include Rule
 
-    CODE_FENCE = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/
+    CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
     def match(parser : Lexer, container : Node) : MatchValue
@@ -26,7 +26,6 @@ module Markd::Rule
             tip.type != Node::Type::Paragraph &&
             (container.type != Node::Type::List ||
             (container.type == Node::Type::List && container.data["padding"].as(Int32) >= 4))
-
         # indented
         parser.advance_offset(Rule::CODE_INDENT, true)
         parser.close_unmatched_blocks
@@ -83,7 +82,7 @@ module Markd::Rule
 
         text = slice(content, newline_pos + 1)
 
-        container.fence_language = first_line.strip
+        container.fence_language = unescape_string(first_line.strip)
         container.text = text
       else
         # indented

@@ -12,22 +12,22 @@ module Markd::Lexer
     end
 
     @rules = {
-      Node::Type::Document => Rule::Document.new,
-      Node::Type::BlockQuote => Rule::BlockQuote.new,
-      Node::Type::Heading => Rule::Heading.new,
-      Node::Type::CodeBlock => Rule::CodeBlock.new,
-      Node::Type::HTMLBlock => Rule::HTMLBlock.new,
+      Node::Type::Document      => Rule::Document.new,
+      Node::Type::BlockQuote    => Rule::BlockQuote.new,
+      Node::Type::Heading       => Rule::Heading.new,
+      Node::Type::CodeBlock     => Rule::CodeBlock.new,
+      Node::Type::HTMLBlock     => Rule::HTMLBlock.new,
       Node::Type::ThematicBreak => Rule::ThematicBreak.new,
-      Node::Type::List => Rule::List.new,
-      Node::Type::Item => Rule::Item.new,
-      Node::Type::Paragraph => Rule::Paragraph.new
+      Node::Type::List          => Rule::List.new,
+      Node::Type::Item          => Rule::Item.new,
+      Node::Type::Paragraph     => Rule::Paragraph.new,
     }
 
     property tip : Node?
     property offset, column
 
     getter line, current_line, blank, inline_lexer,
-           indent, indented, next_nonspace, refmap
+      indent, indented, next_nonspace, refmap
 
     def initialize(@options : Options)
       @inline_lexer = Lexer::Inline.new(@options)
@@ -54,7 +54,7 @@ module Markd::Lexer
       @blank = false
       @partially_consumed_tab = false
       @all_closed = true
-      @refmap = {} of String => Hash(String, String)|String
+      @refmap = {} of String => Hash(String, String) | String
     end
 
     def parse(source : String)
@@ -167,8 +167,8 @@ module Markd::Lexer
         container_type = container.type
         last_line_blank = @blank &&
                           !(container_type == Node::Type::BlockQuote ||
-                          (container_type == Node::Type::CodeBlock && container.fenced?) ||
-                          (container_type == Node::Type::Item && !container.first_child && container.source_pos[0][0] == @current_line))
+                            (container_type == Node::Type::CodeBlock && container.fenced?) ||
+                            (container_type == Node::Type::Item && !container.first_child && container.source_pos[0][0] == @current_line))
 
         cont = container
         while cont
@@ -314,7 +314,7 @@ module Markd::Lexer
           end
         else
           @partially_consumed_tab = false
-          @column += 1  # assume ascii; block starts are ascii
+          @column += 1 # assume ascii; block starts are ascii
           @offset += 1
           count -= 1
         end

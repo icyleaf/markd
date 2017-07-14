@@ -45,7 +45,7 @@ module Markd::Rule
       parser.advance_offset(1, false)
 
       if space_or_tab?(char_code(parser, parser.offset))
-        parser.advance_offset(1, true);
+        parser.advance_offset(1, true)
       end
     end
   end

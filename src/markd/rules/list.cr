@@ -2,13 +2,12 @@ module Markd::Rule
   class List
     include Rule
 
-    BULLET_LIST_MARKER = /^[*+-]/
+    BULLET_LIST_MARKER  = /^[*+-]/
     ORDERED_LIST_MARKER = /^(\d{1,9})([.)])/
 
     def match(parser : Lexer, container : Node)
       if (!parser.indented || container.type == Node::Type::List) &&
          (data = parse_list_marker(parser, container))
-
         return MatchValue::None if data.nil? || data.empty?
 
         parser.close_unmatched_blocks
@@ -62,8 +61,8 @@ module Markd::Rule
 
     private def list_match?(list_data, item_data)
       list_data["type"] == item_data["type"] &&
-      list_data["delimiter"] == item_data["delimiter"] &&
-      list_data["bullet_char"] == item_data["bullet_char"]
+        list_data["delimiter"] == item_data["delimiter"] &&
+        list_data["bullet_char"] == item_data["bullet_char"]
     end
 
     private def parse_list_marker(parser : Lexer, container : Node) : Node::DataType
@@ -71,11 +70,11 @@ module Markd::Rule
 
       empty_data = {} of String => Node::DataValue
       data = {
-        "delimiter" => 0,
+        "delimiter"     => 0,
         "marker_offset" => parser.indent,
-        "bullet_char" => "",
-        "tight" => true,  # lists are tight by default
-        "start" => 1
+        "bullet_char"   => "",
+        "tight"         => true, # lists are tight by default
+        "start"         => 1,
       } of String => Node::DataValue
 
       if match = line.match(BULLET_LIST_MARKER)
@@ -99,7 +98,7 @@ module Markd::Rule
 
       if container.type == Node::Type::Paragraph &&
          !slice(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
-         return empty_data
+        return empty_data
       end
 
       parser.advance_next_nonspace

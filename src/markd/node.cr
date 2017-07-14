@@ -25,7 +25,7 @@ module Markd
       CustomBlock
     end
 
-    alias DataValue = String|Int32|Bool
+    alias DataValue = String | Int32 | Bool
     alias DataType = Hash(String, DataValue)
 
     property type : Type
@@ -165,7 +165,7 @@ module Markd
 
         return {
           "entering" => entering,
-          "node" => current
+          "node"     => current,
         }
       end
 

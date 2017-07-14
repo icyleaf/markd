@@ -12,7 +12,7 @@ module Markd::Lexer
     def initialize(@options : Options)
       @text = ""
       @pos = 0
-      @refmap = {} of String => Hash(String, String)|String
+      @refmap = {} of String => Hash(String, String) | String
     end
 
     def parse(node : Node)
@@ -71,7 +71,6 @@ module Markd::Lexer
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
          char(last_child.text, last_child.text.size - 1) == ' '
-
         hard_break = char(last_child.text, last_child.text.size - 2) == ' '
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
@@ -269,8 +268,8 @@ module Markd::Lexer
 
     def process_emphasis(delimiter : Delimiter?)
       openers_bottom = {
-        Rule::CHAR_CODE_UNDERSCORE => delimiter,
-        Rule::CHAR_CODE_ASTERISK => delimiter,
+        Rule::CHAR_CODE_UNDERSCORE   => delimiter,
+        Rule::CHAR_CODE_ASTERISK     => delimiter,
         Rule::CHAR_CODE_SINGLE_QUOTE => delimiter,
         Rule::CHAR_CODE_DOUBLE_QUOTE => delimiter,
       } of Int32 => Delimiter?
@@ -402,23 +401,23 @@ module Markd::Lexer
         if @options.smart
           text = text.gsub(Rule::ELLIPSES, "\u{2026}")
                      .gsub(Rule::DASH) do |chars|
-                       en_count = em_count = 0
-                       chars_length = chars.size
+            en_count = em_count = 0
+            chars_length = chars.size
 
-                       if chars_length % 3 == 0
-                         em_count = chars_length / 3
-                       elsif chars_length % 2 == 0
-                         en_count = chars_length / 2
-                       elsif chars_length % 3 == 2
-                         en_count = 1
-                         em_count = (chars_length - 2) / 3
-                       else
-                         en_count = 2
-                         em_count = (chars_length - 4) / 3
-                       end
+            if chars_length % 3 == 0
+              em_count = chars_length / 3
+            elsif chars_length % 2 == 0
+              en_count = chars_length / 2
+            elsif chars_length % 3 == 2
+              en_count = 1
+              em_count = (chars_length - 2) / 3
+            else
+              en_count = 2
+              em_count = (chars_length - 4) / 3
+            end
 
-                       "\u{2014}" * em_count + "\u{2013}" * en_count
-                     end
+            "\u{2014}" * em_count + "\u{2013}" * en_count
+          end
         end
         node.append_child(text(text))
         true
@@ -451,36 +450,38 @@ module Markd::Lexer
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      HTML.unescape(slice(title, 1, title.size - 2))
+      unescape_string(slice(title, 1, title.size - 2))
     end
 
     def link_destination
-      if text = match(Rule::LINK_DESTINATION_BRACES)
-        return HTML.unescape(slice(text, 1, text.size - 2))
-      end
+      dest = if text = match(Rule::LINK_DESTINATION_BRACES)
+               slice(text, 1, text.size - 2)
+             else
+               save_pos = @pos
+               open_parens = 0
+               while (codepoint = char_code(@text, @pos)) != -1
+                 if codepoint == Rule::CHAR_CODE_BACKSLASH
+                   @pos += 1
+                   @pos += 1 if char_code(@text, @pos) != -1
+                 elsif codepoint == Rule::CHAR_CODE_OPEN_PAREN
+                   @pos += 1
+                   open_parens += 1
+                 elsif codepoint == Rule::CHAR_CODE_CLOSE_PAREN
+                   break if open_parens < 1
 
-      save_pos = @pos
-      open_parens = 0
-      while (codepoint = char_code(@text, @pos)) != -1
-        if codepoint == Rule::CHAR_CODE_BACKSLASH
-          @pos += 1
-          @pos += 1 if char_code(@text, @pos) != -1
-        elsif codepoint == Rule::CHAR_CODE_OPEN_PAREN
-          @pos += 1
-          open_parens += 1
-        elsif codepoint == Rule::CHAR_CODE_CLOSE_PAREN
-          break if open_parens < 1
+                   @pos += 1
+                   open_parens -= 1
+                 elsif codepoint.unsafe_chr.to_s.match(Rule::WHITESPACE_CHAR)
+                   break
+                 else
+                   @pos += 1
+                 end
+               end
 
-          @pos += 1
-          open_parens -= 1
-        elsif codepoint.unsafe_chr.to_s.match(Rule::WHITESPACE_CHAR)
-          break
-        else
-          @pos += 1
-        end
-      end
+               slice(@text, save_pos, @pos - 1)
+             end
 
-      HTML.unescape(slice(@text, save_pos, @pos - 1))
+      normalize_uri(unescape_string(dest))
     end
 
     def handle_delim(codepoint : Int32, node : Node)
@@ -491,19 +492,19 @@ module Markd::Lexer
       start_pos = @pos
       @pos += num_delims
       text = case codepoint
-              when Rule::CHAR_CODE_SINGLE_QUOTE
-                "\u{2019}"
-              when Rule::CHAR_CODE_DOUBLE_QUOTE
-                "\u{201C}"
-              else
-                slice(@text, start_pos, @pos - 1)
-              end
+             when Rule::CHAR_CODE_SINGLE_QUOTE
+               "\u{2019}"
+             when Rule::CHAR_CODE_DOUBLE_QUOTE
+               "\u{201C}"
+             else
+               slice(@text, start_pos, @pos - 1)
+             end
 
       child = text(text)
       node.append_child(child)
 
       @delimiters = Delimiter.new(codepoint, num_delims, num_delims, child, @delimiters, nil,
-                                   res["can_open"].as(Bool), res["can_close"].as(Bool))
+        res["can_open"].as(Bool), res["can_close"].as(Bool))
 
       @delimiters.not_nil!.previous.not_nil!.next = @delimiters if @delimiters.not_nil!.previous
 
@@ -543,7 +544,7 @@ module Markd::Lexer
       return if num_delims == 0
 
       codepoint_after = char_code(@text, @pos)
-      char_before = start_pos == 0 ? '\n'  : @text[start_pos - 1]
+      char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
       char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
 
       after_is_whitespace = (char_after =~ Rule::UNICODE_WHITESPACE_CHAR).nil? ? false : true
@@ -571,8 +572,8 @@ module Markd::Lexer
 
       {
         "num_delims" => num_delims,
-        "can_open" => can_open,
-        "can_close" => can_close
+        "can_open"   => can_open,
+        "can_close"  => can_close,
       }
     end
 
@@ -637,7 +638,7 @@ module Markd::Lexer
       unless refmap[normal_label]?
         refmap[normal_label] = {
           "destination" => dest,
-          "title" => title
+          "title"       => title,
         }
       end
 
@@ -696,6 +697,5 @@ module Markd::Lexer
                      @previous, @next, @can_open, @can_close)
       end
     end
-
   end
 end
