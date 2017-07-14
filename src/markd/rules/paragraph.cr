@@ -3,17 +3,6 @@ module Markd::Rule
     include Rule
 
     def match(parser : Lexer, container : Node)
-      has_reference_defs = false
-
-      while !container.text.empty? && container.text.byte_at(0) == Rule::CHAR_CODE_OPEN_BRACKET &&
-            (pos = parser.inline_lexer.reference(container.text, parser.refmap))
-
-        container.text = slice(container.text, pos)
-        has_reference_defs = true
-      end
-
-      container.unlink if has_reference_defs && container.text.match(Rule::NONSPACE)
-
       MatchValue::None
     end
 
@@ -22,7 +11,16 @@ module Markd::Rule
     end
 
     def token(parser : Lexer, container : Node)
-      # do nothing
+      has_reference_defs = false
+
+      while char_code(container.text, 0) == Rule::CHAR_CODE_OPEN_BRACKET &&
+            (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
+
+        container.text = slice(container.text, pos)
+        has_reference_defs = true
+      end
+
+      container.unlink if has_reference_defs && container.text.match(Rule::NONSPACE)
     end
 
     def can_contain(t)

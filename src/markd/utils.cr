@@ -38,7 +38,7 @@ module Markd
     end
 
     def unescape_string(text : String)
-      if text =~ Rule::BACKSLASH_OR_AMP
+      if text.match(Rule::BACKSLASH_OR_AMP)
         text.sub(Rule::ENTITY_OR_ESCAPED_CHAR, unescape_char)
       else
         text

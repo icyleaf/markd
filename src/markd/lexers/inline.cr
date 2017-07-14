@@ -29,7 +29,7 @@ module Markd::Lexer
     end
 
     def process_line(node : Node)
-      char = peek
+      char = char_code(@text, @pos)
       return false if char == -1
 
       res = case char
@@ -89,7 +89,7 @@ module Markd::Lexer
       @pos += 1
 
       char = @text.size > @pos ? @text[@pos].to_s : nil
-      child = if peek == Rule::CHAR_CODE_NEWLINE
+      child = if char_code(@text, @pos) == Rule::CHAR_CODE_NEWLINE
                 @pos += 1
                 Node.new(Node::Type::LineBreak)
               elsif char && char.match(Rule::ESCAPABLE)
@@ -129,7 +129,7 @@ module Markd::Lexer
     def bang(node : Node)
       start_pos = @pos
       @pos += 1
-      if peek == Rule::CHAR_CODE_OPEN_BRACKET
+      if char_code(@text, @pos) == Rule::CHAR_CODE_OPEN_BRACKET
         @pos += 1
         child = text("![")
         node.append_child(child)
@@ -164,33 +164,41 @@ module Markd::Lexer
     end
 
     def close_bracket(node : Node)
+      title = ""
       dest = ""
       matched = false
       @pos += 1
       start_pos = @pos
 
+      # get last [ or ![
       opener = @brackets
       unless opener
+        # no matched opener, just return a literal
         node.append_child(text("]"))
         return true
       end
 
       unless opener.active
+        # no matched opener, just return a literal
         node.append_child(text("]"))
+        # take opener off brackets stack
         remove_bracket
         return true
       end
 
+      # If we got here, open is a potential opener
       is_image = opener.image
+
+      # Check to see if we have a link/image
       save_pos = @pos
 
-      if peek == Rule::CHAR_CODE_OPEN_PAREN
+      # Inline link?
+      if char_code(@text, @pos) == Rule::CHAR_CODE_OPEN_PAREN
         @pos += 1
-        if spnl &&
-           ((dest = link_destination != nil) &&
-           spnl && (slice(@text, @pos - 1) &&
-           (title = link_title || true)) &&
-           spnl && peek == Rule::CHAR_CODE_CLOSE_PAREN)
+        if spnl && (dest = link_destination) &&
+           spnl && (char(@text, @pos - 1).to_s.match(Rule::WHITESPACE_CHAR) &&
+           (title = link_title) || true) && spnl &&
+           char_code(@text, @pos) == Rule::CHAR_CODE_CLOSE_PAREN
           @pos += 1
           matched = true
         else
@@ -198,7 +206,34 @@ module Markd::Lexer
         end
       end
 
+      ref_label = nil
       unless matched
+        # Next, see if there's a link label
+        before_label = @pos
+        label_size = link_label
+        if label_size > 2
+          ref_label = HTML.unescape(slice(@text, before_label, before_label + label_size))
+        elsif !opener.bracket_after
+          # Empty or missing second label means to use the first label as the reference.
+          # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
+          ref_label = HTML.unescape(slice(@text, opener.index, start_pos))
+        end
+
+        if label_size == 0
+          # If shortcut reference link, rewind before spaces we skipped.
+          @pos = save_pos
+        end
+
+        if ref_label && @refmap[ref_label]?
+          # lookup rawlabel in refmap
+          link = @refmap[ref_label].as(Hash)
+          dest = link["destination"] if link["destination"]
+          title = link["title"] if link["title"]
+          matched = true
+        end
+      end
+
+      if matched
         child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
         child.data["destination"] = dest
         child.data["title"] = title || ""
@@ -405,10 +440,10 @@ module Markd::Lexer
 
     def link_label
       text = match(Rule::LINK_LABEL)
-      if !text || text.not_nil!.size > 1001 || text =~ /[^\\]\\\]$/
+      if !text || text.to_s.size > 1001 || text.to_s.match(/[^\\]\\\]$/)
         0
       else
-        text.not_nil!.size
+        text.to_s.size - 1
       end
     end
 
@@ -420,15 +455,16 @@ module Markd::Lexer
     end
 
     def link_destination
-      res = match(Rule::LINK_DESTINATION_BRACES)
-      return HTML.unescape(slice(res, 1, res.size - 2)) if res
+      if text = match(Rule::LINK_DESTINATION_BRACES)
+        return HTML.unescape(slice(text, 1, text.size - 2))
+      end
 
       save_pos = @pos
       open_parens = 0
-      while (codepoint = peek) != -1
+      while (codepoint = char_code(@text, @pos)) != -1
         if codepoint == Rule::CHAR_CODE_BACKSLASH
           @pos += 1
-          @pos += 1 if peek != -1
+          @pos += 1 if char_code(@text, @pos) != -1
         elsif codepoint == Rule::CHAR_CODE_OPEN_PAREN
           @pos += 1
           open_parens += 1
@@ -437,15 +473,14 @@ module Markd::Lexer
 
           @pos += 1
           open_parens -= 1
-        elsif codepoint.unsafe_chr =~ Rule::WHITESPACE_CHAR
+        elsif codepoint.unsafe_chr.to_s.match(Rule::WHITESPACE_CHAR)
           break
         else
           @pos += 1
         end
       end
 
-      res = slice(@text, save_pos, @pos - save_pos)
-      HTML.unescape(res)
+      HTML.unescape(slice(@text, save_pos, @pos - 1))
     end
 
     def handle_delim(codepoint : Int32, node : Node)
@@ -499,7 +534,7 @@ module Markd::Lexer
         num_delims += 1
         @pos += 1
       else
-        while peek == codepoint
+        while char_code(@text, @pos) == codepoint
           num_delims += 1
           @pos += 1
         end
@@ -507,7 +542,7 @@ module Markd::Lexer
 
       return if num_delims == 0
 
-      codepoint_after = peek
+      codepoint_after = char_code(@text, @pos)
       char_before = start_pos == 0 ? '\n'  : @text[start_pos - 1]
       char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
 
@@ -546,82 +581,79 @@ module Markd::Lexer
       @pos = 0
 
       startpos = @pos
-      # match_chars = link_label
+      match_chars = link_label
 
-      # # label
-      # return 0 if match_chars == 0
-      # raw_label = @text[0..match_chars]
+      # label
+      return 0 if match_chars == 0
+      raw_label = slice(@text, 0, match_chars)
 
-      # # colon
-      # if peek == Rule::CHAR_CODE_COLON
-      #   @pos += 1
-      # else
-      #   @pos = startpos
-      #   return 0
-      # end
+      # colon
+      if char_code(@text, @pos) == Rule::CHAR_CODE_COLON
+        @pos += 1
+      else
+        @pos = startpos
+        return 0
+      end
 
-      # # link url
-      # spnl
+      # link url
+      spnl
 
-      # dest = link_destination
-      # if dest.size == 0
-      #   @pos = startpos
-      #   return 0
-      # end
+      dest = link_destination
+      if dest.size == 0
+        @pos = startpos
+        return 0
+      end
 
-      # before_title = @pos
-      # spnl
-      # title = link_title
-      # unless title
-      #   title = ""
-      #   @pos = before_title
-      # end
+      before_title = @pos
+      spnl
+      title = link_title
+      unless title
+        title = ""
+        @pos = before_title
+      end
 
-      # at_line_end = true
-      # unless match(Rule::SPACE_AT_END_OF_LINE)
-      #   if title.empty?
-      #     at_line_end = false
-      #   else
-      #     title = ""
-      #     @pos = before_title
-      #     at_line_end = match(Rule::SPACE_AT_END_OF_LINE) != nil
-      #   end
-      # end
+      at_line_end = true
+      unless match(Rule::SPACE_AT_END_OF_LINE)
+        if title.empty?
+          at_line_end = false
+        else
+          title = ""
+          @pos = before_title
+          at_line_end = match(Rule::SPACE_AT_END_OF_LINE) != nil
+        end
+      end
 
-      # unless at_line_end
-      #   @pos = startpos
-      #   return 0
-      # end
+      unless at_line_end
+        @pos = startpos
+        return 0
+      end
 
-      # normal_label = HTML.escape(raw_label)
-      # unless normal_label
-      #   @pos = startpos
-      #   return 0
-      # end
+      normal_label = HTML.unescape(raw_label)
+      unless normal_label
+        @pos = startpos
+        return 0
+      end
 
-      # unless refmap[normal_label]
-      #   refmap[normal_label] = {
-      #     "destination" => dest,
-      #     "title" => title
-      #   }
-      # end
+      unless refmap[normal_label]?
+        refmap[normal_label] = {
+          "destination" => dest,
+          "title" => title
+        }
+      end
 
       return @pos - startpos
     end
 
-    private def peek : Int32
-      char_code(@text, @pos)
-    end
-
+    # Parse zero or more space characters, including at most one newline
     private def spnl
       match(Rule::SPNL)
-      return
+      return true
     end
 
     private def match(regex : Regex) : String?
-      text = slice(@text, @pos, -1)
+      text = slice(@text, @pos)
       if match = text.match(regex)
-        @pos += text.index(regex).not_nil! + match[0].size
+        @pos += text.index(regex).as(Int32) + match[0].size
         return match[0]
       end
     end

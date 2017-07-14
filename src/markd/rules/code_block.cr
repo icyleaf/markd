@@ -6,8 +6,6 @@ module Markd::Rule
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
     def match(parser : Lexer, container : Node) : MatchValue
-
-      # pp container
       if !parser.indented &&
          (match = slice(parser).match(CODE_FENCE))
         # fenced

@@ -2,15 +2,15 @@ module Markd
   module Rule
     include Utils
 
-    ENTITY_STRING = "&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});"
-    ESCAPABLE_STRING = "[!\"#$%&\'()*+,./:;<=>?@[\\\\\\]^_`{|}~-]"
-    ESCAPED_CHAR_STRING = "\\\\#{ESCAPABLE_STRING}"
+    ENTITY_STRING = %Q(&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});)
+    ESCAPABLE_STRING = %Q([!"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-])
+    ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 
-    TAG_NAME_STRING = "[A-Za-z][A-Za-z0-9-]*"
-    ATTRIBUTE_NAME_STRING = "[a-zA-Z_:][a-zA-Z0-9:._-]*"
-    UNQUOTED_VALUE_STRING = "[^\"'=<>`\\x00-\\x20]+"
-    SINGLE_QUOTED_VALUE_STRING = "'[^']*'"
-    DOUBLE_QUOTED_VALUE_STRING = "\"[^\"]*\""
+    TAG_NAME_STRING = %Q([A-Za-z][A-Za-z0-9-]*)
+    ATTRIBUTE_NAME_STRING = %Q([a-zA-Z_:][a-zA-Z0-9:._-]*)
+    UNQUOTED_VALUE_STRING = %Q([^"'=<>`\\x00-\\x20]+)
+    SINGLE_QUOTED_VALUE_STRING = %Q('[^']*')
+    DOUBLE_QUOTED_VALUE_STRING = %Q("[^\"]*")
     ATTRIBUTE_VALUE_STRING = "(?:" + UNQUOTED_VALUE_STRING + "|" + SINGLE_QUOTED_VALUE_STRING + "|" + DOUBLE_QUOTED_VALUE_STRING + ")"
     ATTRIBUTE_VALUE_SPEC_STRING = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE_STRING + ")"
     ATTRIBUTE = "(?:" + "\\s+" + ATTRIBUTE_NAME_STRING + ATTRIBUTE_VALUE_SPEC_STRING + "?)"
@@ -71,7 +71,7 @@ module Markd
                  "|\'(#{ESCAPED_CHAR_STRING}|[^\'\\x00])*\'" +
                  "|\\((#{ESCAPED_CHAR_STRING}|[^)\\x00])*\\))")
 
-    LINK_LABEL = Regex.new("^\\[(?:[^\\\\\\[\\]]|" + ESCAPED_CHAR_STRING + "|\\\\){0,1000}\\]")
+    LINK_LABEL = Regex.new("^\\[(?:[^\\\\\\[\\]]|" + ESCAPED_CHAR_STRING + "|\\\\){0,}\\]")
 
     LINK_DESTINATION_BRACES = /^(?:[<](?:[^ <>\\t\\n\\\\\\x00]|#{ESCAPED_CHAR_STRING}|\\\\)*[>])/
 
