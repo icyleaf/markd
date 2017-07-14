@@ -185,7 +185,7 @@ module Markd::Lexer
           end
         elsif @offset < line.size && !@blank
           # create paragraph container for line
-          container = add_child(Node::Type::Paragraph, @offset)
+          add_child(Node::Type::Paragraph, @offset)
           advance_next_nonspace
           add_line
         end
