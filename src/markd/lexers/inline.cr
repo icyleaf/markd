@@ -274,19 +274,22 @@ module Markd::Lexer
         Rule::CHAR_CODE_DOUBLE_QUOTE => delimiter,
       } of Int32 => Delimiter?
 
+      # find first closer above stack_bottom:
       closer = @delimiters
       while closer && closer.previous != delimiter
         closer = closer.previous
       end
 
+      # move forward, looking for closers, and handling each
       while closer
         closer_codepoint = closer.codepoint
         unless closer.can_close
           closer = closer.next
         else
+          # found emphasis closer. now look back for first matching opener:
           opener = closer.previous
           opener_found = false
-          while !opener.nil? && opener != delimiter && opener != openers_bottom[closer_codepoint]
+          while opener && opener != delimiter && opener != openers_bottom[closer_codepoint]
             odd_match = (closer.can_open || opener.can_close) &&
                         (opener.orig_delims + closer.orig_delims) % 3 == 0
             if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
@@ -506,7 +509,9 @@ module Markd::Lexer
       @delimiters = Delimiter.new(codepoint, num_delims, num_delims, child, @delimiters, nil,
         res["can_open"].as(Bool), res["can_close"].as(Bool))
 
-      @delimiters.not_nil!.previous.not_nil!.next = @delimiters if @delimiters.not_nil!.previous
+      if @delimiters.not_nil!.previous
+        @delimiters.not_nil!.previous.not_nil!.next = @delimiters
+      end
 
       true
     end
@@ -515,6 +520,7 @@ module Markd::Lexer
       delimiter.previous.not_nil!.next = delimiter.next if delimiter.previous
 
       unless delimiter.next
+        # top of stack
         @delimiters = delimiter.previous
       else
         delimiter.next.not_nil!.previous = delimiter.previous
@@ -547,10 +553,10 @@ module Markd::Lexer
       char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
       char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
 
-      after_is_whitespace = (char_after =~ Rule::UNICODE_WHITESPACE_CHAR).nil? ? false : true
-      after_is_punctuation = (char_after =~ Rule::PUNCTUATION).nil? ? false : true
-      before_is_whitespace = (char_before =~ Rule::UNICODE_WHITESPACE_CHAR).nil? ? false : true
-      before_is_punctuation = (char_before =~ Rule::PUNCTUATION).nil? ? false : true
+      after_is_whitespace = char_after.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
+      after_is_punctuation = char_after.to_s.match(Rule::PUNCTUATION) ? true : false
+      before_is_whitespace = char_before.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
+      before_is_punctuation = char_before.to_s.match(Rule::PUNCTUATION) ? true : false
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
