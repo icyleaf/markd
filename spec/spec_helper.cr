@@ -4,17 +4,26 @@ require "../src/markd"
 def describe_spec(file)
   specs = extract_spec_tests(file)
 
+  skip_examples = [8, 9, 17, 19, 20, 21]
+
   puts "Run [#{file}] examples"
   examples_count = 0
+  section_count = 0
   specs.each_with_index do |(section, examples), index|
+    section = "#{(index + 1).to_s.rjust(2)}. #{section} (#{examples.size})"
+    if skip_examples.includes?(index + 1)
+      puts section + " [SKIP]"
+      next
+    end
+    section_count += 1
     examples_count += examples.size
-    puts "#{(index + 1).to_s.rjust(2)}. #{section} (#{examples.size})"
+    puts section
   end
-  puts "Total #{specs.size} describes and #{examples_count} examples"
+  puts "Total #{section_count} describes and #{examples_count} examples"
 
   specs.each_with_index do |(section, examples), index|
     no = index + 1
-    next if [8, 9, 17, 19, 20, 21].includes?(no)
+    next if skip_examples.includes?(no)
     assert_section(file, section, examples)
   end
 end
