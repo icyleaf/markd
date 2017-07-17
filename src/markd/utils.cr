@@ -36,7 +36,7 @@ module Markd
 
     def normalize_uri(uri : String)
       URI.escape(decode(uri)) do |byte|
-        URI.unreserved?(byte) || {'+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='}.includes?(byte.chr)
+        URI.unreserved?(byte) || {'&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='}.includes?(byte.chr)
       end
     end
 
