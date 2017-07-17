@@ -427,12 +427,12 @@ module Markd::Lexer
     end
 
     def link(match : String, email = false) : Node
-      dest = slice(match, 1, match.size - 1)
+      dest = slice(match, 1, match.size - 2)
       destination = email ? "mailto:#{dest}" : dest
 
       node = Node.new(Node::Type::Link)
       node.data["title"] = ""
-      node.data["destination"] = destination
+      node.data["destination"] = normalize_uri(destination)
       node.append_child(text(dest))
       node
     end
