@@ -70,12 +70,12 @@ module Markd::Lexer
       last_child = node.last_child
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
-         char(last_child.text, last_child.text.size - 1) == ' '
+         char(last_child.text, -1) == ' '
 
         hard_break = if last_child.text.size == 1
                       false # Must be space
                     else
-                      char(last_child.text, last_child.text.size - 2) == ' '
+                      char(last_child.text, -2) == ' '
                     end
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))

@@ -37,7 +37,7 @@ module Markd
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_refrenence(text : String)
-      slice(text, 1, text.size - 2).strip.downcase.gsub("\n", " ")
+      slice(text, 1, -2).strip.downcase.gsub("\n", " ")
     end
 
     def normalize_uri(uri : String)
