@@ -283,87 +283,93 @@ module Markd::Lexer
       # move forward, looking for closers, and handling each
       while closer
         closer_codepoint = closer.codepoint
+
         unless closer.can_close
           closer = closer.next
-        else
-          # found emphasis closer. now look back for first matching opener:
-          opener = closer.previous
-          opener_found = false
-          while opener && opener != delimiter && opener != openers_bottom[closer_codepoint]
-            odd_match = (closer.can_open || opener.can_close) &&
-                        (opener.orig_delims + closer.orig_delims) % 3 == 0
-            if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
-              opener_found = true
-              break
-            end
-            opener = opener.previous
-          end
-
-          old_closer = closer
-
-          if [Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE].includes?(closer_codepoint)
-            unless opener_found
-              closer = closer.next
-            else
-              # calculate actual number of delimiters used from closer
-              use_delims = (closer.num_delims >= 2 && opener.not_nil!.num_delims >= 2) ? 2 : 1
-              opener_inl = opener.not_nil!.node
-              closer_inl = closer.not_nil!.node
-
-              # remove used delimiters from stack elts and inlines
-              opener.not_nil!.num_delims -= use_delims
-              closer.not_nil!.num_delims -= use_delims
-              opener_inl.not_nil!.text = slice(opener_inl.not_nil!.text, 0, opener_inl.text.size - use_delims)
-              closer_inl.not_nil!.text = slice(closer_inl.not_nil!.text, 0, closer_inl.text.size - use_delims)
-
-              # build contents for new emph element
-              emph = Node.new(use_delims ? Node::Type::Emphasis : Node::Type::Strong)
-
-              tmp = opener_inl.not_nil!.next
-              while tmp && tmp != closer_inl
-                next_node = tmp.next
-                tmp.unlink
-                emph.append_child(tmp)
-                tmp = next_node
-              end
-
-              opener_inl.insert_after(emph)
-
-              # remove elts between opener and closer in delimiters stack
-              remove_delimiter_between(opener.not_nil!, closer.not_nil!)
-
-              # if opener has 0 delims, remove it and the inline
-              if opener.not_nil!.num_delims == 0
-                opener_inl.unlink
-                remove_delimiter(opener.not_nil!)
-              end
-
-              if closer.not_nil!.num_delims == 0
-                closer_inl.unlink
-                tmp_stack = closer.next
-                remove_delimiter(closer.not_nil!)
-                closer = tmp_stack
-              end
-            end
-          elsif closer_codepoint == Rule::CHAR_CODE_SINGLE_QUOTE
-            closer.not_nil!.node.text = "\u{2019}"
-            opener.not_nil!.node.text = "\u{2018}" if opener_found
-            closer = closer.next
-          elsif closer_codepoint == Rule::CHAR_CODE_DOUBLE_QUOTE
-            closer.not_nil!.node.text = "\u{201D}"
-            opener.not_nil!.node.text = "\u{201C}" if opener_found
-            closer = closer.next
-          end
-
-          if !opener_found && !odd_match
-            openers_bottom[closer_codepoint] = old_closer.previous
-            remove_delimiter(old_closer) if !old_closer.can_open
-          end
+          next
         end
 
-        while @delimiters && @delimiters != delimiter
-          remove_delimiter(@delimiters.not_nil!)
+        # found emphasis closer. now look back for first matching opener:
+        opener = closer.previous
+        opener_found = false
+        while opener && opener != delimiter && opener != openers_bottom[closer_codepoint]
+          odd_match = (closer.can_open || opener.can_close) &&
+                      (opener.orig_delims + closer.orig_delims) % 3 == 0
+          if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
+            opener_found = true
+            break
+          end
+          opener = opener.previous
         end
+
+        old_closer = closer
+
+        if [Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE].includes?(closer_codepoint)
+          unless opener_found
+            closer = closer.next
+          else
+            # calculate actual number of delimiters used from closer
+            opener = opener.not_nil!
+            closer = closer.not_nil!
+            use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
+            opener_inl = opener.node.not_nil!
+            closer_inl = closer.node.not_nil!
+
+            # remove used delimiters from stack elts and inlines
+            opener.num_delims -= use_delims
+            closer.num_delims -= use_delims
+
+            opener_inl.text = slice(opener_inl.text, 0, (opener_inl.text.size - 1) - use_delims)
+            closer_inl.text = slice(closer_inl.text, 0, (closer_inl.text.size - 1) - use_delims)
+
+            # build contents for new emph element
+            emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
+
+            tmp = opener_inl.next
+            while tmp && tmp != closer_inl
+              next_node = tmp.next
+              tmp.unlink
+              emph.append_child(tmp)
+              tmp = next_node
+            end
+
+            opener_inl.insert_after(emph)
+
+            # remove elts between opener and closer in delimiters stack
+            remove_delimiter_between(opener, closer)
+
+            # if opener has 0 delims, remove it and the inline
+            if opener.num_delims == 0
+              opener_inl.unlink
+              remove_delimiter(opener)
+            end
+
+            if closer.num_delims == 0
+              closer_inl.unlink
+              tmp_stack = closer.next
+              remove_delimiter(closer)
+              closer = tmp_stack
+            end
+          end
+        elsif closer_codepoint == Rule::CHAR_CODE_SINGLE_QUOTE
+          closer.not_nil!.node.text = "\u{2019}"
+          opener.not_nil!.node.text = "\u{2018}" if opener_found
+          closer = closer.next
+        elsif closer_codepoint == Rule::CHAR_CODE_DOUBLE_QUOTE
+          closer.not_nil!.node.text = "\u{201D}"
+          opener.not_nil!.node.text = "\u{201C}" if opener_found
+          closer = closer.next
+        end
+
+        if !opener_found && !odd_match
+          openers_bottom[closer_codepoint] = old_closer.previous
+          remove_delimiter(old_closer) if !old_closer.can_open
+        end
+      end
+
+      # remove all delimiters
+      while @delimiters && @delimiters != delimiter
+        remove_delimiter(@delimiters.not_nil!)
       end
     end
 
@@ -557,6 +563,14 @@ module Markd::Lexer
       after_is_punctuation = char_after.to_s.match(Rule::PUNCTUATION) ? true : false
       before_is_whitespace = char_before.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
       before_is_punctuation = char_before.to_s.match(Rule::PUNCTUATION) ? true : false
+
+      pp char_after.ord
+      pp ' '.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
+      pp after_is_whitespace
+      pp after_is_punctuation
+      pp char_before
+      pp before_is_whitespace
+      pp before_is_punctuation
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
