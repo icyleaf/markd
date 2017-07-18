@@ -89,7 +89,7 @@ module Markd
 
       end_time("renderering") if @options.time
 
-      @output_io.to_s.lstrip
+      @output_io.to_s.sub("\n", "")
     end
   end
 end
