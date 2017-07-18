@@ -17,7 +17,7 @@ dependencies:
     github: icyleaf/markd
 ```
 
-## Usage
+## Quick start
 
 ```crystal
 require "markd"
@@ -31,6 +31,13 @@ MD
 html = Markd.to_html(markdown)
 ```
 
+Also here is an options to configure the parse and render.
+
+```crystal
+options = Markd::Options.new(smart: true, safe: true)
+Markd.to_html(markdown, options)
+```
+
 ## Options
 
 Name | Type | Default value | Description |
@@ -41,6 +48,27 @@ source_pos | `Bool` | false | if **true**, source position information for block
 safe | `Bool` | false | if **true**, raw HTML will not be passed through to HTML output (it will be replaced by comments)
 gfm | `Bool` | false | **Not support for now**
 toc | `Bool` | false | **Not support for now**
+
+## Advanced
+
+If you want use custom renderer, it can!
+
+```crystal
+
+class CustomRenderer < Markd::Renderer
+
+  def strong(node, entering)
+  end
+
+  # more methods following in render.
+end
+
+options = Markd::Options.new(time: true)
+document = Markd::Parser.parse(markdown, options)
+renderer = CustomRenderer.new(options)
+
+html = renderer.render(document)
+```
 
 ## Performance
 
