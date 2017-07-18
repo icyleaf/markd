@@ -1,3 +1,3 @@
 require "./spec_helper"
 
-describe_spec("spec/spec.txt")
+describe_spec("fixtures/spec.txt")
