@@ -564,14 +564,6 @@ module Markd::Lexer
       before_is_whitespace = char_before.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
       before_is_punctuation = char_before.to_s.match(Rule::PUNCTUATION) ? true : false
 
-      pp char_after.ord
-      pp ' '.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
-      pp after_is_whitespace
-      pp after_is_punctuation
-      pp char_before
-      pp before_is_whitespace
-      pp before_is_punctuation
-
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
       right_flanking = !before_is_whitespace &&
