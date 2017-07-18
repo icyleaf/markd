@@ -62,7 +62,7 @@ module Markd::Lexer
       @lines = source.split(Rule::LINE_ENDING)
       @line_size = @lines.size
       # ignore last blank line created by final newline
-      @line_size -= 1 if source.byte_at(source.size - 1) == Rule::CHAR_CODE_NEWLINE
+      @line_size -= 1 if source.byte_at(-1) == Rule::CHAR_CODE_NEWLINE
       end_time("preparing input") if @options.time
 
       start_time("block parsing") if @options.time
@@ -116,7 +116,7 @@ module Markd::Lexer
         end
       end
 
-      @all_closed = container == @oldtip
+      @all_closed = (container == @oldtip)
       @last_matched_container = container.not_nil!
 
       matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
@@ -334,7 +334,7 @@ module Markd::Lexer
     private def match_html_block?(container : Node)
       if block_type = container.data["html_block_type"]
         block_type = block_type.as(Int32)
-        block_type >= 1 && block_type <= 5 && Rule::HTML_BLOCK_CLOSE[block_type].match(slice(@line, @offset))
+        block_type >= 0 && block_type <= 4 && Rule::HTML_BLOCK_CLOSE[block_type].match(slice(@line, @offset))
       else
         false
       end
