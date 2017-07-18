@@ -71,7 +71,12 @@ module Markd::Lexer
       # check previous node for trailing spaces
       if last_child && last_child.type == Node::Type::Text &&
          char(last_child.text, last_child.text.size - 1) == ' '
-        hard_break = char(last_child.text, last_child.text.size - 2) == ' '
+
+        hard_break = if last_child.text.size == 1
+                      false # Must be space
+                    else
+                      char(last_child.text, last_child.text.size - 2) == ' '
+                    end
         last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else
@@ -211,11 +216,11 @@ module Markd::Lexer
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = HTML.unescape(slice(@text, before_label, before_label + label_size))
+          ref_label = normalize_refrenence(slice(@text, before_label, before_label + label_size))
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = HTML.unescape(slice(@text, opener.index, start_pos))
+          ref_label = normalize_refrenence(slice(@text, opener.index, start_pos - 1))
         end
 
         if label_size == 0
@@ -448,7 +453,7 @@ module Markd::Lexer
 
     def link_label
       text = match(Rule::LINK_LABEL)
-      if !text || text.to_s.size > 1001 || text.to_s.match(/[^\\]\\\]$/)
+      if text.nil? || text.to_s.size > 1001 || text.to_s.match(/[^\\]\\\]$/)
         0
       else
         text.to_s.size - 1
@@ -641,8 +646,8 @@ module Markd::Lexer
         return 0
       end
 
-      normal_label = HTML.unescape(raw_label)
-      unless normal_label
+      normal_label = normalize_refrenence(raw_label)
+      if normal_label.empty?
         @pos = startpos
         return 0
       end
