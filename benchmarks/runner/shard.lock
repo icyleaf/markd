@@ -1,0 +1,10 @@
+version: 1.0
+shards:
+  crmark:
+    github: ujifgc/crmark
+    commit: 457c602725834429cd40544fbcaa505034637c8b
+
+  markd:
+    github: icyleaf/markd
+    commit: ff25dcef38aa81cceda950fc5e32898e77ac9d6f
+

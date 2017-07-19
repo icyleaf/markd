@@ -50,7 +50,7 @@ runner:
     shards build --release
     ln -s -f ../runner/bin/crystal_runner ../bin/.
   dir:
-    crystal/runner
+    runner
 
 # Run Crystal benchmark with built-in/markd/crmark
 benchmark:

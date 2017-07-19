@@ -5,7 +5,7 @@ authors:
   - icyleaf <icyleaf.cn@gmail.com>
 
 targets:
-  runner:
+  crystal_runner:
     main: src/main.cr
 
 dependencies:
