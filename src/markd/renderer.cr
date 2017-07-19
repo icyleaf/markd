@@ -29,7 +29,7 @@ module Markd
     def escape(text, preserve_entities = false)
       if text.match(Rule::XML_SPECIAL)
         regex = preserve_entities ? Rule::XML_SPECIAL_OR_ENTITY : Rule::XML_SPECIAL
-        text.gsub(Rule::XML_SPECIAL_OR_ENTITY) do |char|
+        text.gsub(regex) do |char|
           case char
           when "&", "<", ">", "\""
             HTML.escape(char)

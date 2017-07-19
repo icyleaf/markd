@@ -4,7 +4,7 @@ require "../src/markd"
 def describe_spec(file)
   specs = extract_spec_tests(file)
 
-  skip_examples = [17]
+  skip_examples = [] of Int32
 
   puts "Run [#{file}] examples"
   examples_count = 0

@@ -1,3 +1,4 @@
+require "./markd/html_entities"
 require "./markd/utils"
 require "./markd/node"
 require "./markd/rule"

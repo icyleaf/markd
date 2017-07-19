@@ -402,8 +402,10 @@ module Markd::Lexer
     end
 
     def entity(node : Node)
+      pp "asfdsad"
       if text = match(Rule::ENTITY_HERE)
-        node.append_child(text(HTML.unescape(text)))
+        pp text
+        node.append_child(text(HTML.unescape(text, true)))
         true
       else
         false
