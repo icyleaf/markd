@@ -8,6 +8,12 @@ targets:
   runner:
     main: src/main.cr
 
+dependencies:
+  markd:
+    github: icyleaf/markd
+  crmark:
+    github: ujifgc/crmark
+
 crystal: 0.22.0
 
 license: MIT

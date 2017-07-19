@@ -1,13 +1,5 @@
----
-title: "Intro Markdown"
-slug: "intro-markdown"
-date: "2017-05-03T15:00:31+08:00"
----
-
-Wasp use [Markd](httpshttps://github.com/icyleaf/markd) Markdown library. it is 100% [CommonMark](http://commonmark.org/) support, But [GFM](https://github.github.com/gfm/) is still in development.
-
-
-# Markdown: Syntax
+Markdown: Syntax
+---------------------------
 
 *   [Overview](#overview)
     *   [Philosophy](#philosophy)
