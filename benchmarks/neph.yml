@@ -1,32 +1,64 @@
 main:
   depends_on:
     - crystal
+    - node
 
+# Crystal
 crystal:
   depends_on:
-    - builtin
+    - crystal_builtin
     - markd
+    - crmark
 
-builtin:
+# Node
+node:
+  depends_on:
+    - commonmarkjs
+
+## Node Depends
+commonmarkjs:
+  command: |
+    npm install
+    ln -s -f ../node/commonmarkjs/bin/bm_node_commonmarkjs ../../bin/.
+  dir:
+    node/commonmarkjs
+
+## Crystal Depends
+crystal_builtin:
   command: |
     shards build --release
-    ln -s -f ../crystal/builtin/bin/crystal_builtin ../../bin/.
+    ln -s -f ../crystal/builtin/bin/bm_crystal_builtin ../../bin/.
   dir:
     crystal/builtin
 
 markd:
   command: |
     shards build --release
-    ln -s -f ../crystal/markd/bin/crystal_markd ../../bin/.
+    ln -s -f ../crystal/markd/bin/bm_crystal_markd ../../bin/.
   dir:
     crystal/markd
+
+crmark:
+  command: |
+    shards build --release
+    ln -s -f ../crystal/crmark/bin/bm_crystal_crmark ../../bin/.
+  dir:
+    crystal/crmark
 
 runner:
   command: |
     shards build --release
-    ln -s -f ../runner/bin/runner ../bin/.
+    ln -s -f ../runner/bin/crystal_runner ../bin/.
   dir:
-    runner
+    crystal/runner
+
+# Run Crystal benchmark with built-in/markd/crmark
+benchmark:
+  command: |
+    shards build --release
+    ln -s -f ../benchmark/bin/benchmark ../bin/.
+  dir:
+    benchmark
 
 clean:
   command:

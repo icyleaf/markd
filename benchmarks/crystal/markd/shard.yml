@@ -5,7 +5,7 @@ authors:
   - icyleaf <icyleaf.cn@gmail.com>
 
 targets:
-  crystal_markd:
+  bm_crystal_markd:
     main: src/main.cr
 
 dependencies:

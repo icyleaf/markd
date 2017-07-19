@@ -1,28 +1,38 @@
-require "benchmark"
-require "markdown"
-require "markd"
-require "crmark"
+BIN_PATH = File.expand_path("../../../bin", __FILE__)
 
-FILE = File.expand_path("../../../source.md", __FILE__)
-SOURCE = File.open(FILE, "r").gets_to_end
+Dir.glob(File.join(BIN_PATH, "*")) do |bin|
+  filename = File.basename(bin)
+  next unless filename.includes?("bm_")
 
-def builtin
-  Markdown.to_html(SOURCE)
+  costs = test { `#{bin}` }
+  min = costs.min
+  max = costs.max
+
+  puts filename + " average cost " + ms(average(costs)) + "ms" + ", min " + ms(min) + "s, max " + ms(max) + "s"
 end
 
-def markd
-  Markd.to_html(SOURCE)
+def test(time = 10, &block)
+  times = [] of Float64
+
+  time.times.each do |i|
+    s = Time.now
+    yield
+    e = Time.now
+
+    times.push((e - s).to_f)
+  end
+
+  times
 end
 
-def crmark(flavor)
-  parser = MarkdownIt::Parser.new(flavor)
-  parser.render(SOURCE)
+
+def ms(time)
+  (time * 1000).round(6).to_s
 end
 
-Benchmark.ips do |x|
-  x.report("crystal markdown") { builtin }
-  x.report("markd") { markd }
-  x.report("crmark in :commonmark") { crmark(:commonmark) }
-  x.report("crmark in :markdownit") { crmark(:markdownit) }
-  # x.report("crystal-cmark") { common_mark }
+def average(data : Array(Float64))
+  sum = 0
+  data.each {|f| sum += f}
+
+  sum / data.size
 end

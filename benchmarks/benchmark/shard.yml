@@ -1,12 +1,18 @@
-name: builtin
+name: benchmark
 version: 0.1.0
 
 authors:
   - icyleaf <icyleaf.cn@gmail.com>
 
 targets:
-  bm_crystal_builtin:
+  benchmark:
     main: src/main.cr
+
+dependencies:
+  markd:
+    github: icyleaf/markd
+  crmark:
+    github: ujifgc/crmark
 
 crystal: 0.22.0
 
