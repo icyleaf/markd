@@ -8,7 +8,7 @@ Dir.glob(File.join(BIN_PATH, "*")) do |bin|
   min = costs.min
   max = costs.max
 
-  puts filename + " average cost " + ms(average(costs)) + "ms" + ", min " + ms(min) + "s, max " + ms(max) + "s"
+  puts filename + " average cost " + ms(average(costs)) + "ms" + ", min " + ms(min) + "ms, max " + ms(max) + "ms"
 end
 
 def test(time = 10, &block)
