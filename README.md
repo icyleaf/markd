@@ -74,11 +74,11 @@ html = renderer.render(document)
 
 First of all, Markd is slower than [Crystal Built-in Markdown](https://crystal-lang.org/api/0.23.0/Markdown.html) which it is a lite version, only apply for generte Cystal documents ([#4613](https://github.com/crystal-lang/crystal/issues/4613)).
 
-Here is the result of readme parse at MacBook Pro Retina 2015 (2.2 GHz):
+Here is the result of [a sample markdown file](benchmarks/source.md) parse at MacBook Pro Retina 2015 (2.2 GHz):
 
 ```
-Crystal Built-in 211.67k (  4.72µs) (± 2.53%)       fastest
-           Markd   8.65k (115.58µs) (± 7.49%) 24.47× slower
+Crystal Markdown   3.28k (305.29µs) (± 0.92%)       fastest
+           Markd 305.36  (  3.27ms) (± 5.52%) 10.73× slower
 ```
 
 Recently, i'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
