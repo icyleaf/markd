@@ -1,6 +1,6 @@
 # markd
 
-![Status](https://img.shields.io/badge/status-WIP-blue.svg)
+![Version](https://img.shields.io/badge/version-1.0-blue.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
 [![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
@@ -72,37 +72,16 @@ html = renderer.render(document)
 
 ## Performance
 
-For now, i have not pass all specs, the result was ran with `--release` flag with `crystal spec` running with Crystal 0.23.0 (2017-06-30) LLVM 4.0.1 on OS X 10.12.5.
+First of all, Markd is slower than [Crystal Built-in Markdown](https://crystal-lang.org/api/0.23.0/Markdown.html), but not the result is not to bad.
 
-Machine information: MacBook Pro (Retina, 15-inch, Mid 2015), 2.2 GHz Intel Core i7, 16 GB 1600 MHz DDR3.
+Here is the result of readme parse at MacBook Pro Retina 2015 (2.2 GHz):
 
 ```
-$ time ./bin/spec
-Run [spec/spec.txt] examples
- 1. Tabs (11)
- 2. Precedence (1)
- 3. Thematic breaks (19)
- 4. ATX headings (18)
- 5. Setext headings (26)
- 6. Indented code blocks (12)
- 7. Fenced code blocks (27)
-10. Paragraphs (8)
-11. Blank lines (1)
-12. Block quotes (25)
-13. List items (48)
-15. Inlines (1)
-23. Raw HTML (21)
-24. Hard line breaks (15)
-25. Soft line breaks (2)
-26. Textual content (3)
-Total 26 describes and 621 examples
-..................................................................
+Crystal Built-in 211.67k (  4.72µs) (± 2.53%)       fastest
+           Markd   8.65k (115.58µs) (± 7.49%) 24.47× slower
 ```
-./bin/spec  0.02s user 0.01s system 69% cpu 0.038 total
-## Roadmap
 
-- [Features](https://github.com/icyleaf/markd/issues/1)
-- [Pass CommonMark Specs](https://github.com/icyleaf/markd/issues/3)
+Recently, i'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
 
 ## Milestore
 

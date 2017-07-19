@@ -1,0 +1,13 @@
+name: builtin
+version: 0.1.0
+
+authors:
+  - icyleaf <icyleaf.cn@gmail.com>
+
+targets:
+  crystal_builtin:
+    main: src/main.cr
+
+crystal: 0.22.0
+
+license: MIT

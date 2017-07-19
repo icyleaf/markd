@@ -1,0 +1,33 @@
+main:
+  depends_on:
+    - crystal
+
+crystal:
+  depends_on:
+    - builtin
+    - markd
+
+builtin:
+  command: |
+    shards build --release
+    ln -s -f ../crystal/builtin/bin/crystal_builtin ../../bin/.
+  dir:
+    crystal/builtin
+
+markd:
+  command: |
+    shards build --release
+    ln -s -f ../crystal/markd/bin/crystal_markd ../../bin/.
+  dir:
+    crystal/markd
+
+runner:
+  command: |
+    shards build --release
+    ln -s -f ../runner/bin/runner ../bin/.
+  dir:
+    runner
+
+clean:
+  command:
+    rm -rf bin/*

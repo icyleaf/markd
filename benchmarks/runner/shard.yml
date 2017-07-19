@@ -1,0 +1,13 @@
+name: runner
+version: 0.1.0
+
+authors:
+  - icyleaf <icyleaf.cn@gmail.com>
+
+targets:
+  runner:
+    main: src/main.cr
+
+crystal: 0.22.0
+
+license: MIT

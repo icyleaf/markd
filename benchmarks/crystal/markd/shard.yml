@@ -1,0 +1,17 @@
+name: markd
+version: 0.1.0
+
+authors:
+  - icyleaf <icyleaf.cn@gmail.com>
+
+targets:
+  crystal_markd:
+    main: src/main.cr
+
+dependencies:
+  markd:
+    github: icyleaf/markd
+
+crystal: 0.22.0
+
+license: MIT
