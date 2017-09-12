@@ -3,7 +3,7 @@ require "markdown"
 require "markd"
 require "crmark"
 
-FILE = File.expand_path("../../../source.md", __FILE__)
+FILE   = File.expand_path("../../../source.md", __FILE__)
 SOURCE = File.open(FILE, "r").gets_to_end
 
 def builtin
