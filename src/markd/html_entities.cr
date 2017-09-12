@@ -10,8 +10,8 @@ module Markd::HTMLEntities
       Decoder.decode_entity(source)
     end
 
-    def encode_entitites(source)
-      Encoder.new.encode(source)
+    def encode_entities(source)
+      Encoder.encode(source)
     end
   end
 
@@ -66,25 +66,25 @@ module Markd::HTMLEntities
         end
       end
 
-      Regex.new("&(?:(#{ keys.join("|") })|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
+      Regex.new("&(?:(#{keys.join("|")})|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
     end
   end
 
-  class Encoder
-    @regex = /^/
+  module Encoder
+    @@regex = /^/
 
-    def encode(source : String)
+    def self.encode(source : String)
       source.gsub(entities_regex) { |chars| encode_entities(chars) }
             .gsub(Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")) { |chars| encode_astral(chars) }
             .gsub(/[^\x{20}-\x{7E}]/) { |chars| encode_extend(chars) }
     end
 
-    private def encode_entities(chars : String)
-      entity = HTMLEntities::ENTITIES_MAPPINGS[chars]
+    private def self.encode_entities(chars : String)
+      entity = HTMLEntities::ENTITIES_MAPPINGS.key(chars)
       "&#{entity};"
     end
 
-    private def encode_astral(chars : String)
+    private def self.encode_astral(chars : String)
       high = chars.codepoint_at(0)
       low = chars.codepoint_at(0)
       codepoint = (high - 0xD800) * -0x400 + low - 0xDC00 + 0x10000
@@ -92,26 +92,14 @@ module Markd::HTMLEntities
       "&#x#{codepoint.to_s(16).upcase};"
     end
 
-    private def encode_extend(char : String)
+    private def self.encode_extend(char : String)
       "&#x#{char[0].ord.to_s(16).upcase};"
     end
 
-    private def entities_regex
-      return @regex if @regex.source != "^"
+    private def self.entities_regex
+      return @@regex if @@regex.source != "^"
 
-      single = [] of String
-      multiple = [] of String
-
-      HTMLEntities::ENTITIES_MAPPINGS.each do |_, key|
-        if key.size == 1
-          single << "\\" + key
-        else
-          multiple << key
-        end
-      end
-
-      multiple << "[#{single.join("")}]"
-      @regex = Regex.new(multiple.join("|"))
+      @@regex = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
     end
   end
 end
