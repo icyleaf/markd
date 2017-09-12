@@ -44,29 +44,15 @@ module Markd
     end
 
     def encode_uri(text : String)
-      URI.escape(text).each_byte { |char| HTML.escape(chars, true) }
+      URI.escape(text).each_byte { |char| HTML.encode_entities(chars) }
     end
 
     def decode_uri(text : String)
-      URI.unescape(text).gsub(/^&(\w+);$/) { |chars| HTML.unescape(chars, true) }
+      URI.unescape(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
     end
 
-    def unescape_string(text : String) : String
-      if text.match(Rule::BACKSLASH_OR_AMP)
-        text.gsub(Rule::ENTITY_OR_ESCAPED_CHAR) do |chars|
-          unescape_char(chars)
-        end
-      else
-        text
-      end
-    end
-
-    def unescape_char(text : String) : String
-      if char_code(text, 0) == Rule::CHAR_CODE_BACKSLASH
-        text[1].to_s
-      else
-        HTML.unescape(text, true)
-      end
+    def decode_entities_string(text : String) : String
+      HTML.decode_entities(text).gsub(Regex.new("\\\\" + Rule::ESCAPABLE_STRING, Regex::Options::IGNORE_CASE)) { |text| text[1].to_s }
     end
   end
 end

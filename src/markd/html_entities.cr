@@ -3,21 +3,13 @@ require "./mappings/*"
 module Markd::HTMLEntities
   MAPPINGS = {} of String => Hash(String, String)
 
-  def self.decode(source)
-    Decoder.new.decode(source)
-  end
-
-  def self.encode(source)
-    Encoder.new.encode(source)
-  end
-
   module ExtendToHTML
-    def unescape(source : String, entities : Bool)
-      entities ? Decoder.new.decode(source) : unescape(source)
+    def decode_entities(source : String)
+      Decoder.new.decode(source)
     end
 
-    def escape(source, entities : Bool)
-      entities ? Encoder.new.encode(source) : escape(source)
+    def encode_entitites(source)
+      Encoder.new.encode(source)
     end
   end
 

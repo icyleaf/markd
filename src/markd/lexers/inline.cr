@@ -403,7 +403,7 @@ module Markd::Lexer
 
     def entity(node : Node)
       if text = match(Rule::ENTITY_HERE)
-        node.append_child(text(HTML.unescape(text, true)))
+        node.append_child(text(HTML.decode_entities(text)))
         true
       else
         false
@@ -464,7 +464,7 @@ module Markd::Lexer
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      unescape_string(slice(title, 1, title.size - 2))
+      decode_entities_string(slice(title, 1, title.size - 2))
     end
 
     def link_destination
@@ -495,7 +495,7 @@ module Markd::Lexer
                slice(@text, save_pos, @pos - 1)
              end
 
-      normalize_uri(unescape_string(dest))
+      normalize_uri(decode_entities_string(dest))
     end
 
     def handle_delim(codepoint : Int32, node : Node)

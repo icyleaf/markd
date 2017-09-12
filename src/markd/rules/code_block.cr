@@ -82,7 +82,7 @@ module Markd::Rule
 
         text = slice(content, newline_pos + 1)
 
-        container.fence_language = unescape_string(first_line.strip)
+        container.fence_language = decode_entities_string(first_line.strip)
         container.text = text
       else
         # indented
