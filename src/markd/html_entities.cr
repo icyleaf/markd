@@ -1,8 +1,6 @@
 require "./mappings/*"
 
 module Markd::HTMLEntities
-  MAPPINGS = {} of String => Hash(String, String)
-
   module ExtendToHTML
     def decode_entities(source : String)
       Decoder.new.decode(source)
@@ -14,12 +12,6 @@ module Markd::HTMLEntities
   end
 
   class Decoder
-    @map : Hash(String, String)
-
-    def initialize
-      @map = Markd::HTMLEntities::MAPPINGS["entities"]
-    end
-
     def decode(source)
       source.gsub(regex) do |chars|
         if chars[1] == '#'
@@ -30,8 +22,8 @@ module Markd::HTMLEntities
           end
         else
           entities_key = chars[1..-2]
-          if @map[entities_key]?
-            @map[entities_key]
+          if resolved_entity = Markd::HTMLEntities::ENTITIES_MAPPINGS[entities_key]?
+            resolved_entity
           else
             chars
           end
@@ -42,34 +34,31 @@ module Markd::HTMLEntities
     def decode_codepoint(codepoint)
       return "\uFFFD" if codepoint >= 0xD800 && codepoint <= 0xDFFF || codepoint > 0x10FFF
 
-      decode_map = Markd::HTMLEntities::MAPPINGS["decode"]
-      if decode_map.keys.includes?(codepoint.to_s)
-        codepoint = decode_map[codepoint.to_s].to_i
+      if decoded = Markd::HTMLEntities::DECODE_MAPPINGS[codepoint]?
+        codepoint = decoded
       end
 
       codepoint.unsafe_chr
     end
 
     private def regex
-      legacy = HTMLEntities::MAPPINGS["legacy"].keys.sort
-      keys = HTMLEntities::MAPPINGS["entities"].keys.sort
+      legacy_keys = HTMLEntities::LEGACY_MAPPINGS.keys.sort
+      keys = HTMLEntities::ENTITIES_MAPPINGS.keys.sort
 
       legacy_index = 0
-      keys.each_with_index do |k, i|
-        if legacy[legacy_index]? && legacy[legacy_index] == k
-          keys[i] += ";?"
+      keys.each_with_index do |key, i|
+        keys[i] += ";"
+        if legacy_keys[legacy_index]? == key
+          keys[i] += "?"
           legacy_index += 1
-        else
-          keys[i] += ";"
         end
       end
 
-      Regex.new("&(?:(" + keys.join("|") + ")|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
+      Regex.new("&(?:(#{ keys.join("|") })|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
     end
   end
 
   class Encoder
-    @data = {} of String => String
     @regex = /^/
 
     def encode(source : String)
@@ -79,7 +68,8 @@ module Markd::HTMLEntities
     end
 
     private def encode_entities(chars : String)
-      data[chars]
+      entity = HTMLEntities::ENTITIES_MAPPINGS[chars]
+      "&#{entity};"
     end
 
     private def encode_astral(chars : String)
@@ -87,24 +77,11 @@ module Markd::HTMLEntities
       low = chars.codepoint_at(0)
       codepoint = (high - 0xD800) * -0x400 + low - 0xDC00 + 0x10000
 
-      "&#x" + codepoint.to_s(16).upcase + ";"
+      "&#x#{codepoint.to_s(16).upcase};"
     end
 
     private def encode_extend(char : String)
-      "&#x" + char[0].ord.to_s(16).upcase + ";"
-    end
-
-    private def data
-      return @data unless @data.empty?
-
-      entites = HTMLEntities::MAPPINGS["entities"]
-      entites.keys.sort.each do |key|
-        key = key.as(String)
-        value = "&" + key + ";"
-        @data[entites[key]] = value
-      end
-
-      @data
+      "&#x#{char[0].ord.to_s(16).upcase};"
     end
 
     private def entities_regex
@@ -113,7 +90,7 @@ module Markd::HTMLEntities
       single = [] of String
       multiple = [] of String
 
-      HTMLEntities::MAPPINGS["entities"].each do |_, key|
+      HTMLEntities::ENTITIES_MAPPINGS.each do |_, key|
         if key.size == 1
           single << "\\" + key
         else
@@ -121,7 +98,7 @@ module Markd::HTMLEntities
         end
       end
 
-      multiple << "[" + single.join("") + "]"
+      multiple << "[#{single.join("")}]"
       @regex = Regex.new(multiple.join("|"))
     end
   end
