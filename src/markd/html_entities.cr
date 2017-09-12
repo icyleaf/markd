@@ -3,7 +3,11 @@ require "./mappings/*"
 module Markd::HTMLEntities
   module ExtendToHTML
     def decode_entities(source : String)
-      Decoder.new.decode(source)
+      Decoder.decode(source)
+    end
+
+    def decode_entity(source : String)
+      Decoder.decode_entity(source)
     end
 
     def encode_entitites(source)
@@ -11,27 +15,35 @@ module Markd::HTMLEntities
     end
   end
 
-  class Decoder
-    def decode(source)
+  module Decoder
+    def self.decode(source)
       source.gsub(regex) do |chars|
-        if chars[1] == '#'
-          if chars[2].downcase == 'x'
-            decode_codepoint(chars[3..-2].to_i(16))
-          else
-            decode_codepoint(chars[2..-2].to_i(10))
-          end
-        else
-          entities_key = chars[1..-2]
-          if resolved_entity = Markd::HTMLEntities::ENTITIES_MAPPINGS[entities_key]?
-            resolved_entity
-          else
-            chars
-          end
-        end
+        decode_entity(chars[1..-2])
       end
     end
 
-    def decode_codepoint(codepoint)
+    def self.decode_entity(chars)
+      if chars[0] == '#'
+        if chars.size > 1
+          if chars[1].downcase == 'x'
+            if chars.size > 2
+              return decode_codepoint(chars[2..-1].to_i(16))
+            end
+          else
+            return decode_codepoint(chars[1..-1].to_i(10))
+          end
+        end
+      else
+        entities_key = chars[0..-1]
+        if resolved_entity = Markd::HTMLEntities::ENTITIES_MAPPINGS[entities_key]?
+          return resolved_entity
+        end
+      end
+
+      "&#{chars};"
+    end
+
+    def self.decode_codepoint(codepoint)
       return "\uFFFD" if codepoint >= 0xD800 && codepoint <= 0xDFFF || codepoint > 0x10FFF
 
       if decoded = Markd::HTMLEntities::DECODE_MAPPINGS[codepoint]?
@@ -41,7 +53,7 @@ module Markd::HTMLEntities
       codepoint.unsafe_chr
     end
 
-    private def regex
+    private def self.regex
       legacy_keys = HTMLEntities::LEGACY_MAPPINGS.keys.sort
       keys = HTMLEntities::ENTITIES_MAPPINGS.keys.sort
 

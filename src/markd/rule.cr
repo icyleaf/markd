@@ -2,7 +2,6 @@ module Markd
   module Rule
     include Utils
 
-    ENTITY_STRING       = %Q(&(?:#x[a-f0-9]{1,8}|#[0-9]{1,8}|[a-z][a-z0-9]{1,31});)
     ESCAPABLE_STRING    = %Q([!"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-])
     ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 
@@ -25,7 +24,6 @@ module Markd
     THEMATIC_BREAK   = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
 
     ESCAPABLE              = /^#{ESCAPABLE_STRING}/
-    ENTITY_HERE            = /^#{ENTITY_STRING}/i
 
     MAIN = /^[^\n`\[\]\\!<&*_'"]+/m
 

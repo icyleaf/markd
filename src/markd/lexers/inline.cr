@@ -402,8 +402,23 @@ module Markd::Lexer
     end
 
     def entity(node : Node)
-      if text = match(Rule::ENTITY_HERE)
-        node.append_child(text(HTML.decode_entities(text)))
+      if @text[@pos] == '&'
+        pos = @pos + 1
+        loop do
+          char = @text[pos]?
+          pos += 1
+          case char
+          when ';'
+            break
+          when Char::ZERO, nil
+            return false
+          end
+        end
+        text = slice(@text, @pos + 1, pos - 2)
+        decoded_text = HTML.decode_entity text
+
+        node.append_child(text(decoded_text))
+        @pos = pos
         true
       else
         false
