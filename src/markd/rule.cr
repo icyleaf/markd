@@ -20,13 +20,11 @@ module Markd
     INITIAL_SPACE        = /^ */
     SPACE_AT_END_OF_LINE = /^ *(?:\n|$)/
 
-    BACKSLASH_OR_AMP = /[\\&]/
     NONSPACE         = /[^ \t\f\v\r\n]/
     MAYBE_SPECIAL    = /^[#`~*+_=<>0-9-]/
     THEMATIC_BREAK   = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
 
     ESCAPABLE              = /^#{ESCAPABLE_STRING}/
-    ENTITY_OR_ESCAPED_CHAR = Regex.new("\\\\" + ESCAPABLE_STRING + "|" + ENTITY_STRING, Regex::Options::IGNORE_CASE)
     ENTITY_HERE            = /^#{ENTITY_STRING}/i
 
     MAIN = /^[^\n`\[\]\\!<&*_'"]+/m
@@ -86,10 +84,6 @@ module Markd
 
     UNSAFE_PROTOCOL      = /^javascript:|vbscript:|file:|data:/i
     UNSAFE_DATA_PROTOCOL = /^data:image\/(?:png|gif|jpeg|webp)/i
-
-    XML_SPECIAL_STRING    = "[&<>\"]"
-    XML_SPECIAL           = /#{XML_SPECIAL_STRING}/
-    XML_SPECIAL_OR_ENTITY = /#{ENTITY_STRING}|#{XML_SPECIAL}/i
 
     CODE_INDENT = 4
 
