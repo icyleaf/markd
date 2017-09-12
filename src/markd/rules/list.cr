@@ -97,7 +97,7 @@ module Markd::Rule
       end
 
       if container.type == Node::Type::Paragraph &&
-         !slice(parser, parser.next_nonspace + first_match_size).match(Rule::NONSPACE)
+         slice(parser, parser.next_nonspace + first_match_size).each_char.all? &.ascii_whitespace?
         return empty_data
       end
 

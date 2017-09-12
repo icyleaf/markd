@@ -76,14 +76,16 @@ module Markd::Lexer
                      else
                        char(last_child.text, -2) == ' '
                      end
-        last_child.text = last_child.text.gsub(Rule::FINAL_SPACE, "")
+        last_child.text = last_child.text.rstrip ' '
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
       else
         node.append_child(Node.new(Node::Type::SoftBreak))
       end
 
       # gobble leading spaces in next line
-      match(Rule::INITIAL_SPACE)
+      while @text[@pos]? == ' '
+        @pos += 1
+      end
 
       true
     end
@@ -109,14 +111,18 @@ module Markd::Lexer
     end
 
     def backtick(node : Node)
-      ticks = match(Rule::TICKS_HERE)
-      return false unless ticks
+      start_pos = @pos
+      while @text[@pos]? == '`'
+        @pos += 1
+      end
+      return false if start_pos == @pos
 
+      num_ticks = @pos - start_pos
       after_open_ticks = @pos
       while text = match(Rule::TICKS)
-        if text == ticks
+        if text.size == num_ticks
           child = Node.new(Node::Type::Code)
-          child.text = @text[after_open_ticks..(@pos - ticks.size - 1)].strip.gsub(Rule::WHITESPACE, " ")
+          child.text = @text[after_open_ticks..(@pos - num_ticks - 1)].strip.gsub(Rule::WHITESPACE, " ")
           node.append_child(child)
 
           return true
@@ -124,7 +130,7 @@ module Markd::Lexer
       end
 
       @pos = after_open_ticks
-      node.append_child(text(ticks))
+      node.append_child(text("`" * num_ticks))
 
       true
     end
@@ -199,7 +205,7 @@ module Markd::Lexer
       if char_code(@text, @pos) == Rule::CHAR_CODE_OPEN_PAREN
         @pos += 1
         if spnl && (dest = link_destination) &&
-           spnl && (char(@text, @pos - 1).to_s.match(Rule::WHITESPACE_CHAR) &&
+           spnl && (char(@text, @pos - 1).try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
            char_code(@text, @pos) == Rule::CHAR_CODE_CLOSE_PAREN
           @pos += 1
@@ -427,7 +433,7 @@ module Markd::Lexer
     def string(node : Node)
       if text = match(Rule::MAIN)
         if @options.smart
-          text = text.gsub(Rule::ELLIPSES, "\u{2026}")
+          text = text.gsub(Rule::ELLIPSIS, '\u{2026}')
                      .gsub(Rule::DASH) do |chars|
             en_count = em_count = 0
             chars_length = chars.size
@@ -499,6 +505,7 @@ module Markd::Lexer
 
                    @pos += 1
                    open_parens -= 1
+                   # TODO: Replace with char comparison. .whitespace? doesn't work.
                  elsif codepoint.unsafe_chr.to_s.match(Rule::WHITESPACE_CHAR)
                    break
                  else
@@ -578,10 +585,11 @@ module Markd::Lexer
       char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
       char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
 
-      after_is_whitespace = char_after.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
-      after_is_punctuation = char_after.to_s.match(Rule::PUNCTUATION) ? true : false
-      before_is_whitespace = char_before.to_s.match(Rule::UNICODE_WHITESPACE_CHAR) ? true : false
-      before_is_punctuation = char_before.to_s.match(Rule::PUNCTUATION) ? true : false
+      # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
+      after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
+      after_is_punctuation = !!char_after.to_s.match(Rule::PUNCTUATION)
+      before_is_whitespace = char_before.ascii_whitespace? || char_after == '\u00A0'
+      before_is_punctuation = !!char_before.to_s.match(Rule::PUNCTUATION)
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
@@ -645,13 +653,13 @@ module Markd::Lexer
       end
 
       at_line_end = true
-      unless match(Rule::SPACE_AT_END_OF_LINE)
+      unless space_at_end_of_line?
         if title.empty?
           at_line_end = false
         else
           title = ""
           @pos = before_title
-          at_line_end = match(Rule::SPACE_AT_END_OF_LINE) != nil
+          at_line_end = space_at_end_of_line?
         end
       end
 
@@ -676,9 +684,34 @@ module Markd::Lexer
       return @pos - startpos
     end
 
+    private def space_at_end_of_line?
+      while @text[@pos]? == ' '
+        @pos += 1
+      end
+
+      case @text[@pos]
+      when '\n'
+        @pos += 1
+      when Char::ZERO
+      else
+        return false
+      end
+      return true
+    end
+
     # Parse zero or more space characters, including at most one newline
     private def spnl
-      match(Rule::SPNL)
+      seen_newline = false
+      while c = @text[@pos]?
+        if !seen_newline && c == '\n'
+          seen_newline = true
+        elsif c != ' '
+          break
+        end
+
+        @pos += 1
+      end
+
       return true
     end
 

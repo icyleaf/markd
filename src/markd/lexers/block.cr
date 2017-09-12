@@ -59,7 +59,7 @@ module Markd::Lexer
 
     def parse(source : String)
       start_time("preparing input") if @options.time
-      @lines = source.split(Rule::LINE_ENDING)
+      @lines = source.each_line.to_a
       @line_size = @lines.size
       # ignore last blank line created by final newline
       @line_size -= 1 if source.byte_at(-1) == Rule::CHAR_CODE_NEWLINE
@@ -126,9 +126,12 @@ module Markd::Lexer
         find_next_nonspace
 
         # this is a little performance optimization
-        if !@indented && !slice(@line, @next_nonspace).match(Rule::MAYBE_SPECIAL)
-          advance_next_nonspace
-          break
+        unless @indented
+          first_char = slice(@line, @next_nonspace)[0]?
+          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number?)
+            advance_next_nonspace
+            break
+          end
         end
 
         rule_index = 0

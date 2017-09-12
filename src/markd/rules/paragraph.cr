@@ -19,7 +19,7 @@ module Markd::Rule
         has_reference_defs = true
       end
 
-      container.unlink if has_reference_defs && !container.text.match(Rule::NONSPACE)
+      container.unlink if has_reference_defs && container.text.each_char.all? &.ascii_whitespace?
     end
 
     def can_contain(t)
