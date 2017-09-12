@@ -77,25 +77,25 @@ module Markd
     CODE_INDENT = 4
 
     CHAR_CODE_NONE          = -1
-    CHAR_CODE_TAB           =  9
-    CHAR_CODE_NEWLINE       = 10
-    CHAR_CODE_CARRIAGE      = 13
-    CHAR_CODE_SPACE         = 32
-    CHAR_CODE_BANG          = 33
-    CHAR_CODE_AMPERSAND     = 38
-    CHAR_CODE_OPEN_PAREN    = 40
-    CHAR_CODE_CLOSE_PAREN   = 41
-    CHAR_CODE_ASTERISK      = 42
-    CHAR_CODE_COLON         = 58
-    CHAR_CODE_LESSTHAN      = 60
-    CHAR_CODE_GREATERTHAN   = 62
-    CHAR_CODE_OPEN_BRACKET  = 91
-    CHAR_CODE_CLOSE_BRACKET = 93
-    CHAR_CODE_BACKSLASH     = 92
-    CHAR_CODE_UNDERSCORE    = 95
-    CHAR_CODE_BACKTICK      = 96
-    CHAR_CODE_SINGLE_QUOTE  = 39
-    CHAR_CODE_DOUBLE_QUOTE  = 34
+    CHAR_CODE_TAB           = '\t'.ord
+    CHAR_CODE_NEWLINE       = '\n'.ord
+    CHAR_CODE_CARRIAGE      = '\r'.ord
+    CHAR_CODE_SPACE         = ' '.ord
+    CHAR_CODE_BANG          = '!'.ord
+    CHAR_CODE_AMPERSAND     = '&'.ord
+    CHAR_CODE_OPEN_PAREN    = '('.ord
+    CHAR_CODE_CLOSE_PAREN   = ')'.ord
+    CHAR_CODE_ASTERISK      = '*'.ord
+    CHAR_CODE_COLON         = ':'.ord
+    CHAR_CODE_LESSTHAN      = '<'.ord
+    CHAR_CODE_GREATERTHAN   = '>'.ord
+    CHAR_CODE_OPEN_BRACKET  = '['.ord
+    CHAR_CODE_CLOSE_BRACKET = ']'.ord
+    CHAR_CODE_BACKSLASH     = '\\'.ord
+    CHAR_CODE_UNDERSCORE    = '_'.ord
+    CHAR_CODE_BACKTICK      = '`'.ord
+    CHAR_CODE_SINGLE_QUOTE  = '\''.ord
+    CHAR_CODE_DOUBLE_QUOTE  = '"'.ord
 
     # Match Value
     #
