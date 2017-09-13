@@ -26,20 +26,14 @@ module Markd
       lit("\n") if @last_output != "\n"
     end
 
-    def escape(text, preserve_entities = false)
-      if text.match(Rule::XML_SPECIAL)
-        regex = preserve_entities ? Rule::XML_SPECIAL_OR_ENTITY : Rule::XML_SPECIAL
-        text.gsub(regex) do |char|
-          case char
-          when "&", "<", ">", "\""
-            HTML.escape(char)
-          else
-            char
-          end
-        end
-      else
-        text
-      end
+    def escape(text)
+      # TODO: Replace with `HTML.escape` once crystal-lang/crystal#4555 is resolved
+      text.gsub({
+        '&'  => "&amp;",
+        '"'  => "&quot;",
+        '<'  => "&lt;",
+        '>'  => "&gt;"
+      })
     end
 
     def render(document : Node)

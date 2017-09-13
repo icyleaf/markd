@@ -77,11 +77,11 @@ module Markd
       if entering
         attrs = attrs(node)
         if !(@options.safe && potentially_unsafe(node.data["destination"].as(String)))
-          attrs["href"] = escape(node.data["destination"].as(String), true)
+          attrs["href"] = escape(node.data["destination"].as(String))
         end
 
         if (title = node.data["title"].as(String)) && !title.empty?
-          attrs["title"] = escape(title, true)
+          attrs["title"] = escape(title)
         end
 
         tag("a", attrs)
@@ -96,7 +96,7 @@ module Markd
           if @options.safe && potentially_unsafe(node.data["destionation"].as(String))
             lit("<img src=\"\" alt=\"\"")
           else
-            lit("<img src=\"#{escape(node.data["destination"].as(String), true)}\" alt=\"")
+            lit("<img src=\"#{escape(node.data["destination"].as(String))}\" alt=\"")
           end
         end
         @disable_tag += 1
@@ -104,7 +104,7 @@ module Markd
         @disable_tag -= 1
         if @disable_tag == 0
           if (title = node.data["title"].as(String)) && !title.empty?
-            lit("\" title=\"#{escape(title, true)}")
+            lit("\" title=\"#{escape(title)}")
           end
           lit("\" />")
         end

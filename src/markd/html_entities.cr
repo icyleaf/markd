@@ -1,136 +1,105 @@
 require "./mappings/*"
 
 module Markd::HTMLEntities
-  MAPPINGS = {} of String => Hash(String, String)
-
-  def self.decode(source)
-    Decoder.new.decode(source)
-  end
-
-  def self.encode(source)
-    Encoder.new.encode(source)
-  end
-
   module ExtendToHTML
-    def unescape(source : String, entities : Bool)
-      entities ? Decoder.new.decode(source) : unescape(source)
+    def decode_entities(source : String)
+      Decoder.decode(source)
     end
 
-    def escape(source, entities : Bool)
-      entities ? Encoder.new.encode(source) : escape(source)
+    def decode_entity(source : String)
+      Decoder.decode_entity(source)
+    end
+
+    def encode_entities(source)
+      Encoder.encode(source)
     end
   end
 
-  class Decoder
-    @map : Hash(String, String)
-
-    def initialize
-      @map = Markd::HTMLEntities::MAPPINGS["entities"]
-    end
-
-    def decode(source)
+  module Decoder
+    def self.decode(source)
       source.gsub(regex) do |chars|
-        if chars[1] == '#'
-          if chars[2].downcase == 'x'
-            decode_codepoint(chars[3..-2].to_i(16))
-          else
-            decode_codepoint(chars[2..-2].to_i(10))
-          end
-        else
-          entities_key = chars[1..-2]
-          if @map[entities_key]?
-            @map[entities_key]
-          else
-            chars
-          end
-        end
+        decode_entity(chars[1..-2])
       end
     end
 
-    def decode_codepoint(codepoint)
+    def self.decode_entity(chars)
+      if chars[0] == '#'
+        if chars.size > 1
+          if chars[1].downcase == 'x'
+            if chars.size > 2
+              return decode_codepoint(chars[2..-1].to_i(16))
+            end
+          else
+            return decode_codepoint(chars[1..-1].to_i(10))
+          end
+        end
+      else
+        entities_key = chars[0..-1]
+        if resolved_entity = Markd::HTMLEntities::ENTITIES_MAPPINGS[entities_key]?
+          return resolved_entity
+        end
+      end
+
+      "&#{chars};"
+    end
+
+    def self.decode_codepoint(codepoint)
       return "\uFFFD" if codepoint >= 0xD800 && codepoint <= 0xDFFF || codepoint > 0x10FFF
 
-      decode_map = Markd::HTMLEntities::MAPPINGS["decode"]
-      if decode_map.keys.includes?(codepoint.to_s)
-        codepoint = decode_map[codepoint.to_s].to_i
+      if decoded = Markd::HTMLEntities::DECODE_MAPPINGS[codepoint]?
+        codepoint = decoded
       end
 
       codepoint.unsafe_chr
     end
 
-    private def regex
-      legacy = HTMLEntities::MAPPINGS["legacy"].keys.sort
-      keys = HTMLEntities::MAPPINGS["entities"].keys.sort
+    private def self.regex
+      legacy_keys = HTMLEntities::LEGACY_MAPPINGS.keys.sort
+      keys = HTMLEntities::ENTITIES_MAPPINGS.keys.sort
 
       legacy_index = 0
-      keys.each_with_index do |k, i|
-        if legacy[legacy_index]? && legacy[legacy_index] == k
-          keys[i] += ";?"
+      keys.each_with_index do |key, i|
+        keys[i] += ";"
+        if legacy_keys[legacy_index]? == key
+          keys[i] += "?"
           legacy_index += 1
-        else
-          keys[i] += ";"
         end
       end
 
-      Regex.new("&(?:(" + keys.join("|") + ")|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
+      Regex.new("&(?:(#{keys.join("|")})|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
     end
   end
 
-  class Encoder
-    @data = {} of String => String
-    @regex = /^/
+  module Encoder
+    @@regex = /^/
 
-    def encode(source : String)
+    def self.encode(source : String)
       source.gsub(entities_regex) { |chars| encode_entities(chars) }
             .gsub(Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")) { |chars| encode_astral(chars) }
             .gsub(/[^\x{20}-\x{7E}]/) { |chars| encode_extend(chars) }
     end
 
-    private def encode_entities(chars : String)
-      data[chars]
+    private def self.encode_entities(chars : String)
+      entity = HTMLEntities::ENTITIES_MAPPINGS.key(chars)
+      "&#{entity};"
     end
 
-    private def encode_astral(chars : String)
+    private def self.encode_astral(chars : String)
       high = chars.codepoint_at(0)
       low = chars.codepoint_at(0)
       codepoint = (high - 0xD800) * -0x400 + low - 0xDC00 + 0x10000
 
-      "&#x" + codepoint.to_s(16).upcase + ";"
+      "&#x#{codepoint.to_s(16).upcase};"
     end
 
-    private def encode_extend(char : String)
-      "&#x" + char[0].ord.to_s(16).upcase + ";"
+    private def self.encode_extend(char : String)
+      "&#x#{char[0].ord.to_s(16).upcase};"
     end
 
-    private def data
-      return @data unless @data.empty?
+    private def self.entities_regex
+      return @@regex if @@regex.source != "^"
 
-      entites = HTMLEntities::MAPPINGS["entities"]
-      entites.keys.sort.each do |key|
-        key = key.as(String)
-        value = "&" + key + ";"
-        @data[entites[key]] = value
-      end
-
-      @data
-    end
-
-    private def entities_regex
-      return @regex if @regex.source != "^"
-
-      single = [] of String
-      multiple = [] of String
-
-      HTMLEntities::MAPPINGS["entities"].each do |_, key|
-        if key.size == 1
-          single << "\\" + key
-        else
-          multiple << key
-        end
-      end
-
-      multiple << "[" + single.join("") + "]"
-      @regex = Regex.new(multiple.join("|"))
+      @@regex = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
     end
   end
 end
