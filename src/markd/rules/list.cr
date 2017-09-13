@@ -2,8 +2,8 @@ module Markd::Rule
   struct List
     include Rule
 
-    BULLET_LIST_MARKER  = /^[*+-]/
-    ORDERED_LIST_MARKER = /^(\d{1,9})([.)])/
+    BULLET_LIST_MARKERS  = {'*', '+', '-'}
+    ORDERED_LIST_MARKERS = {'.', ')'}
 
     def match(parser : Lexer, container : Node)
       if (!parser.indented || container.type == Node::Type::List) &&
@@ -77,20 +77,27 @@ module Markd::Rule
         "start"         => 1,
       } of String => Node::DataValue
 
-      if match = line.match(BULLET_LIST_MARKER)
+      if BULLET_LIST_MARKERS.includes?(line[0])
         data["type"] = "bullet"
-        data["bullet_char"] = match[0][0].to_s
-      elsif (match = line.match(ORDERED_LIST_MARKER)) &&
-            (container.type != Node::Type::Paragraph || match[1] == "1")
-        data["type"] = "ordered"
-        data["start"] = match[1].to_i
-        data["delimiter"] = match[2]
+        data["bullet_char"] = line[0].to_s
+        first_match_size = 1
       else
-        return empty_data
+        pos = 0
+        while line[pos]?.try &.ascii_number?
+          pos += 1
+        end
+        number = pos >= 1 ? line[0..pos - 1].to_i : -1
+        if pos >= 1 && pos <= 9 && ORDERED_LIST_MARKERS.includes?(line[pos]?) &&
+           (container.type != Node::Type::Paragraph || number == 1)
+          data["type"] = "ordered"
+          data["start"] = number
+          data["delimiter"] = line[pos].to_s
+          first_match_size = pos + 1
+        else
+          return empty_data
+        end
       end
 
-      # make sure we have spaces after
-      first_match_size = match[0].size
       next_char = char_code(parser, parser.next_nonspace + first_match_size)
       if !(next_char == -1 || space_or_tab?(next_char))
         return empty_data
@@ -116,13 +123,13 @@ module Markd::Rule
       blank_item = char_code(parser, parser.offset) == -1
       spaces_after_marker = parser.column - spaces_start_column
       if spaces_after_marker >= 5 || spaces_after_marker < 1 || blank_item
-        data["padding"] = match[0].size + 1
+        data["padding"] = first_match_size + 1
         parser.column = spaces_start_column
         parser.offset = spaces_start_offset
 
         parser.advance_offset(1, true) if space_or_tab?(char_code(parser, parser.offset))
       else
-        data["padding"] = match[0].size + spaces_after_marker
+        data["padding"] = first_match_size + spaces_after_marker
       end
 
       data
