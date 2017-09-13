@@ -3,15 +3,11 @@ module Markd::Lexer
     include Lexer
     include Utils
 
-    def self.parse(source : String)
-      new(Options.new).parse(source)
-    end
-
-    def self.parse(source : String, options : Options)
+    def self.parse(source : String, options = Options.new)
       new(options).parse(source)
     end
 
-    @rules = {
+    RULES = {
       Node::Type::Document      => Rule::Document.new,
       Node::Type::BlockQuote    => Rule::BlockQuote.new,
       Node::Type::Heading       => Rule::Heading.new,
@@ -87,7 +83,7 @@ module Markd::Lexer
       @blank = @partially_consumed_tab = false
       @current_line += 1
 
-      line = line.gsub(/\0/, "\u{FFFD}") if line.includes?("\u{0000}")
+      line = line.gsub(Char::ZERO, '\u{FFFD}')
       @line = line
 
       while (last_child = container.last_child) && last_child.open
@@ -95,7 +91,7 @@ module Markd::Lexer
 
         find_next_nonspace
 
-        case @rules[container.type].continue(self, container)
+        case RULES[container.type].continue(self, container)
         when 0
           # we've matched, keep going
         when 1
@@ -119,9 +115,9 @@ module Markd::Lexer
       @all_closed = (container == @oldtip)
       @last_matched_container = container.not_nil!
 
-      matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
+      matched_leaf = container.type != Node::Type::Paragraph && RULES[container.type].accepts_lines?
 
-      rules_size = @rules.size
+      rules_size = RULES.size
       while !matched_leaf
         find_next_nonspace
 
@@ -136,7 +132,7 @@ module Markd::Lexer
 
         rule_index = 0
         while rule_index < rules_size
-          case @rules.values[rule_index].match(self, container.not_nil!)
+          case RULES.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
             container = @tip.not_nil!
             break
@@ -179,7 +175,7 @@ module Markd::Lexer
           cont = cont.parent
         end
 
-        if @rules[container_type].accepts_lines?
+        if RULES[container_type].accepts_lines?
           add_line
 
           # if HtmlBlock, check for end condition
@@ -216,7 +212,7 @@ module Markd::Lexer
       above = container.parent
       container.open = false
       container.source_pos[1] = [line_number, @last_line_length]
-      @rules[container.type].token(self, container)
+      RULES[container.type].token(self, container)
 
       @tip = above
 
@@ -237,7 +233,7 @@ module Markd::Lexer
     end
 
     def add_child(type : Node::Type, offset : Int32) : Node
-      while !@rules[@tip.not_nil!.type].can_contain(type)
+      while !RULES[@tip.not_nil!.type].can_contain(type)
         token(@tip.not_nil!, @current_line - 1)
       end
 
