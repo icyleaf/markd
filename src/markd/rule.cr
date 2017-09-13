@@ -105,15 +105,15 @@ module Markd
     # accepts_line
     abstract def accepts_lines? : Bool
 
-    def slice(parser : Lexer, index = parser.next_nonspace) : String
+    private def slice(parser : Lexer, index = parser.next_nonspace) : String
       slice(parser.line, index)
     end
 
-    def char_at(parser : Lexer, index = parser.next_nonspace) : Char?
+    private def char_at(parser : Lexer, index = parser.next_nonspace) : Char?
       parser.line[index]?
     end
 
-    def space_or_tab?(char : Char?) : Bool
+    private def space_or_tab?(char : Char?) : Bool
       [' ', '\t'].includes?(char)
     end
   end

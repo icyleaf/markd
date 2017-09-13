@@ -75,7 +75,7 @@ module Markd::Lexer
       @document
     end
 
-    def process_line(line : String)
+    private def process_line(line : String)
       all_matched = true
       container = @document
       @oldtip = @tip
@@ -193,7 +193,7 @@ module Markd::Lexer
       nil
     end
 
-    def process_inlines
+    private def process_inlines
       walker = @document.walker
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
@@ -217,7 +217,7 @@ module Markd::Lexer
       nil
     end
 
-    def add_line
+    private def add_line
       if @partially_consumed_tab
         @offset += 1 # skip over tab
         # add space characters
@@ -259,7 +259,7 @@ module Markd::Lexer
       nil
     end
 
-    def find_next_nonspace
+    private def find_next_nonspace
       offset = @offset
       column = @column
 

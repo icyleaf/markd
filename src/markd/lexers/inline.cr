@@ -28,7 +28,7 @@ module Markd::Lexer
       process_emphasis(nil)
     end
 
-    def process_line(node : Node)
+    private def process_line(node : Node)
       char = @text[@pos]?
 
       return false unless char && char != Char::ZERO
@@ -66,7 +66,7 @@ module Markd::Lexer
       true
     end
 
-    def newline(node : Node)
+    private def newline(node : Node)
       @pos += 1 # assume we're at a \n
       last_child = node.last_child
       # check previous node for trailing spaces
@@ -91,7 +91,7 @@ module Markd::Lexer
       true
     end
 
-    def backslash(node : Node)
+    private def backslash(node : Node)
       @pos += 1
 
       char = @text.size > @pos ? @text[@pos].to_s : nil
@@ -111,7 +111,7 @@ module Markd::Lexer
       true
     end
 
-    def backtick(node : Node)
+    private def backtick(node : Node)
       start_pos = @pos
       while @text[@pos]? == '`'
         @pos += 1
@@ -136,7 +136,7 @@ module Markd::Lexer
       true
     end
 
-    def bang(node : Node)
+    private def bang(node : Node)
       start_pos = @pos
       @pos += 1
       if @text[@pos]? == '['
@@ -152,16 +152,16 @@ module Markd::Lexer
       true
     end
 
-    def add_bracket(node : Node, index : Int32, image = false)
+    private def add_bracket(node : Node, index : Int32, image = false)
       @brackets.not_nil!.bracket_after = true if @brackets
       @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
     end
 
-    def remove_bracket
+    private def remove_bracket
       @brackets = @brackets.not_nil!.previous
     end
 
-    def open_bracket(node : Node)
+    private def open_bracket(node : Node)
       start_pos = @pos
       @pos += 1
 
@@ -173,7 +173,7 @@ module Markd::Lexer
       true
     end
 
-    def close_bracket(node : Node)
+    private def close_bracket(node : Node)
       title = ""
       dest = ""
       matched = false
@@ -277,7 +277,7 @@ module Markd::Lexer
       true
     end
 
-    def process_emphasis(delimiter : Delimiter?)
+    private def process_emphasis(delimiter : Delimiter?)
       openers_bottom = {
         '_'   => delimiter,
         '*'   => delimiter,
@@ -385,7 +385,7 @@ module Markd::Lexer
       end
     end
 
-    def auto_link(node : Node)
+    private def auto_link(node : Node)
       if text = match(Rule::EMAIL_AUTO_LINK)
         node.append_child(link(text, true))
         return true
@@ -397,7 +397,7 @@ module Markd::Lexer
       false
     end
 
-    def html_tag(node : Node)
+    private def html_tag(node : Node)
       if text = match(Rule::HTML_TAG)
         child = Node.new(Node::Type::HTMLInline)
         child.text = text
@@ -408,7 +408,7 @@ module Markd::Lexer
       end
     end
 
-    def entity(node : Node)
+    private def entity(node : Node)
       if @text[@pos] == '&'
         pos = @pos + 1
         loop do
@@ -432,7 +432,7 @@ module Markd::Lexer
       end
     end
 
-    def string(node : Node)
+    private def string(node : Node)
       if text = match(Rule::MAIN)
         if @options.smart
           text = text.gsub(Rule::ELLIPSIS, '\u{2026}')
@@ -462,7 +462,7 @@ module Markd::Lexer
       end
     end
 
-    def link(match : String, email = false) : Node
+    private def link(match : String, email = false) : Node
       dest = slice(match, 1, match.size - 2)
       destination = email ? "mailto:#{dest}" : dest
 
@@ -473,7 +473,7 @@ module Markd::Lexer
       node
     end
 
-    def link_label
+    private def link_label
       text = match(Rule::LINK_LABEL)
       if text && text.size <= 1001 && (!text.ends_with?("\\]") || text[-3]? == '\\')
         text.size - 1
@@ -482,14 +482,14 @@ module Markd::Lexer
       end
     end
 
-    def link_title
+    private def link_title
       title = match(Rule::LINK_TITLE)
       return unless title
 
       decode_entities_string(slice(title, 1, title.size - 2))
     end
 
-    def link_destination
+    private def link_destination
       dest = if text = match(Rule::LINK_DESTINATION_BRACES)
                slice(text, 1, text.size - 2)
              else
@@ -521,7 +521,7 @@ module Markd::Lexer
       normalize_uri(decode_entities_string(dest))
     end
 
-    def handle_delim(char : Char, node : Node)
+    private def handle_delim(char : Char, node : Node)
       res = scan_delims(char)
       return false unless res
 
@@ -551,7 +551,7 @@ module Markd::Lexer
       true
     end
 
-    def remove_delimiter(delimiter : Delimiter)
+    private def remove_delimiter(delimiter : Delimiter)
       if prev = delimiter.previous
         prev.next = delimiter.next
       end
@@ -564,14 +564,14 @@ module Markd::Lexer
       end
     end
 
-    def remove_delimiter_between(bottom : Delimiter, top : Delimiter)
+    private def remove_delimiter_between(bottom : Delimiter, top : Delimiter)
       if bottom.next != top
         bottom.next = top
         top.previous = bottom
       end
     end
 
-    def scan_delims(char : Char)
+    private def scan_delims(char : Char)
       num_delims = 0
       start_pos = @pos
       if ['\'', '"'].includes?(char)
