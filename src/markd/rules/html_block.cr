@@ -25,7 +25,7 @@ module Markd::Rule
     end
 
     def continue(parser : Lexer, container : Node)
-      (parser.blank && [5, 6].includes?(container.data["html_block_type"])) ? 1 : 0
+      (parser.blank && [5, 6].includes?(container.data["html_block_type"])) ? ContinueStatus::Stop : ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)

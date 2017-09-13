@@ -92,17 +92,15 @@ module Markd::Lexer
         find_next_nonspace
 
         case RULES[container.type].continue(self, container)
-        when 0
+        when Rule::ContinueStatus::Continue
           # we've matched, keep going
-        when 1
+        when Rule::ContinueStatus::Stop
           # we've failed to match a block
           all_matched = false
-        when 2
+        when Rule::ContinueStatus::Return
           # we've hit end of line for fenced code close and can return
           @last_line_length = line.size
           return
-        else
-          raise Exception.new("continue returned illegal value, must be 0, 1, or 2")
         end
 
         unless all_matched

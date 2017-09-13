@@ -49,7 +49,7 @@ module Markd::Rule
 
     def continue(parser : Lexer, container : Node)
       # a heading can never container > 1 line, so fail to match
-      1
+      ContinueStatus::Stop
     end
 
     def can_contain(t)

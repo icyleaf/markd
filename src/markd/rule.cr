@@ -115,7 +115,13 @@ module Markd
     abstract def token(parser : Lexer, container : Node) : Void
 
     # continue
-    abstract def continue(parser : Lexer, container : Node) : Int32
+    abstract def continue(parser : Lexer, container : Node) : ContinueStatus
+
+    enum ContinueStatus
+      Continue
+      Stop
+      Return
+    end
 
     # accepts_line
     abstract def accepts_lines? : Bool

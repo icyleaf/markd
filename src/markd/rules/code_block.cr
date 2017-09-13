@@ -49,7 +49,7 @@ module Markd::Rule
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
           # closing fence - we're at end of line, so we can return
           parser.token(container, parser.current_line)
-          return 2
+          return ContinueStatus::Return
         else
           # skip optional spaces of fence offset
           index = container.fence_offset
@@ -65,11 +65,11 @@ module Markd::Rule
         elsif parser.blank
           parser.advance_next_nonspace
         else
-          return 1
+          return ContinueStatus::Stop
         end
       end
 
-      0
+      ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)

@@ -17,7 +17,7 @@ module Markd::Rule
 
     def continue(parser : Lexer, container : Node)
       # a thematic break can never container > 1 line, so fail to match:
-      1
+      ContinueStatus::Stop
     end
 
     def token(parser : Lexer, container : Node)

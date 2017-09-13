@@ -17,11 +17,10 @@ module Markd::Rule
     def continue(parser : Lexer, container : Node)
       if match?(parser)
         seek(parser)
+        ContinueStatus::Continue
       else
-        return 1
+        ContinueStatus::Stop
       end
-
-      0
     end
 
     def token(parser : Lexer, container : Node)

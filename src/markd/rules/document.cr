@@ -7,7 +7,7 @@ module Markd::Rule
     end
 
     def continue(parser : Lexer, container : Node)
-      0
+      ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)
