@@ -25,14 +25,13 @@ def test(time = 10, &block)
   times
 end
 
-
 def ms(time)
   (time * 1000).round(6).to_s
 end
 
 def average(data : Array(Float64))
   sum = 0
-  data.each {|f| sum += f}
+  data.each { |f| sum += f }
 
   sum / data.size
 end

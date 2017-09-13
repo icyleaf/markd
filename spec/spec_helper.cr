@@ -67,7 +67,6 @@ def extract_spec_tests(file)
     File.open(path) do |f|
       line_number = 0
       while line = f.read_line
-
         line_number += 1
         line = line.gsub(/\r\n?/, "\n")
         break if line.includes?("<!-- END TESTS -->")
@@ -87,9 +86,9 @@ def extract_spec_tests(file)
             example_count += 1
           elsif test_start && !result_start
             examples[current_section][example_count] ||= {
-              "line" => line_number.to_s,
+              "line"     => line_number.to_s,
               "markdown" => "",
-              "html" => ""
+              "html"     => "",
             } of String => String
 
             examples[current_section][example_count]["markdown"] += line + "\n"
@@ -104,7 +103,7 @@ def extract_spec_tests(file)
   end
 
   # Remove empty examples
-  examples.keys.each {|k| examples.delete(k) if examples[k].empty? }
+  examples.keys.each { |k| examples.delete(k) if examples[k].empty? }
   examples
 end
 
