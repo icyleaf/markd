@@ -36,14 +36,14 @@ module Markd::Rule
     end
 
     private def match?(parser)
-      !parser.indented && char_code(parser) == Rule::CHAR_CODE_GREATERTHAN
+      !parser.indented && char_at(parser) == '>'
     end
 
     private def seek(parser : Lexer)
       parser.advance_next_nonspace
       parser.advance_offset(1, false)
 
-      if space_or_tab?(char_code(parser, parser.offset))
+      if space_or_tab?(char_at(parser, parser.offset))
         parser.advance_offset(1, true)
       end
     end

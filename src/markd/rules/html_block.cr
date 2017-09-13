@@ -3,7 +3,7 @@ module Markd::Rule
     include Rule
 
     def match(parser : Lexer, container : Node)
-      if !parser.indented && char_code(parser) == CHAR_CODE_LESSTHAN
+      if !parser.indented && char_at(parser) == '<'
         text = slice(parser)
         block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
 

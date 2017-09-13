@@ -23,14 +23,6 @@ module Markd
       text[index]
     end
 
-    def char_code(text : String, index : Int32) : Int32
-      if char = char(text, index)
-        char.ord
-      else
-        -1
-      end
-    end
-
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_refrenence(text : String)

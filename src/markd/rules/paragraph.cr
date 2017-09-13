@@ -13,7 +13,7 @@ module Markd::Rule
     def token(parser : Lexer, container : Node)
       has_reference_defs = false
 
-      while char_code(container.text, 0) == Rule::CHAR_CODE_OPEN_BRACKET &&
+      while container.text[0]? == '[' &&
             (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
         container.text = slice(container.text, pos)
         has_reference_defs = true

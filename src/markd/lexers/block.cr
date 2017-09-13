@@ -58,7 +58,7 @@ module Markd::Lexer
       @lines = source.each_line.to_a
       @line_size = @lines.size
       # ignore last blank line created by final newline
-      @line_size -= 1 if source.byte_at(-1) == Rule::CHAR_CODE_NEWLINE
+      @line_size -= 1 if source[-1] == '\n'
       end_time("preparing input") if @options.time
 
       start_time("block parsing") if @options.time
@@ -169,7 +169,7 @@ module Markd::Lexer
 
         cont = container
         while cont
-          cont.not_nil!.last_line_blank = last_line_blank
+          cont.last_line_blank = last_line_blank
           cont = cont.parent
         end
 
@@ -266,12 +266,12 @@ module Markd::Lexer
       if @line.empty?
         @blank = true
       else
-        while char = char_code(@line, offset)
+        while char = @line[offset]?
           case char
-          when Rule::CHAR_CODE_SPACE
+          when ' '
             offset += 1
             column += 1
-          when Rule::CHAR_CODE_TAB
+          when '\t'
             offset += 1
             column += (4 - (column % 4))
           else
@@ -279,9 +279,7 @@ module Markd::Lexer
           end
         end
 
-        @blank = [Rule::CHAR_CODE_NONE,
-                  Rule::CHAR_CODE_NEWLINE,
-                  Rule::CHAR_CODE_CARRIAGE].includes?(char)
+        @blank = {nil, '\n', '\r'}.includes?(char)
       end
 
       @next_nonspace = offset
@@ -294,8 +292,8 @@ module Markd::Lexer
 
     def advance_offset(count, columns = false)
       line = @line
-      while count > 0 && (char = char_code(line, @offset))
-        if char == Rule::CHAR_CODE_TAB
+      while count > 0 && (char = line[@offset]?)
+        if char == '\t'
           chars_to_tab = Rule::CODE_INDENT - (@column % 4)
           if columns
             @partially_consumed_tab = chars_to_tab > count

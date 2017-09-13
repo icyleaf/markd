@@ -76,27 +76,6 @@ module Markd
 
     CODE_INDENT = 4
 
-    CHAR_CODE_NONE          = -1
-    CHAR_CODE_TAB           = '\t'.ord
-    CHAR_CODE_NEWLINE       = '\n'.ord
-    CHAR_CODE_CARRIAGE      = '\r'.ord
-    CHAR_CODE_SPACE         = ' '.ord
-    CHAR_CODE_BANG          = '!'.ord
-    CHAR_CODE_AMPERSAND     = '&'.ord
-    CHAR_CODE_OPEN_PAREN    = '('.ord
-    CHAR_CODE_CLOSE_PAREN   = ')'.ord
-    CHAR_CODE_ASTERISK      = '*'.ord
-    CHAR_CODE_COLON         = ':'.ord
-    CHAR_CODE_LESSTHAN      = '<'.ord
-    CHAR_CODE_GREATERTHAN   = '>'.ord
-    CHAR_CODE_OPEN_BRACKET  = '['.ord
-    CHAR_CODE_CLOSE_BRACKET = ']'.ord
-    CHAR_CODE_BACKSLASH     = '\\'.ord
-    CHAR_CODE_UNDERSCORE    = '_'.ord
-    CHAR_CODE_BACKTICK      = '`'.ord
-    CHAR_CODE_SINGLE_QUOTE  = '\''.ord
-    CHAR_CODE_DOUBLE_QUOTE  = '"'.ord
-
     # Match Value
     #
     # - None: no match
@@ -130,12 +109,12 @@ module Markd
       slice(parser.line, index)
     end
 
-    def char_code(parser : Lexer, index = parser.next_nonspace) : Int32
-      char_code(parser.line, index)
+    def char_at(parser : Lexer, index = parser.next_nonspace) : Char?
+      parser.line[index]?
     end
 
-    def space_or_tab?(code : Int32) : Bool
-      [CHAR_CODE_SPACE, CHAR_CODE_TAB].includes?(code)
+    def space_or_tab?(char : Char?) : Bool
+      [' ', '\t'].includes?(char)
     end
   end
 end

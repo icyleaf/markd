@@ -98,8 +98,8 @@ module Markd::Rule
         end
       end
 
-      next_char = char_code(parser, parser.next_nonspace + first_match_size)
-      if !(next_char == -1 || space_or_tab?(next_char))
+      next_char = char_at(parser, parser.next_nonspace + first_match_size)
+      unless next_char.nil? || space_or_tab?(next_char)
         return empty_data
       end
 
@@ -115,19 +115,19 @@ module Markd::Rule
 
       loop do
         parser.advance_offset(1, true)
-        next_char = char_code(parser, parser.offset)
+        next_char = char_at(parser, parser.offset)
 
         break unless parser.column - spaces_start_column < 5 && space_or_tab?(next_char)
       end
 
-      blank_item = char_code(parser, parser.offset) == -1
+      blank_item = char_at(parser, parser.offset).nil?
       spaces_after_marker = parser.column - spaces_start_column
       if spaces_after_marker >= 5 || spaces_after_marker < 1 || blank_item
         data["padding"] = first_match_size + 1
         parser.column = spaces_start_column
         parser.offset = spaces_start_offset
 
-        parser.advance_offset(1, true) if space_or_tab?(char_code(parser, parser.offset))
+        parser.advance_offset(1, true) if space_or_tab?(char_at(parser, parser.offset))
       else
         data["padding"] = first_match_size + spaces_after_marker
       end

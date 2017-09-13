@@ -29,29 +29,30 @@ module Markd::Lexer
     end
 
     def process_line(node : Node)
-      char = char_code(@text, @pos)
-      return false if char == -1
+      char = @text[@pos]?
+
+      return false unless char && char != Char::ZERO
 
       res = case char
-            when Rule::CHAR_CODE_NEWLINE
+            when '\n'
               newline(node)
-            when Rule::CHAR_CODE_BACKSLASH
+            when '\\'
               backslash(node)
-            when Rule::CHAR_CODE_BACKTICK
+            when '`'
               backtick(node)
-            when Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE
+            when '*', '_'
               handle_delim(char, node)
-            when Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE
+            when '\'', '"'
               @options.smart && handle_delim(char, node)
-            when Rule::CHAR_CODE_OPEN_BRACKET
+            when '['
               open_bracket(node)
-            when Rule::CHAR_CODE_BANG
+            when '!'
               bang(node)
-            when Rule::CHAR_CODE_CLOSE_BRACKET
+            when ']'
               close_bracket(node)
-            when Rule::CHAR_CODE_LESSTHAN
+            when '<'
               auto_link(node) || html_tag(node)
-            when Rule::CHAR_CODE_AMPERSAND
+            when '&'
               entity(node)
             else
               string(node)
@@ -59,7 +60,7 @@ module Markd::Lexer
 
       unless res
         @pos += 1
-        node.append_child(text(char.unsafe_chr))
+        node.append_child(text(char))
       end
 
       true
@@ -94,7 +95,7 @@ module Markd::Lexer
       @pos += 1
 
       char = @text.size > @pos ? @text[@pos].to_s : nil
-      child = if char_code(@text, @pos) == Rule::CHAR_CODE_NEWLINE
+      child = if @text[@pos]? == '\n'
                 @pos += 1
                 Node.new(Node::Type::LineBreak)
               elsif char && char.match(Rule::ESCAPABLE)
@@ -138,7 +139,7 @@ module Markd::Lexer
     def bang(node : Node)
       start_pos = @pos
       @pos += 1
-      if char_code(@text, @pos) == Rule::CHAR_CODE_OPEN_BRACKET
+      if @text[@pos]? == '['
         @pos += 1
         child = text("![")
         node.append_child(child)
@@ -202,12 +203,12 @@ module Markd::Lexer
       save_pos = @pos
 
       # Inline link?
-      if char_code(@text, @pos) == Rule::CHAR_CODE_OPEN_PAREN
+      if @text[@pos]? == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
            spnl && (char(@text, @pos - 1).try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
-           char_code(@text, @pos) == Rule::CHAR_CODE_CLOSE_PAREN
+           @text[@pos]? == ')'
           @pos += 1
           matched = true
         else
@@ -278,11 +279,11 @@ module Markd::Lexer
 
     def process_emphasis(delimiter : Delimiter?)
       openers_bottom = {
-        Rule::CHAR_CODE_UNDERSCORE   => delimiter,
-        Rule::CHAR_CODE_ASTERISK     => delimiter,
-        Rule::CHAR_CODE_SINGLE_QUOTE => delimiter,
-        Rule::CHAR_CODE_DOUBLE_QUOTE => delimiter,
-      } of Int32 => Delimiter?
+        '_'   => delimiter,
+        '*'   => delimiter,
+        '\''  => delimiter,
+        '"'   => delimiter,
+      } of Char => Delimiter?
 
       # find first closer above stack_bottom:
       closer = @delimiters
@@ -292,7 +293,7 @@ module Markd::Lexer
 
       # move forward, looking for closers, and handling each
       while closer
-        closer_codepoint = closer.codepoint
+        closer_char = closer.char
 
         unless closer.can_close
           closer = closer.next
@@ -302,10 +303,10 @@ module Markd::Lexer
         # found emphasis closer. now look back for first matching opener:
         opener = closer.previous
         opener_found = false
-        while opener && opener != delimiter && opener != openers_bottom[closer_codepoint]
+        while opener && opener != delimiter && opener != openers_bottom[closer_char]
           odd_match = (closer.can_open || opener.can_close) &&
                       (opener.orig_delims + closer.orig_delims) % 3 == 0
-          if opener.codepoint == closer.codepoint && opener.can_open && !odd_match
+          if opener.char == closer.char && opener.can_open && !odd_match
             opener_found = true
             break
           end
@@ -314,7 +315,8 @@ module Markd::Lexer
 
         old_closer = closer
 
-        if [Rule::CHAR_CODE_ASTERISK, Rule::CHAR_CODE_UNDERSCORE].includes?(closer_codepoint)
+        case closer_char
+        when '*', '_'
           unless opener_found
             closer = closer.next
           else
@@ -361,18 +363,18 @@ module Markd::Lexer
               closer = tmp_stack
             end
           end
-        elsif closer_codepoint == Rule::CHAR_CODE_SINGLE_QUOTE
+        when '\''
           closer.not_nil!.node.text = "\u{2019}"
           opener.not_nil!.node.text = "\u{2018}" if opener_found
           closer = closer.next
-        elsif closer_codepoint == Rule::CHAR_CODE_DOUBLE_QUOTE
+        when '"'
           closer.not_nil!.node.text = "\u{201D}"
           opener.not_nil!.node.text = "\u{201C}" if opener_found
           closer = closer.next
         end
 
         if !opener_found && !odd_match
-          openers_bottom[closer_codepoint] = old_closer.previous
+          openers_bottom[closer_char] = old_closer.previous
           remove_delimiter(old_closer) if !old_closer.can_open
         end
       end
@@ -473,10 +475,10 @@ module Markd::Lexer
 
     def link_label
       text = match(Rule::LINK_LABEL)
-      if text.nil? || text.to_s.size > 1001 || text.to_s.match(/[^\\]\\\]$/)
-        0
+      if text && text.size <= 1001 && (!text.ends_with?("\\]") || text[-3]? == '\\')
+        text.size - 1
       else
-        text.to_s.size - 1
+        0
       end
     end
 
@@ -493,20 +495,20 @@ module Markd::Lexer
              else
                save_pos = @pos
                open_parens = 0
-               while (codepoint = char_code(@text, @pos)) != -1
-                 if codepoint == Rule::CHAR_CODE_BACKSLASH
+               while char = @text[@pos]?
+                 case char
+                 when '\\'
                    @pos += 1
-                   @pos += 1 if char_code(@text, @pos) != -1
-                 elsif codepoint == Rule::CHAR_CODE_OPEN_PAREN
+                   @pos += 1 if @text[@pos]?
+                 when '('
                    @pos += 1
                    open_parens += 1
-                 elsif codepoint == Rule::CHAR_CODE_CLOSE_PAREN
+                 when ')'
                    break if open_parens < 1
 
                    @pos += 1
                    open_parens -= 1
-                   # TODO: Replace with char comparison. .whitespace? doesn't work.
-                 elsif codepoint.unsafe_chr.to_s.match(Rule::WHITESPACE_CHAR)
+                 when .ascii_whitespace?
                    break
                  else
                    @pos += 1
@@ -519,17 +521,17 @@ module Markd::Lexer
       normalize_uri(decode_entities_string(dest))
     end
 
-    def handle_delim(codepoint : Int32, node : Node)
-      res = scan_delims(codepoint)
+    def handle_delim(char : Char, node : Node)
+      res = scan_delims(char)
       return false unless res
 
-      num_delims = res["num_delims"].as(Int32)
+      num_delims = res[:num_delims]
       start_pos = @pos
       @pos += num_delims
-      text = case codepoint
-             when Rule::CHAR_CODE_SINGLE_QUOTE
+      text = case char
+             when '\''
                "\u{2019}"
-             when Rule::CHAR_CODE_DOUBLE_QUOTE
+             when '"'
                "\u{201C}"
              else
                slice(@text, start_pos, @pos - 1)
@@ -538,24 +540,27 @@ module Markd::Lexer
       child = text(text)
       node.append_child(child)
 
-      @delimiters = Delimiter.new(codepoint, num_delims, num_delims, child, @delimiters, nil,
-        res["can_open"].as(Bool), res["can_close"].as(Bool))
+      delimiter = Delimiter.new(char, num_delims, num_delims, child, @delimiters, nil, res[:can_open], res[:can_close])
 
-      if @delimiters.not_nil!.previous
-        @delimiters.not_nil!.previous.not_nil!.next = @delimiters
+      if prev = delimiter.previous
+        prev.next = delimiter
       end
+
+      @delimiters = delimiter
 
       true
     end
 
     def remove_delimiter(delimiter : Delimiter)
-      delimiter.previous.not_nil!.next = delimiter.next if delimiter.previous
+      if prev = delimiter.previous
+        prev.next = delimiter.next
+      end
 
-      unless delimiter.next
+      if nxt = delimiter.next
+        nxt.previous = delimiter.previous
+      else
         # top of stack
         @delimiters = delimiter.previous
-      else
-        delimiter.next.not_nil!.previous = delimiter.previous
       end
     end
 
@@ -566,14 +571,14 @@ module Markd::Lexer
       end
     end
 
-    def scan_delims(codepoint : Int32)
+    def scan_delims(char : Char)
       num_delims = 0
       start_pos = @pos
-      if [Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE].includes?(codepoint)
+      if ['\'', '"'].includes?(char)
         num_delims += 1
         @pos += 1
       else
-        while char_code(@text, @pos) == codepoint
+        while @text[@pos]? == char
           num_delims += 1
           @pos += 1
         end
@@ -581,9 +586,8 @@ module Markd::Lexer
 
       return if num_delims == 0
 
-      codepoint_after = char_code(@text, @pos)
       char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
-      char_after = codepoint_after == -1 ? '\n' : codepoint_after.unsafe_chr
+      char_after = @text[@pos]? || '\n'
 
       # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
       after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
@@ -596,10 +600,11 @@ module Markd::Lexer
       right_flanking = !before_is_whitespace &&
                        (!before_is_punctuation || after_is_whitespace || after_is_punctuation)
 
-      if codepoint == Rule::CHAR_CODE_UNDERSCORE
+      case char
+      when '_'
         can_open = left_flanking && (!right_flanking || before_is_punctuation)
         can_close = right_flanking && (!left_flanking || after_is_punctuation)
-      elsif [Rule::CHAR_CODE_SINGLE_QUOTE, Rule::CHAR_CODE_DOUBLE_QUOTE].includes?(codepoint)
+      when '\'', '"'
         can_open = left_flanking && !right_flanking
         can_close = right_flanking
       else
@@ -610,9 +615,9 @@ module Markd::Lexer
       @pos = start_pos
 
       {
-        "num_delims" => num_delims,
-        "can_open"   => can_open,
-        "can_close"  => can_close,
+        num_delims: num_delims,
+        can_open: can_open,
+        can_close: can_close,
       }
     end
 
@@ -628,7 +633,7 @@ module Markd::Lexer
       raw_label = slice(@text, 0, match_chars)
 
       # colon
-      if char_code(@text, @pos) == Rule::CHAR_CODE_COLON
+      if @text[@pos]? == ':'
         @pos += 1
       else
         @pos = startpos
@@ -723,13 +728,9 @@ module Markd::Lexer
       end
     end
 
-    private def text(string : Char) : Node
-      text(string.to_s)
-    end
-
-    private def text(string : String) : Node
+    private def text(text) : Node
       node = Node.new(Node::Type::Text)
-      node.text = string
+      node.text = text.to_s
       node
     end
 
@@ -748,7 +749,7 @@ module Markd::Lexer
     end
 
     class Delimiter
-      property codepoint : Int32
+      property char : Char
       property num_delims : Int32
       property orig_delims : Int32
       property node : Node
@@ -757,7 +758,7 @@ module Markd::Lexer
       property can_open : Bool
       property can_close : Bool
 
-      def initialize(@codepoint, @num_delims, @orig_delims, @node,
+      def initialize(@char, @num_delims, @orig_delims, @node,
                      @previous, @next, @can_open, @can_close)
       end
     end

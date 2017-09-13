@@ -53,7 +53,7 @@ module Markd::Rule
         else
           # skip optional spaces of fence offset
           index = container.fence_offset
-          while index > 0 && space_or_tab?(char_code(parser, parser.offset))
+          while index > 0 && space_or_tab?(char_at(parser, parser.offset))
             parser.advance_offset(1, true)
             index -= 1
           end
