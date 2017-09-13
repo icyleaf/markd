@@ -1,5 +1,5 @@
 module Markd::Rule
-  class Document
+  struct Document
     include Rule
 
     def match(parser : Lexer, container : Node)

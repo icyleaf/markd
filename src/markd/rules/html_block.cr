@@ -1,5 +1,5 @@
 module Markd::Rule
-  class HTMLBlock
+  struct HTMLBlock
     include Rule
 
     def match(parser : Lexer, container : Node)

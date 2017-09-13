@@ -1,5 +1,5 @@
 module Markd::Rule
-  class CodeBlock
+  struct CodeBlock
     include Rule
 
     CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/

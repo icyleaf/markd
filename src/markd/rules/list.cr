@@ -1,5 +1,5 @@
 module Markd::Rule
-  class List
+  struct List
     include Rule
 
     BULLET_LIST_MARKER  = /^[*+-]/

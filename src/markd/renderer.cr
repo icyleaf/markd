@@ -29,10 +29,10 @@ module Markd
     def escape(text)
       # TODO: Replace with `HTML.escape` once crystal-lang/crystal#4555 is resolved
       text.gsub({
-        '&'  => "&amp;",
-        '"'  => "&quot;",
-        '<'  => "&lt;",
-        '>'  => "&gt;"
+        '&' => "&amp;",
+        '"' => "&quot;",
+        '<' => "&lt;",
+        '>' => "&gt;",
       })
     end
 

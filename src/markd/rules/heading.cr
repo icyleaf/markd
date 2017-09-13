@@ -1,5 +1,5 @@
 module Markd::Rule
-  class Heading
+  struct Heading
     include Rule
 
     ATX_HEADING_MARKER    = /^\#{1,6}(?:[ \t]+|$)/

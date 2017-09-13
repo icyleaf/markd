@@ -1,5 +1,5 @@
 module Markd::Rule
-  class ThematicBreak
+  struct ThematicBreak
     include Rule
 
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/

@@ -1,5 +1,5 @@
 module Markd::Rule
-  class BlockQuote
+  struct BlockQuote
     include Rule
 
     def match(parser : Lexer, container : Node)
