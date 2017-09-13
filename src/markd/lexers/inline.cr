@@ -279,10 +279,10 @@ module Markd::Lexer
 
     private def process_emphasis(delimiter : Delimiter?)
       openers_bottom = {
-        '_'   => delimiter,
-        '*'   => delimiter,
-        '\''  => delimiter,
-        '"'   => delimiter,
+        '_'  => delimiter,
+        '*'  => delimiter,
+        '\'' => delimiter,
+        '"'  => delimiter,
       } of Char => Delimiter?
 
       # find first closer above stack_bottom:
@@ -616,8 +616,8 @@ module Markd::Lexer
 
       {
         num_delims: num_delims,
-        can_open: can_open,
-        can_close: can_close,
+        can_open:   can_open,
+        can_close:  can_close,
       }
     end
 
