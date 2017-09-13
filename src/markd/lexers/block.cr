@@ -54,25 +54,44 @@ module Markd::Lexer
     end
 
     def parse(source : String)
-      start_time("preparing input") if @options.time
+      return parse_with_time(source) if @options.time
+
+      prepare_input(source)
+      parse_blocks
+      process_inlines
+
+      @document
+    end
+
+    def parse_with_time(source)
+      start_time("preparing input")
+      prepare_input(source)
+      end_time("preparing input")
+
+      start_time("block parsing")
+      parse_blocks
+      end_time("block parsing")
+
+      start_time("inline parsing")
+      process_inlines
+      end_time("inline parsing")
+
+      @document
+    end
+
+    private def prepare_input(source)
       @lines = source.each_line.to_a
       @line_size = @lines.size
       # ignore last blank line created by final newline
       @line_size -= 1 if source[-1] == '\n'
-      end_time("preparing input") if @options.time
+    end
 
-      start_time("block parsing") if @options.time
+    private def parse_blocks
       @lines.each { |line| process_line(line) }
+
       while tip = @tip
         token(tip, @line_size)
       end
-      end_time("block parsing") if @options.time
-
-      start_time("inline parsing") if @options.time
-      process_inlines
-      end_time("inline parsing") if @options.time
-
-      @document
     end
 
     private def process_line(line : String)
