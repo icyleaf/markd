@@ -315,20 +315,19 @@ module Markd::Lexer
           end
           opener = opener.previous?
         end
+        opener = nil unless opener_found
 
         old_closer = closer
 
         case closer_char
         when '*', '_'
-          unless opener_found
+          unless opener
             closer = closer.next?
           else
             # calculate actual number of delimiters used from closer
-            opener = opener.not_nil!
-            closer = closer.not_nil!
             use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
-            opener_inl = opener.node.not_nil!
-            closer_inl = closer.node.not_nil!
+            opener_inl = opener.node
+            closer_inl = closer.node
 
             # remove used delimiters from stack elts and inlines
             opener.num_delims -= use_delims
@@ -367,16 +366,20 @@ module Markd::Lexer
             end
           end
         when '\''
-          closer.not_nil!.node.text = "\u{2019}"
-          opener.not_nil!.node.text = "\u{2018}" if opener_found
+          closer.node.text = "\u{2019}"
+          if opener
+            opener.node.text = "\u{2018}"
+          end
           closer = closer.next?
         when '"'
-          closer.not_nil!.node.text = "\u{201D}"
-          opener.not_nil!.node.text = "\u{201C}" if opener_found
+          closer.node.text = "\u{201D}"
+          if opener
+            opener.node.text = "\u{201C}"
+          end
           closer = closer.next?
         end
 
-        if !opener_found && !odd_match
+        if !opener && !odd_match
           openers_bottom[closer_char] = old_closer.previous?
           remove_delimiter(old_closer) if !old_closer.can_open
         end
