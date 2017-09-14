@@ -32,7 +32,7 @@ module Markd::Rule
       container.text = container.text.gsub(/(\n *)+$/, "")
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

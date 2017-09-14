@@ -6,12 +6,12 @@ module Markd::Rule
     ORDERED_LIST_MARKERS = {'.', ')'}
 
     def match(parser : Lexer, container : Node)
-      if (!parser.indented || container.type == Node::Type::List) &&
-         (data = parse_list_marker(parser, container))
-        return MatchValue::None if data.nil? || data.empty?
+      if (!parser.indented || container.type == Node::Type::List)
+        data = parse_list_marker(parser, container)
+        return MatchValue::None unless data && !data.empty?
 
         parser.close_unmatched_blocks
-        if parser.tip.not_nil!.type != Node::Type::List || !list_match?(container.data, data.not_nil!)
+        if !parser.tip.type.list? || !list_match?(container.data, data)
           list_node = parser.add_child(Node::Type::List, parser.next_nonspace)
           list_node.data = data
         end
@@ -51,8 +51,8 @@ module Markd::Rule
       end
     end
 
-    def can_contain(t)
-      t == Node::Type::Item
+    def can_contain?(type)
+      type.item?
     end
 
     def accepts_lines?

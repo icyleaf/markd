@@ -6,6 +6,7 @@ module Markd::Lexer
     include Utils
 
     property refmap
+    private getter! brackets
 
     @delimiters : Delimiter?
 
@@ -153,12 +154,12 @@ module Markd::Lexer
     end
 
     private def add_bracket(node : Node, index : Int32, image = false)
-      @brackets.not_nil!.bracket_after = true if @brackets
+      brackets.bracket_after = true if brackets?
       @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
     end
 
     private def remove_bracket
-      @brackets = @brackets.not_nil!.previous
+      @brackets = brackets.previous?
     end
 
     private def open_bracket(node : Node)
@@ -265,7 +266,7 @@ module Markd::Lexer
           opener = @brackets
           while opener
             opener.active = false unless opener.image
-            opener = opener.previous
+            opener = opener.previous?
           end
         end
       else
@@ -287,8 +288,10 @@ module Markd::Lexer
 
       # find first closer above stack_bottom:
       closer = @delimiters
-      while closer && closer.previous != delimiter
-        closer = closer.previous
+      while closer
+        previous = closer.previous?
+        break if previous == delimiter
+        closer = previous
       end
 
       # move forward, looking for closers, and handling each
@@ -296,12 +299,12 @@ module Markd::Lexer
         closer_char = closer.char
 
         unless closer.can_close
-          closer = closer.next
+          closer = closer.next?
           next
         end
 
         # found emphasis closer. now look back for first matching opener:
-        opener = closer.previous
+        opener = closer.previous?
         opener_found = false
         while opener && opener != delimiter && opener != openers_bottom[closer_char]
           odd_match = (closer.can_open || opener.can_close) &&
@@ -310,7 +313,7 @@ module Markd::Lexer
             opener_found = true
             break
           end
-          opener = opener.previous
+          opener = opener.previous?
         end
 
         old_closer = closer
@@ -318,7 +321,7 @@ module Markd::Lexer
         case closer_char
         when '*', '_'
           unless opener_found
-            closer = closer.next
+            closer = closer.next?
           else
             # calculate actual number of delimiters used from closer
             opener = opener.not_nil!
@@ -358,7 +361,7 @@ module Markd::Lexer
 
             if closer.num_delims == 0
               closer_inl.unlink
-              tmp_stack = closer.next
+              tmp_stack = closer.next?
               remove_delimiter(closer)
               closer = tmp_stack
             end
@@ -366,15 +369,15 @@ module Markd::Lexer
         when '\''
           closer.not_nil!.node.text = "\u{2019}"
           opener.not_nil!.node.text = "\u{2018}" if opener_found
-          closer = closer.next
+          closer = closer.next?
         when '"'
           closer.not_nil!.node.text = "\u{201D}"
           opener.not_nil!.node.text = "\u{201C}" if opener_found
-          closer = closer.next
+          closer = closer.next?
         end
 
         if !opener_found && !odd_match
-          openers_bottom[closer_char] = old_closer.previous
+          openers_bottom[closer_char] = old_closer.previous?
           remove_delimiter(old_closer) if !old_closer.can_open
         end
       end
@@ -542,7 +545,7 @@ module Markd::Lexer
 
       delimiter = Delimiter.new(char, num_delims, num_delims, child, @delimiters, nil, res[:can_open], res[:can_close])
 
-      if prev = delimiter.previous
+      if prev = delimiter.previous?
         prev.next = delimiter
       end
 
@@ -552,20 +555,20 @@ module Markd::Lexer
     end
 
     private def remove_delimiter(delimiter : Delimiter)
-      if prev = delimiter.previous
-        prev.next = delimiter.next
+      if prev = delimiter.previous?
+        prev.next = delimiter.next?
       end
 
-      if nxt = delimiter.next
-        nxt.previous = delimiter.previous
+      if nxt = delimiter.next?
+        nxt.previous = delimiter.previous?
       else
         # top of stack
-        @delimiters = delimiter.previous
+        @delimiters = delimiter.previous?
       end
     end
 
     private def remove_delimiter_between(bottom : Delimiter, top : Delimiter)
-      if bottom.next != top
+      if bottom.next? != top
         bottom.next = top
         top.previous = bottom
       end
@@ -736,7 +739,7 @@ module Markd::Lexer
 
     class Bracket
       property node : Node
-      property previous : Bracket?
+      property! previous : Bracket?
       property previous_delimiter : Delimiter?
       property index : Int32
       property image : Bool
@@ -753,8 +756,8 @@ module Markd::Lexer
       property num_delims : Int32
       property orig_delims : Int32
       property node : Node
-      property previous : Delimiter?
-      property next : Delimiter?
+      property! previous : Delimiter?
+      property! next : Delimiter?
       property can_open : Bool
       property can_close : Bool
 

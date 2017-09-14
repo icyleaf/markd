@@ -22,7 +22,7 @@ module Markd::Rule
       container.unlink if has_reference_defs && container.text.each_char.all? &.ascii_whitespace?
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

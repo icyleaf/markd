@@ -90,7 +90,7 @@ module Markd::Rule
       end
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

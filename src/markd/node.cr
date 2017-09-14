@@ -34,13 +34,19 @@ module Markd
     property data : Hash(String, DataValue)
 
     property parent : Node?
+    def parent?
+      @parent
+    end
+    def parent!
+      @parent.not_nil!
+    end
     property first_child : Node?
     property last_child : Node?
     property prev : Node?
     property next : Node?
 
     property source_pos : Array(Array(Int32))
-    property open
+    property? open
     property last_line_blank : Bool
 
     property fenced : Bool
@@ -164,8 +170,8 @@ module Markd
         end
 
         return {
-          "entering" => entering,
-          "node"     => current,
+          entering: entering,
+          node: current,
         }
       end
 

@@ -24,7 +24,7 @@ module Markd::Rule
       # do nothing
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

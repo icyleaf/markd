@@ -14,7 +14,7 @@ module Markd::Rule
       # do nothing
     end
 
-    def can_contain(type : Node::Type) : Bool
+    def can_contain?(type : Node::Type) : Bool
       type != Node::Type::Item
     end
 

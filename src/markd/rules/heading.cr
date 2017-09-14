@@ -52,7 +52,7 @@ module Markd::Rule
       ContinueStatus::Stop
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

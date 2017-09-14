@@ -30,7 +30,7 @@ module Markd::Rule
       # do nothing
     end
 
-    def can_contain(type : Node::Type)
+    def can_contain?(type : Node::Type)
       type != Node::Type::Item
     end
 
