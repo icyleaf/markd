@@ -1,5 +1,5 @@
 module Markd::Rule
-  class Document
+  struct Document
     include Rule
 
     def match(parser : Lexer, container : Node)
@@ -7,7 +7,7 @@ module Markd::Rule
     end
 
     def continue(parser : Lexer, container : Node)
-      0
+      ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)

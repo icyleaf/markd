@@ -1,5 +1,5 @@
 module Markd::Rule
-  class BlockQuote
+  struct BlockQuote
     include Rule
 
     def match(parser : Lexer, container : Node)
@@ -17,11 +17,10 @@ module Markd::Rule
     def continue(parser : Lexer, container : Node)
       if match?(parser)
         seek(parser)
+        ContinueStatus::Continue
       else
-        return 1
+        ContinueStatus::Stop
       end
-
-      0
     end
 
     def token(parser : Lexer, container : Node)
@@ -37,14 +36,14 @@ module Markd::Rule
     end
 
     private def match?(parser)
-      !parser.indented && char_code(parser) == Rule::CHAR_CODE_GREATERTHAN
+      !parser.indented && char_at(parser) == '>'
     end
 
     private def seek(parser : Lexer)
       parser.advance_next_nonspace
       parser.advance_offset(1, false)
 
-      if space_or_tab?(char_code(parser, parser.offset))
+      if space_or_tab?(char_at(parser, parser.offset))
         parser.advance_offset(1, true)
       end
     end

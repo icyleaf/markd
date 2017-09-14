@@ -1,5 +1,5 @@
 module Markd::Rule
-  class Item
+  struct Item
     include Rule
 
     def match(parser : Lexer, container : Node)
@@ -15,15 +15,15 @@ module Markd::Rule
           parser.advance_next_nonspace
         else
           # Blank line after empty list item
-          return 1
+          return ContinueStatus::Stop
         end
       elsif parser.indent >= indent_offset
         parser.advance_offset(indent_offset, true)
       else
-        return 1
+        return ContinueStatus::Stop
       end
 
-      0
+      ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)

@@ -3,15 +3,11 @@ module Markd::Lexer
     include Lexer
     include Utils
 
-    def self.parse(source : String)
-      new(Options.new).parse(source)
-    end
-
-    def self.parse(source : String, options : Options)
+    def self.parse(source : String, options = Options.new)
       new(options).parse(source)
     end
 
-    @rules = {
+    RULES = {
       Node::Type::Document      => Rule::Document.new,
       Node::Type::BlockQuote    => Rule::BlockQuote.new,
       Node::Type::Heading       => Rule::Heading.new,
@@ -58,28 +54,47 @@ module Markd::Lexer
     end
 
     def parse(source : String)
-      start_time("preparing input") if @options.time
-      @lines = source.split(Rule::LINE_ENDING)
-      @line_size = @lines.size
-      # ignore last blank line created by final newline
-      @line_size -= 1 if source.byte_at(-1) == Rule::CHAR_CODE_NEWLINE
-      end_time("preparing input") if @options.time
+      return parse_with_time(source) if @options.time
 
-      start_time("block parsing") if @options.time
-      @lines.each { |line| process_line(line) }
-      while tip = @tip
-        token(tip, @line_size)
-      end
-      end_time("block parsing") if @options.time
-
-      start_time("inline parsing") if @options.time
+      prepare_input(source)
+      parse_blocks
       process_inlines
-      end_time("inline parsing") if @options.time
 
       @document
     end
 
-    def process_line(line : String)
+    def parse_with_time(source)
+      start_time("preparing input")
+      prepare_input(source)
+      end_time("preparing input")
+
+      start_time("block parsing")
+      parse_blocks
+      end_time("block parsing")
+
+      start_time("inline parsing")
+      process_inlines
+      end_time("inline parsing")
+
+      @document
+    end
+
+    private def prepare_input(source)
+      @lines = source.each_line.to_a
+      @line_size = @lines.size
+      # ignore last blank line created by final newline
+      @line_size -= 1 if source[-1] == '\n'
+    end
+
+    private def parse_blocks
+      @lines.each { |line| process_line(line) }
+
+      while tip = @tip
+        token(tip, @line_size)
+      end
+    end
+
+    private def process_line(line : String)
       all_matched = true
       container = @document
       @oldtip = @tip
@@ -87,7 +102,7 @@ module Markd::Lexer
       @blank = @partially_consumed_tab = false
       @current_line += 1
 
-      line = line.gsub(/\0/, "\u{FFFD}") if line.includes?("\u{0000}")
+      line = line.gsub(Char::ZERO, '\u{FFFD}')
       @line = line
 
       while (last_child = container.last_child) && last_child.open
@@ -95,18 +110,16 @@ module Markd::Lexer
 
         find_next_nonspace
 
-        case @rules[container.type].continue(self, container)
-        when 0
+        case RULES[container.type].continue(self, container)
+        when Rule::ContinueStatus::Continue
           # we've matched, keep going
-        when 1
+        when Rule::ContinueStatus::Stop
           # we've failed to match a block
           all_matched = false
-        when 2
+        when Rule::ContinueStatus::Return
           # we've hit end of line for fenced code close and can return
           @last_line_length = line.size
           return
-        else
-          raise Exception.new("continue returned illegal value, must be 0, 1, or 2")
         end
 
         unless all_matched
@@ -119,21 +132,24 @@ module Markd::Lexer
       @all_closed = (container == @oldtip)
       @last_matched_container = container.not_nil!
 
-      matched_leaf = container.type != Node::Type::Paragraph && @rules[container.type].accepts_lines?
+      matched_leaf = container.type != Node::Type::Paragraph && RULES[container.type].accepts_lines?
 
-      rules_size = @rules.size
+      rules_size = RULES.size
       while !matched_leaf
         find_next_nonspace
 
         # this is a little performance optimization
-        if !@indented && !slice(@line, @next_nonspace).match(Rule::MAYBE_SPECIAL)
-          advance_next_nonspace
-          break
+        unless @indented
+          first_char = slice(@line, @next_nonspace)[0]?
+          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number?)
+            advance_next_nonspace
+            break
+          end
         end
 
         rule_index = 0
         while rule_index < rules_size
-          case @rules.values[rule_index].match(self, container.not_nil!)
+          case RULES.values[rule_index].match(self, container.not_nil!)
           when Rule::MatchValue::Container
             container = @tip.not_nil!
             break
@@ -172,11 +188,11 @@ module Markd::Lexer
 
         cont = container
         while cont
-          cont.not_nil!.last_line_blank = last_line_blank
+          cont.last_line_blank = last_line_blank
           cont = cont.parent
         end
 
-        if @rules[container_type].accepts_lines?
+        if RULES[container_type].accepts_lines?
           add_line
 
           # if HtmlBlock, check for end condition
@@ -196,7 +212,7 @@ module Markd::Lexer
       nil
     end
 
-    def process_inlines
+    private def process_inlines
       walker = @document.walker
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
@@ -213,14 +229,14 @@ module Markd::Lexer
       above = container.parent
       container.open = false
       container.source_pos[1] = [line_number, @last_line_length]
-      @rules[container.type].token(self, container)
+      RULES[container.type].token(self, container)
 
       @tip = above
 
       nil
     end
 
-    def add_line
+    private def add_line
       if @partially_consumed_tab
         @offset += 1 # skip over tab
         # add space characters
@@ -234,7 +250,7 @@ module Markd::Lexer
     end
 
     def add_child(type : Node::Type, offset : Int32) : Node
-      while !@rules[@tip.not_nil!.type].can_contain(type)
+      while !RULES[@tip.not_nil!.type].can_contain(type)
         token(@tip.not_nil!, @current_line - 1)
       end
 
@@ -262,19 +278,19 @@ module Markd::Lexer
       nil
     end
 
-    def find_next_nonspace
+    private def find_next_nonspace
       offset = @offset
       column = @column
 
       if @line.empty?
         @blank = true
       else
-        while char = char_code(@line, offset)
+        while char = @line[offset]?
           case char
-          when Rule::CHAR_CODE_SPACE
+          when ' '
             offset += 1
             column += 1
-          when Rule::CHAR_CODE_TAB
+          when '\t'
             offset += 1
             column += (4 - (column % 4))
           else
@@ -282,9 +298,7 @@ module Markd::Lexer
           end
         end
 
-        @blank = [Rule::CHAR_CODE_NONE,
-                  Rule::CHAR_CODE_NEWLINE,
-                  Rule::CHAR_CODE_CARRIAGE].includes?(char)
+        @blank = {nil, '\n', '\r'}.includes?(char)
       end
 
       @next_nonspace = offset
@@ -297,8 +311,8 @@ module Markd::Lexer
 
     def advance_offset(count, columns = false)
       line = @line
-      while count > 0 && (char = char_code(line, @offset))
-        if char == Rule::CHAR_CODE_TAB
+      while count > 0 && (char = line[@offset]?)
+        if char == '\t'
           chars_to_tab = Rule::CODE_INDENT - (@column % 4)
           if columns
             @partially_consumed_tab = chars_to_tab > count

@@ -1,5 +1,5 @@
 module Markd::Rule
-  class Paragraph
+  struct Paragraph
     include Rule
 
     def match(parser : Lexer, container : Node)
@@ -7,19 +7,19 @@ module Markd::Rule
     end
 
     def continue(parser : Lexer, container : Node)
-      parser.blank ? 1 : 0
+      parser.blank ? ContinueStatus::Stop : ContinueStatus::Continue
     end
 
     def token(parser : Lexer, container : Node)
       has_reference_defs = false
 
-      while char_code(container.text, 0) == Rule::CHAR_CODE_OPEN_BRACKET &&
+      while container.text[0]? == '[' &&
             (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
         container.text = slice(container.text, pos)
         has_reference_defs = true
       end
 
-      container.unlink if has_reference_defs && !container.text.match(Rule::NONSPACE)
+      container.unlink if has_reference_defs && container.text.each_char.all? &.ascii_whitespace?
     end
 
     def can_contain(t)
