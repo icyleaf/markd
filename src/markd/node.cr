@@ -23,7 +23,26 @@ module Markd
 
       CustomInLine
       CustomBlock
+
+      def container?
+        CONTAINER_TYPES.includes?(self)
+      end
     end
+
+    CONTAINER_TYPES = {
+      Type::Document,
+      Type::Paragraph,
+      Type::Strong,
+      Type::Emphasis,
+      Type::Link,
+      Type::Image,
+      Type::Heading,
+      Type::List,
+      Type::Item,
+      Type::BlockQuote,
+      Type::CustomInLine,
+      Type::CustomBlock
+    }
 
     alias DataValue = String | Int32 | Bool
     alias DataType = Hash(String, DataValue)
@@ -143,7 +162,7 @@ module Markd
 
         entering = @entering
 
-        if entering && container?(current.type)
+        if entering && current.type.container?
           if first_child = current.first_child?
             @current = first_child
             @entering = true
@@ -169,15 +188,6 @@ module Markd
       def resume_at(node : Node, entering : Bool)
         @current = node
         @entering = entering
-      end
-
-      private def container?(type)
-        [Node::Type::Document, Node::Type::BlockQuote,
-         Node::Type::List, Node::Type::Item,
-         Node::Type::Paragraph, Node::Type::Heading,
-         Node::Type::Strong, Node::Type::Emphasis,
-         Node::Type::Link, Node::Type::Image,
-         Node::Type::CustomInLine, Node::Type::CustomBlock].includes?(type)
       end
     end
   end
