@@ -41,7 +41,7 @@ module Markd
       Type::Item,
       Type::BlockQuote,
       Type::CustomInLine,
-      Type::CustomBlock
+      Type::CustomBlock,
     }
 
     alias DataValue = String | Int32 | Bool
@@ -181,7 +181,7 @@ module Markd
 
         {
           entering: entering,
-          node: current,
+          node:     current,
         }
       end
 

@@ -5,7 +5,7 @@ module Markd::Rule
     CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
-    def match(parser : Lexer, container : Node) : MatchValue
+    def match(parser : Parser, container : Node) : MatchValue
       if !parser.indented &&
          (match = slice(parser).match(CODE_FENCE))
         # fenced
@@ -36,7 +36,7 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       line = parser.line
       indent = parser.indent
       if container.fenced?
@@ -71,7 +71,7 @@ module Markd::Rule
       ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       if container.fenced?
         # fenced
         content = container.text

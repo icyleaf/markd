@@ -1,8 +1,8 @@
 require "html"
 
-module Markd::Lexer
+module Markd::Parser
   class Inline
-    include Lexer
+    include Parser
     include Utils
 
     property refmap
@@ -386,8 +386,8 @@ module Markd::Lexer
       end
 
       # remove all delimiters
-      while @delimiters && @delimiters != delimiter
-        remove_delimiter(@delimiters.not_nil!)
+      while (curr_delimiter = @delimiters) && curr_delimiter != delimiter
+        remove_delimiter(curr_delimiter)
       end
     end
 
@@ -415,7 +415,7 @@ module Markd::Lexer
     end
 
     private def entity(node : Node)
-      if @text[@pos] == '&'
+      if @text[@pos]? == '&'
         pos = @pos + 1
         loop do
           char = @text[pos]?

@@ -5,7 +5,7 @@ module Markd::Rule
     ATX_HEADING_MARKER    = /^\#{1,6}(?:[ \t]+|$)/
     SETEXT_HEADING_MARKER = /^(?:=+|-+)[ \t]*$/
 
-    def match(parser : Lexer, container : Node) : MatchValue
+    def match(parser : Parser, container : Node) : MatchValue
       if match = match?(parser, ATX_HEADING_MARKER)
         # ATX Heading matched
         parser.advance_next_nonspace
@@ -43,11 +43,11 @@ module Markd::Rule
       end
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       # do nothing
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       # a heading can never container > 1 line, so fail to match
       ContinueStatus::Stop
     end
@@ -60,7 +60,7 @@ module Markd::Rule
       false
     end
 
-    private def match?(parser : Lexer, regex : Regex) : Regex::MatchData?
+    private def match?(parser : Parser, regex : Regex) : Regex::MatchData?
       match = slice(parser).match(regex)
       !parser.indented && match ? match : nil
     end

@@ -2,7 +2,7 @@ module Markd::Rule
   struct HTMLBlock
     include Rule
 
-    def match(parser : Lexer, container : Node)
+    def match(parser : Parser, container : Node)
       if !parser.indented && char_at(parser) == '<'
         text = slice(parser)
         block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
@@ -24,11 +24,11 @@ module Markd::Rule
       MatchValue::None
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       (parser.blank && [5, 6].includes?(container.data["html_block_type"])) ? ContinueStatus::Stop : ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       container.text = container.text.gsub(/(\n *)+$/, "")
     end
 

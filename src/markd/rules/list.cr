@@ -5,7 +5,7 @@ module Markd::Rule
     BULLET_LIST_MARKERS  = {'*', '+', '-'}
     ORDERED_LIST_MARKERS = {'.', ')'}
 
-    def match(parser : Lexer, container : Node)
+    def match(parser : Parser, container : Node)
       if (!parser.indented || container.type.list?)
         data = parse_list_marker(parser, container)
         return MatchValue::None unless data && !data.empty?
@@ -25,11 +25,11 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       item = container.first_child?
       while item
         if ends_with_blankline?(item) && item.next?
@@ -65,7 +65,7 @@ module Markd::Rule
         list_data["bullet_char"] == item_data["bullet_char"]
     end
 
-    private def parse_list_marker(parser : Lexer, container : Node) : Node::DataType
+    private def parse_list_marker(parser : Parser, container : Node) : Node::DataType
       line = slice(parser)
 
       empty_data = {} of String => Node::DataValue

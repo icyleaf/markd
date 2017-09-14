@@ -2,15 +2,15 @@ module Markd::Rule
   struct Document
     include Rule
 
-    def match(parser : Lexer, container : Node)
+    def match(parser : Parser, container : Node)
       MatchValue::None
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       # do nothing
     end
 

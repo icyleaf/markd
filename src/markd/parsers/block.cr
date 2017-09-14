@@ -1,6 +1,6 @@
-module Markd::Lexer
+module Markd::Parser
   class Block
-    include Lexer
+    include Parser
     include Utils
 
     def self.parse(source : String, options = Options.new)
@@ -26,7 +26,7 @@ module Markd::Lexer
       indent, indented, next_nonspace, refmap
 
     def initialize(@options : Options)
-      @inline_lexer = Lexer::Inline.new(@options)
+      @inline_lexer = Inline.new(@options)
 
       @document = Node.new(Node::Type::Document)
       @tip = @document

@@ -4,7 +4,7 @@ module Markd::Rule
 
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
 
-    def match(parser : Lexer, container : Node)
+    def match(parser : Parser, container : Node)
       if !parser.indented && slice(parser).match(THEMATIC_BREAK)
         parser.close_unmatched_blocks
         parser.add_child(Node::Type::ThematicBreak, parser.next_nonspace)
@@ -15,12 +15,12 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       # a thematic break can never container > 1 line, so fail to match:
       ContinueStatus::Stop
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       # do nothing
     end
 
