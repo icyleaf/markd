@@ -69,9 +69,9 @@ module Markd::Lexer
 
     private def newline(node : Node)
       @pos += 1 # assume we're at a \n
-      last_child = node.last_child
+      last_child = node.last_child?
       # check previous node for trailing spaces
-      if last_child && last_child.type == Node::Type::Text &&
+      if last_child && last_child.type.text? &&
          char(last_child.text, -1) == ' '
         hard_break = if last_child.text.size == 1
                        false # Must be space
@@ -249,9 +249,9 @@ module Markd::Lexer
         child.data["destination"] = dest
         child.data["title"] = title || ""
 
-        tmp = opener.node.next
+        tmp = opener.node.next?
         while tmp
-          next_node = tmp.next
+          next_node = tmp.next?
           tmp.unlink
           child.append_child(tmp)
           tmp = next_node
@@ -339,9 +339,9 @@ module Markd::Lexer
             # build contents for new emph element
             emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
 
-            tmp = opener_inl.next
+            tmp = opener_inl.next?
             while tmp && tmp != closer_inl
-              next_node = tmp.next
+              next_node = tmp.next?
               tmp.unlink
               emph.append_child(tmp)
               tmp = next_node

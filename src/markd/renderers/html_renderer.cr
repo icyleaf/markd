@@ -176,7 +176,7 @@ module Markd
     end
 
     private def toc(node : Node)
-      return if node.type != Node::Type::Heading
+      return unless node.type.heading?
 
       title = URI.escape(node.text)
 

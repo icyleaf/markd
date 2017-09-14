@@ -33,29 +33,23 @@ module Markd
 
     property data : Hash(String, DataValue)
 
-    property parent : Node?
-    def parent?
-      @parent
-    end
-    def parent!
-      @parent.not_nil!
-    end
-    property first_child : Node?
-    property last_child : Node?
-    property prev : Node?
-    property next : Node?
+    property! parent : Node?
+    property! first_child : Node?
+    property! last_child : Node?
+    property! prev : Node?
+    property! next : Node?
 
     property source_pos : Array(Array(Int32))
     property? open
-    property last_line_blank : Bool
+    property? last_line_blank : Bool
 
-    property fenced : Bool
+    property? fenced : Bool
     property fence_language : String
     property fence_char : String
     property fence_length : Int32
     property fence_offset : Int32
 
-    def initialize(@type, **options)
+    def initialize(@type)
       @data = {} of String => DataValue
       @source_pos = [[1, 1], [0, 0]]
       @text = ""
@@ -74,9 +68,9 @@ module Markd
       child.unlink
       child.parent = self
 
-      if @last_child
-        @last_child.not_nil!.next = child
-        child.prev = @last_child.not_nil!
+      if last = last_child?
+        last.next = child
+        child.prev = last
         @last_child = child
       else
         @first_child = child
@@ -86,39 +80,35 @@ module Markd
 
     def insert_after(sibling : Node)
       sibling.unlink
-      sibling.next = @next
-      if sibling.next
-        sibling.next.not_nil!.prev = sibling
+
+      if nxt = next?
+        nxt.prev = sibling
+      elsif parent = parent?
+        parent.last_child = sibling
       end
+      sibling.next = nxt
 
       sibling.prev = self
       @next = sibling
-      sibling.parent = @parent
-      unless sibling.next
-        sibling.parent.not_nil!.last_child = sibling
-      end
+      sibling.parent = parent?
     end
 
     def unlink
-      if @prev
-        @prev.not_nil!.next = @next
-      elsif @parent
-        @parent.not_nil!.first_child = @next
+      if prev = prev?
+        prev.next = next?
+      elsif parent = parent?
+        parent.first_child = next?
       end
 
-      if @next
-        @next.not_nil!.prev = @prev
-      elsif @parent
-        @parent.not_nil!.last_child = @prev
+      if nxt = next?
+        nxt.prev = prev?
+      elsif parent = parent?
+        parent.last_child = prev?
       end
 
       @parent = nil
       @next = nil
       @prev = nil
-    end
-
-    def fenced?
-      @fenced == true
     end
 
     def walker
@@ -141,35 +131,36 @@ module Markd
       property root : Node
       property entering : Bool
 
-      def initialize(@current : Node)
-        @root = @current.not_nil!
+      def initialize(current : Node)
+        @current = current
+        @root = current
         @entering = true
       end
 
       def next
-        return unless @current
+        current = @current
+        return unless current
 
-        current = @current.not_nil!
         entering = @entering
 
         if entering && container?(current.type)
-          if current.first_child
-            @current = current.first_child.not_nil!
+          if first_child = current.first_child?
+            @current = first_child
             @entering = true
           else
             @entering = false
           end
         elsif current == @root
           @current = nil
-        elsif !current.next
-          @current = current.parent
-          @entering = false
-        else
-          @current = current.next
+        elsif nxt = current.next?
+          @current = current.next?
           @entering = true
+        else
+          @current = current.parent?
+          @entering = false
         end
 
-        return {
+        {
           entering: entering,
           node: current,
         }

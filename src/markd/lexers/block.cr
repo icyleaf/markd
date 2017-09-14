@@ -106,7 +106,7 @@ module Markd::Lexer
       line = line.gsub(Char::ZERO, '\u{FFFD}')
       @line = line
 
-      while (last_child = container.last_child) && last_child.open?
+      while (last_child = container.last_child?) && last_child.open?
         container = last_child
 
         find_next_nonspace
@@ -117,7 +117,7 @@ module Markd::Lexer
         when Rule::ContinueStatus::Stop
           # we've failed to match a block
           # back up to last matching block
-          container = container.parent!
+          container = container.parent
           break
         when Rule::ContinueStatus::Return
           # we've hit end of line for fenced code close and can return
@@ -168,7 +168,7 @@ module Markd::Lexer
       else
         # not a lazy continuation
         close_unmatched_blocks
-        if @blank && (last_child = container.last_child)
+        if @blank && (last_child = container.last_child?)
           last_child.last_line_blank = true
         end
 
@@ -176,7 +176,7 @@ module Markd::Lexer
         last_line_blank = @blank &&
                           !(container_type.block_quote? ||
                             (container_type.code_block? && container.fenced?) ||
-                            (container_type.item? && !container.first_child && container.source_pos[0][0] == @current_line))
+                            (container_type.item? && !container.first_child? && container.source_pos[0][0] == @current_line))
 
         cont = container
         while cont
@@ -261,7 +261,7 @@ module Markd::Lexer
     def close_unmatched_blocks
       unless @all_closed
         while (oldtip = @oldtip) && oldtip != @last_matched_container
-          parent = oldtip.parent
+          parent = oldtip.parent?
           token(oldtip, @current_line - 1)
           @oldtip = parent
         end

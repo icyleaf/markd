@@ -28,7 +28,7 @@ module Markd::Rule
     end
 
     def can_contain?(type : Node::Type) : Bool
-      type != Node::Type::Item
+      !type.item?
     end
 
     def accepts_lines?

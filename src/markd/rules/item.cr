@@ -11,7 +11,7 @@ module Markd::Rule
       indent_offset = container.data["marker_offset"].as(Int32) + container.data["padding"].as(Int32)
 
       if parser.blank
-        if container.first_child
+        if container.first_child?
           parser.advance_next_nonspace
         else
           # Blank line after empty list item
@@ -31,7 +31,7 @@ module Markd::Rule
     end
 
     def can_contain?(type : Node::Type)
-      type != Node::Type::Item
+      !type.item?
     end
 
     def accepts_lines?

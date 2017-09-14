@@ -6,7 +6,7 @@ module Markd::Rule
     ORDERED_LIST_MARKERS = {'.', ')'}
 
     def match(parser : Lexer, container : Node)
-      if (!parser.indented || container.type == Node::Type::List)
+      if (!parser.indented || container.type.list?)
         data = parse_list_marker(parser, container)
         return MatchValue::None unless data && !data.empty?
 
@@ -30,24 +30,24 @@ module Markd::Rule
     end
 
     def token(parser : Lexer, container : Node)
-      item = container.first_child
+      item = container.first_child?
       while item
-        if ends_with_blankline?(item) && item.next
+        if ends_with_blankline?(item) && item.next?
           container.data["tight"] = false
           break
         end
 
-        subitem = item.first_child
+        subitem = item.first_child?
         while subitem
-          if ends_with_blankline?(subitem) && (item.next || subitem.next)
+          if ends_with_blankline?(subitem) && (item.next? || subitem.next?)
             container.data["tight"] = false
             break
           end
 
-          subitem = subitem.next
+          subitem = subitem.next?
         end
 
-        item = item.next
+        item = item.next?
       end
     end
 
@@ -88,7 +88,7 @@ module Markd::Rule
         end
         number = pos >= 1 ? line[0..pos - 1].to_i : -1
         if pos >= 1 && pos <= 9 && ORDERED_LIST_MARKERS.includes?(line[pos]?) &&
-           (container.type != Node::Type::Paragraph || number == 1)
+           (!container.type.paragraph? || number == 1)
           data["type"] = "ordered"
           data["start"] = number
           data["delimiter"] = line[pos].to_s
@@ -103,7 +103,7 @@ module Markd::Rule
         return empty_data
       end
 
-      if container.type == Node::Type::Paragraph &&
+      if container.type.paragraph? &&
          slice(parser, parser.next_nonspace + first_match_size).each_char.all? &.ascii_whitespace?
         return empty_data
       end
@@ -137,10 +137,10 @@ module Markd::Rule
 
     private def ends_with_blankline?(container : Node) : Bool
       while container
-        return true if container.last_line_blank
+        return true if container.last_line_blank?
 
         break unless [Node::Type::List, Node::Type::Item].includes?(container.type)
-        container = container.last_child
+        container = container.last_child?
       end
 
       false
