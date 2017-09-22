@@ -1,6 +1,6 @@
 # markd
 
-![Version](https://img.shields.io/badge/version-1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
 [![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
@@ -85,9 +85,9 @@ Recently, i'm working to compare the other popular commonmark parser, the code i
 
 ## Milestore
 
-- v1.0
+- v0.1.0
   - 100% Compliant to commonmark
-- v1.1
+- v0.2.0
   - GFM support
 
 ## Contributing
