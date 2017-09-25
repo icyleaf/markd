@@ -4,7 +4,7 @@
 [![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![devDependency Status](https://shards.rocks/badge/github/icyleaf/markd/dev_status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
-[![License](https://github.com/icyleaf/markd/blob/master/LICENSE)](https://github.com/icyleaf/markd/blob/master/LICENSE)
+[![License](https://img.shields.io/github/license/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
 
 Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification. Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
