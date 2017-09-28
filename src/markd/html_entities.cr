@@ -17,7 +17,7 @@ module Markd::HTMLEntities
 
   module Decoder
     def self.decode(source)
-      source.gsub(regex) do |chars|
+      source.gsub(REGEX) do |chars|
         decode_entity(chars[1..-2])
       end
     end
@@ -53,7 +53,7 @@ module Markd::HTMLEntities
       codepoint.unsafe_chr
     end
 
-    private def self.regex
+    REGEX = begin
       legacy_keys = HTMLEntities::LEGACY_MAPPINGS.keys.sort
       keys = HTMLEntities::ENTITIES_MAPPINGS.keys.sort
 
@@ -71,10 +71,10 @@ module Markd::HTMLEntities
   end
 
   module Encoder
-    @@regex = /^/
+    ENTITIES_REGEX = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
 
     def self.encode(source : String)
-      source.gsub(entities_regex) { |chars| encode_entities(chars) }
+      source.gsub(ENTITIES_REGEX) { |chars| encode_entities(chars) }
             .gsub(Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")) { |chars| encode_astral(chars) }
             .gsub(/[^\x{20}-\x{7E}]/) { |chars| encode_extend(chars) }
     end
@@ -94,12 +94,6 @@ module Markd::HTMLEntities
 
     private def self.encode_extend(char : String)
       "&#x#{char[0].ord.to_s(16).upcase};"
-    end
-
-    private def self.entities_regex
-      return @@regex if @@regex.source != "^"
-
-      @@regex = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
     end
   end
 end
