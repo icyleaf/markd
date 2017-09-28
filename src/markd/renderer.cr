@@ -2,13 +2,7 @@ module Markd
   abstract class Renderer
     include Utils
 
-    def initialize
-      @options = Options.new
-      @output_io = IO::Memory.new
-      @last_output = "\n"
-    end
-
-    def initialize(@options : Options)
+    def initialize(@options = Options.new)
       @output_io = IO::Memory.new
       @last_output = "\n"
     end
@@ -40,8 +34,8 @@ module Markd
       start_time("renderering") if @options.time
       walker = document.walker
       while event = walker.next
-        node = event["node"].as(Node)
-        entering = event["entering"].as(Bool)
+        node = event[:node]
+        entering = event[:entering]
 
         case node.type
         when Node::Type::Heading

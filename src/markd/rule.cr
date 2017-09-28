@@ -91,7 +91,7 @@ module Markd
     abstract def match(parser : Parser, container : Node) : MatchValue
 
     # token finalize
-    abstract def token(parser : Parser, container : Node) : Void
+    abstract def token(parser : Parser, container : Node) : Nil
 
     # continue
     abstract def continue(parser : Parser, container : Node) : ContinueStatus
