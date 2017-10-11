@@ -72,11 +72,11 @@ module Markd::Parser
       last_child = node.last_child?
       # check previous node for trailing spaces
       if last_child && last_child.type.text? &&
-         char(last_child.text, -1) == ' '
+         last_child.text[-1]? == ' '
         hard_break = if last_child.text.size == 1
                        false # Must be space
                      else
-                       char(last_child.text, -2) == ' '
+                       last_child.text[-2]? == ' '
                      end
         last_child.text = last_child.text.rstrip ' '
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
@@ -207,7 +207,7 @@ module Markd::Parser
       if @text[@pos]? == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
-           spnl && (char(@text, @pos - 1).try(&.whitespace?) &&
+           spnl && (@text[@pos - 1]?.try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
            @text[@pos]? == ')'
           @pos += 1

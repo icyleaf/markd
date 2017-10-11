@@ -16,11 +16,6 @@ module Markd
       starts != ends ? text[starts..ends] : text[starts].to_s
     end
 
-    def char(text : String, index : Int32) : Char?
-      return unless index < text.size
-      text[index]
-    end
-
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_refrenence(text : String)

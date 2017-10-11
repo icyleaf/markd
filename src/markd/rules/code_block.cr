@@ -42,7 +42,7 @@ module Markd::Rule
       if container.fenced?
         # fenced
         match = indent <= 3 &&
-                char(line, parser.next_nonspace).to_s == container.fence_char &&
+                line[parser.next_nonspace]? == container.fence_char[0] &&
                 slice(line, parser.next_nonspace).match(CLOSING_CODE_FENCE)
 
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
