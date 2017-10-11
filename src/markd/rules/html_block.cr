@@ -3,7 +3,7 @@ module Markd::Rule
     include Rule
 
     def match(parser : Parser, container : Node)
-      if !parser.indented && char_at(parser) == '<'
+      if !parser.indented && parser.line[parser.next_nonspace]? == '<'
         text = parser.line[parser.next_nonspace..-1]
         block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
 
