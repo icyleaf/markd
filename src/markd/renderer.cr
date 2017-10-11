@@ -33,8 +33,7 @@ module Markd
       Utils.timer("renderering", @options.time) do
         walker = document.walker
         while event = walker.next
-          node = event[:node]
-          entering = event[:entering]
+          node, entering = event
 
           case node.type
           when Node::Type::Heading

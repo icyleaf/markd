@@ -132,13 +132,8 @@ module Markd
     end
 
     private class Walker
-      property current : Node?
-      property root : Node
-      property entering : Bool
-
-      def initialize(current : Node)
-        @current = current
-        @root = current
+      def initialize(@root : Node)
+        @current = @root
         @entering = true
       end
 
@@ -165,10 +160,7 @@ module Markd
           @entering = false
         end
 
-        {
-          entering: entering,
-          node:     current,
-        }
+        return current, entering
       end
 
       def resume_at(node : Node, entering : Bool)

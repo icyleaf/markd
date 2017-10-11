@@ -197,8 +197,8 @@ module Markd::Parser
       walker = @document.walker
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
-        node = event[:node]
-        if !event[:entering] && (node.type.paragraph? || node.type.heading?)
+        node, entering = event
+        if !entering && (node.type.paragraph? || node.type.heading?)
           @inline_lexer.parse(node)
         end
       end
