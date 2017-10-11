@@ -3,7 +3,6 @@ require "html"
 module Markd::Parser
   class Inline
     include Parser
-    include Utils
 
     property refmap
     private getter! brackets
@@ -492,7 +491,7 @@ module Markd::Parser
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      decode_entities_string(title[1..-2])
+      Utils.decode_entities_string(title[1..-2])
     end
 
     private def link_destination
@@ -524,7 +523,7 @@ module Markd::Parser
                @text[save_pos..(@pos - 1)]
              end
 
-      normalize_uri(decode_entities_string(dest))
+      normalize_uri(Utils.decode_entities_string(dest))
     end
 
     private def handle_delim(char : Char, node : Node)

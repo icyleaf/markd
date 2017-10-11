@@ -11,8 +11,9 @@ module Markd
       puts "#{label}: #{(Time.now - start_time).total_milliseconds}ms"
     end
 
-    def decode_entities_string(text : String) : String
-      HTML.decode_entities(text).gsub(Regex.new("\\\\" + Rule::ESCAPABLE_STRING, Regex::Options::IGNORE_CASE)) { |text| text[1].to_s }
+    DECODE_ENTITIES_REGEX = Regex.new("\\\\" + Rule::ESCAPABLE_STRING, Regex::Options::IGNORE_CASE)
+    def self.decode_entities_string(text : String) : String
+      HTML.decode_entities(text).gsub(DECODE_ENTITIES_REGEX) { |text| text[1].to_s }
     end
   end
 end

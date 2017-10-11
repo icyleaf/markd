@@ -1,6 +1,5 @@
 module Markd
   abstract class Renderer
-    include Utils
 
     def initialize(@options = Options.new)
       @output_io = IO::Memory.new

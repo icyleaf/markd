@@ -1,7 +1,6 @@
 module Markd::Parser
   class Block
     include Parser
-    include Utils
 
     def self.parse(source : String, options = Options.new)
       new(options).parse(source)

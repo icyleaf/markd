@@ -1,7 +1,5 @@
 module Markd
   module Rule
-    include Utils
-
     ESCAPABLE_STRING    = %Q([!"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-])
     ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 

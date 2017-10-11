@@ -76,7 +76,7 @@ module Markd::Rule
         # fenced
         first_line, _, text = container.text.partition('\n')
 
-        container.fence_language = decode_entities_string(first_line.strip)
+        container.fence_language = Utils.decode_entities_string(first_line.strip)
         container.text = text
       else
         # indented
