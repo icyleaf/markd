@@ -223,11 +223,11 @@ module Markd::Parser
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = normalize_refrenence(slice(@text, before_label, before_label + label_size))
+          ref_label = normalize_refrenence(@text[before_label, label_size + 1])
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = normalize_refrenence(slice(@text, opener.index, start_pos - 1))
+          ref_label = normalize_refrenence(@text[opener.index..(start_pos - 1)])
         end
 
         if label_size == 0
@@ -333,8 +333,8 @@ module Markd::Parser
             opener.num_delims -= use_delims
             closer.num_delims -= use_delims
 
-            opener_inl.text = slice(opener_inl.text, 0, (opener_inl.text.size - 1) - use_delims)
-            closer_inl.text = slice(closer_inl.text, 0, (closer_inl.text.size - 1) - use_delims)
+            opener_inl.text = opener_inl.text[0..(-use_delims - 1)]
+            closer_inl.text = closer_inl.text[0..(-use_delims - 1)]
 
             # build contents for new emph element
             emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
@@ -427,7 +427,7 @@ module Markd::Parser
             return false
           end
         end
-        text = slice(@text, @pos + 1, pos - 2)
+        text = @text[(@pos + 1)..(pos - 2)]
         decoded_text = HTML.decode_entity text
 
         node.append_child(text(decoded_text))
@@ -469,7 +469,7 @@ module Markd::Parser
     end
 
     private def link(match : String, email = false) : Node
-      dest = slice(match, 1, match.size - 2)
+      dest = match[1..-2]
       destination = email ? "mailto:#{dest}" : dest
 
       node = Node.new(Node::Type::Link)
@@ -492,12 +492,12 @@ module Markd::Parser
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      decode_entities_string(slice(title, 1, title.size - 2))
+      decode_entities_string(title[1..-2])
     end
 
     private def link_destination
       dest = if text = match(Rule::LINK_DESTINATION_BRACES)
-               slice(text, 1, text.size - 2)
+               text[1..-2]
              else
                save_pos = @pos
                open_parens = 0
@@ -521,7 +521,7 @@ module Markd::Parser
                  end
                end
 
-               slice(@text, save_pos, @pos - 1)
+               @text[save_pos..(@pos - 1)]
              end
 
       normalize_uri(decode_entities_string(dest))
@@ -540,7 +540,7 @@ module Markd::Parser
              when '"'
                "\u{201C}"
              else
-               slice(@text, start_pos, @pos - 1)
+               @text[start_pos..(@pos - 1)]
              end
 
       child = text(text)
@@ -636,7 +636,7 @@ module Markd::Parser
 
       # label
       return 0 if match_chars == 0
-      raw_label = slice(@text, 0, match_chars)
+      raw_label = @text[0..match_chars]
 
       # colon
       if @text[@pos]? == ':'
@@ -727,7 +727,7 @@ module Markd::Parser
     end
 
     private def match(regex : Regex) : String?
-      text = slice(@text, @pos)
+      text = @text[@pos..-1]
       if match = text.match(regex)
         @pos += text.index(regex).as(Int32) + match[0].size
         return match[0]

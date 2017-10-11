@@ -4,7 +4,7 @@ module Markd::Rule
 
     def match(parser : Parser, container : Node)
       if !parser.indented && char_at(parser) == '<'
-        text = slice(parser)
+        text = parser.line[parser.next_nonspace..-1]
         block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
 
         Rule::HTML_BLOCK_OPEN.each_with_index do |regex, index|

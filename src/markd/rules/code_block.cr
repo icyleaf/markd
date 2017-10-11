@@ -7,7 +7,7 @@ module Markd::Rule
 
     def match(parser : Parser, container : Node) : MatchValue
       if !parser.indented &&
-         (match = slice(parser).match(CODE_FENCE))
+         (match = parser.line[parser.next_nonspace..-1].match(CODE_FENCE))
         # fenced
         fence_length = match[0].size
 
@@ -43,7 +43,7 @@ module Markd::Rule
         # fenced
         match = indent <= 3 &&
                 line[parser.next_nonspace]? == container.fence_char[0] &&
-                slice(line, parser.next_nonspace).match(CLOSING_CODE_FENCE)
+                line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
 
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
           # closing fence - we're at end of line, so we can return
@@ -74,12 +74,7 @@ module Markd::Rule
     def token(parser : Parser, container : Node)
       if container.fenced?
         # fenced
-        content = container.text
-        newline_pos = content.index("\n")
-        newline_pos = -1 unless newline_pos
-        first_line = slice(content, 0, newline_pos)
-
-        text = slice(content, newline_pos + 1)
+        first_line, _, text = container.text.partition('\n')
 
         container.fence_language = decode_entities_string(first_line.strip)
         container.text = text

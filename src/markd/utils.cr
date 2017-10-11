@@ -11,15 +11,10 @@ module Markd
       puts "#{label}: #{(Time.now - start_time).total_milliseconds}ms"
     end
 
-    def slice(text : String, starts = 0, ends = -1) : String
-      return "" unless starts < text.size
-      starts != ends ? text[starts..ends] : text[starts].to_s
-    end
-
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_refrenence(text : String)
-      slice(text, 1, -2).strip.downcase.gsub("\n", " ")
+      text[1..-2].strip.downcase.gsub("\n", " ")
     end
 
     def normalize_uri(uri : String)

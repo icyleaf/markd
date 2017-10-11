@@ -105,10 +105,6 @@ module Markd
     # accepts_line
     abstract def accepts_lines? : Bool
 
-    private def slice(parser : Parser, index = parser.next_nonspace) : String
-      slice(parser.line, index)
-    end
-
     private def char_at(parser : Parser, index = parser.next_nonspace) : Char?
       parser.line[index]?
     end

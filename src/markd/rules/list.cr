@@ -66,7 +66,7 @@ module Markd::Rule
     end
 
     private def parse_list_marker(parser : Parser, container : Node) : Node::DataType
-      line = slice(parser)
+      line = parser.line[parser.next_nonspace..-1]
 
       empty_data = {} of String => Node::DataValue
       data = {
@@ -104,7 +104,7 @@ module Markd::Rule
       end
 
       if container.type.paragraph? &&
-         slice(parser, parser.next_nonspace + first_match_size).each_char.all? &.ascii_whitespace?
+         parser.line[(parser.next_nonspace + first_match_size)..-1].each_char.all? &.ascii_whitespace?
         return empty_data
       end
 

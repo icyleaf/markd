@@ -227,7 +227,7 @@ module Markd::Parser
         tip.text += " " * chars_to_tab
       end
 
-      tip.text += slice(@line, @offset) + "\n"
+      tip.text += @line[@offset..-1] + "\n"
 
       nil
     end
@@ -330,7 +330,7 @@ module Markd::Parser
     private def match_html_block?(container : Node)
       if block_type = container.data["html_block_type"]
         block_type = block_type.as(Int32)
-        block_type >= 0 && block_type <= 4 && Rule::HTML_BLOCK_CLOSE[block_type].match(slice(@line, @offset))
+        block_type >= 0 && block_type <= 4 && Rule::HTML_BLOCK_CLOSE[block_type].match(@line[@offset..-1])
       else
         false
       end
