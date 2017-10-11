@@ -54,27 +54,17 @@ module Markd::Parser
     end
 
     def parse(source : String)
-      return parse_with_time(source) if @options.time
+      Utils.timer("preparing input", @options.time) do
+        prepare_input(source)
+      end
 
-      prepare_input(source)
-      parse_blocks
-      process_inlines
+      Utils.timer("block parsing", @options.time) do
+        parse_blocks
+      end
 
-      @document
-    end
-
-    def parse_with_time(source)
-      start_time("preparing input")
-      prepare_input(source)
-      end_time("preparing input")
-
-      start_time("block parsing")
-      parse_blocks
-      end_time("block parsing")
-
-      start_time("inline parsing")
-      process_inlines
-      end_time("inline parsing")
+      Utils.timer("inline parsing", @options.time) do
+        process_inlines
+      end
 
       @document
     end

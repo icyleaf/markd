@@ -2,15 +2,13 @@ require "json"
 
 module Markd
   module Utils
-    @time_table = {} of String => Time
+    def self.timer(label : String, measure_time? : Bool)
+      return yield unless measure_time?
 
-    def start_time(label : String)
-      @time_table[label] = Time.now
-    end
+      start_time = Time.now
+      yield
 
-    def end_time(label : String)
-      raise Exception.new("Not found time label: #{label}") unless @time_table[label]
-      puts "#{label}: #{(Time.now - @time_table[label]).total_milliseconds}ms"
+      puts "#{label}: #{(Time.now - start_time).total_milliseconds}ms"
     end
 
     def slice(text : String, starts = 0, ends = -1) : String
