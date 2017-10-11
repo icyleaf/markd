@@ -223,11 +223,11 @@ module Markd::Parser
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = normalize_refrenence(@text[before_label, label_size + 1])
+          ref_label = normalize_refernence(@text[before_label, label_size + 1])
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = normalize_refrenence(@text[opener.index..(start_pos - 1)])
+          ref_label = normalize_refernence(@text[opener.index..(start_pos - 1)])
         end
 
         if label_size == 0
@@ -679,7 +679,7 @@ module Markd::Parser
         return 0
       end
 
-      normal_label = normalize_refrenence(raw_label)
+      normal_label = normalize_refernence(raw_label)
       if normal_label.empty?
         @pos = startpos
         return 0
@@ -738,6 +738,22 @@ module Markd::Parser
       node = Node.new(Node::Type::Text)
       node.text = text.to_s
       node
+    end
+
+    # Normalize reference label: collapse internal whitespace
+    # to single space, remove leading/trailing whitespace, case fold.
+    def normalize_refernence(text : String)
+      text[1..-2].strip.downcase.gsub("\n", " ")
+    end
+
+    def normalize_uri(uri : String)
+      URI.escape(decode_uri(uri)) do |byte|
+        URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+      end
+    end
+
+    def decode_uri(text : String)
+      URI.unescape(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
     end
 
     class Bracket
