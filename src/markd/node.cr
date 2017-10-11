@@ -48,9 +48,17 @@ module Markd
     alias DataType = Hash(String, DataValue)
 
     property type : Type
-    property text : String
 
-    property data : Hash(String, DataValue)
+    property data = {} of String => DataValue
+    property source_pos = [[1, 1], [0, 0]]
+    property text = ""
+    property? open = true
+    property? fenced = false
+    property fence_language = ""
+    property fence_char = ""
+    property fence_length = 0
+    property fence_offset = 0
+    property? last_line_blank = false
 
     property! parent : Node?
     property! first_child : Node?
@@ -58,29 +66,7 @@ module Markd
     property! prev : Node?
     property! next : Node?
 
-    property source_pos : Array(Array(Int32))
-    property? open
-    property? last_line_blank : Bool
-
-    property? fenced : Bool
-    property fence_language : String
-    property fence_char : String
-    property fence_length : Int32
-    property fence_offset : Int32
-
     def initialize(@type)
-      @data = {} of String => DataValue
-      @source_pos = [[1, 1], [0, 0]]
-      @text = ""
-      @open = true
-
-      @fenced = false
-      @fence_language = ""
-      @fence_char = ""
-      @fence_length = 0
-      @fence_offset = 0
-
-      @last_line_blank = false
     end
 
     def append_child(child : Node)
@@ -137,10 +123,10 @@ module Markd
     def to_s(io : IO)
       io << "#<" << {{@type.name.id.stringify}} << ":0x"
       object_id.to_s(16, io)
-      io << " @type=#{@type}"
-      io << " @parent=#{@parent}" if @parent
-      io << " @next=#{@next}" if @next
-      io << " @data=#{@data}" if @data.size > 0
+      io << " @type=" << @type
+      io << " @parent=" << @parent if @parent
+      io << " @next=" << @next if @next
+      io << " @data=" << @data if @data.size > 0
       io << ">"
       nil
     end
