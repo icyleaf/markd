@@ -1,7 +1,5 @@
 module Markd
   module Rule
-    include Utils
-
     ESCAPABLE_STRING    = %Q([!"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-])
     ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 
@@ -88,13 +86,13 @@ module Markd
     end
 
     # match and parse
-    abstract def match(parser : Lexer, container : Node) : MatchValue
+    abstract def match(parser : Parser, container : Node) : MatchValue
 
     # token finalize
-    abstract def token(parser : Lexer, container : Node) : Void
+    abstract def token(parser : Parser, container : Node) : Nil
 
     # continue
-    abstract def continue(parser : Lexer, container : Node) : ContinueStatus
+    abstract def continue(parser : Parser, container : Node) : ContinueStatus
 
     enum ContinueStatus
       Continue
@@ -104,14 +102,6 @@ module Markd
 
     # accepts_line
     abstract def accepts_lines? : Bool
-
-    private def slice(parser : Lexer, index = parser.next_nonspace) : String
-      slice(parser.line, index)
-    end
-
-    private def char_at(parser : Lexer, index = parser.next_nonspace) : Char?
-      parser.line[index]?
-    end
 
     private def space_or_tab?(char : Char?) : Bool
       [' ', '\t'].includes?(char)

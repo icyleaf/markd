@@ -93,10 +93,10 @@ module Markd
     def image(node : Node, entering : Bool)
       if entering
         if @disable_tag == 0
-          if @options.safe && potentially_unsafe(node.data["destionation"].as(String))
-            lit("<img src=\"\" alt=\"\"")
+          if @options.safe && potentially_unsafe(node.data["destination"].as(String))
+            lit(%(<img src="" alt=""))
           else
-            lit("<img src=\"#{escape(node.data["destination"].as(String))}\" alt=\"")
+            lit(%(<img src="#{escape(node.data["destination"].as(String))}" alt="))
           end
         end
         @disable_tag += 1
@@ -104,9 +104,9 @@ module Markd
         @disable_tag -= 1
         if @disable_tag == 0
           if (title = node.data["title"].as(String)) && !title.empty?
-            lit("\" title=\"#{escape(title)}")
+            lit(%(" title="#{escape(title)}))
           end
-          lit("\" />")
+          lit(%(" />))
         end
       end
     end
@@ -124,7 +124,7 @@ module Markd
     end
 
     def paragraph(node : Node, entering : Bool)
-      if (grand_parant = node.parent.not_nil!.parent) && grand_parant.type == Node::Type::List
+      if (grand_parant = node.parent?.try &.parent?) && grand_parant.type.list?
         return if grand_parant.data["tight"]
       end
 
@@ -161,9 +161,9 @@ module Markd
     private def tag(name : String, attrs = {} of String => String, self_closing = false)
       return if @disable_tag > 0
 
-      @output_io << "<#{name}"
-      attrs.each do |k, v|
-        @output_io << " #{k}=\"#{v}\""
+      @output_io << "<" << name
+      attrs.each do |key, value|
+        @output_io << ' ' << key << '=' << '"' << value << '"'
       end
 
       @output_io << " /" if self_closing
@@ -176,20 +176,19 @@ module Markd
     end
 
     private def toc(node : Node)
-      return if node.type != Node::Type::Heading
+      return unless node.type.heading?
 
       title = URI.escape(node.text)
 
-      @output_io << "<a id=\"anchor-#{title}\" class=\"anchor\" href=\"##{title}\"></a>"
+      @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#) << title %("></a>)
       @last_output = ">"
     end
 
     private def attrs(node : Node)
       attr = {} of String => String
-      if @options.source_pos
-        if pos = node.source_pos
-          attr["data-source-pos"] = "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"
-        end
+
+      if @options.source_pos && (pos = node.source_pos)
+        attr["data-source-pos"] = "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"
       end
 
       attr

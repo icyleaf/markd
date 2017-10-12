@@ -2,7 +2,7 @@ module Markd::Rule
   struct BlockQuote
     include Rule
 
-    def match(parser : Lexer, container : Node)
+    def match(parser : Parser, container : Node)
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
@@ -14,7 +14,7 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       if match?(parser)
         seek(parser)
         ContinueStatus::Continue
@@ -23,12 +23,12 @@ module Markd::Rule
       end
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       # do nothing
     end
 
-    def can_contain(type : Node::Type) : Bool
-      type != Node::Type::Item
+    def can_contain?(type : Node::Type) : Bool
+      !type.item?
     end
 
     def accepts_lines?
@@ -36,14 +36,14 @@ module Markd::Rule
     end
 
     private def match?(parser)
-      !parser.indented && char_at(parser) == '>'
+      !parser.indented && parser.line[parser.next_nonspace]? == '>'
     end
 
-    private def seek(parser : Lexer)
+    private def seek(parser : Parser)
       parser.advance_next_nonspace
       parser.advance_offset(1, false)
 
-      if space_or_tab?(char_at(parser, parser.offset))
+      if space_or_tab?(parser.line[parser.offset]?)
         parser.advance_offset(1, true)
       end
     end

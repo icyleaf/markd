@@ -1,11 +1,11 @@
 require "html"
 
-module Markd::Lexer
+module Markd::Parser
   class Inline
-    include Lexer
-    include Utils
+    include Parser
 
     property refmap
+    private getter! brackets
 
     @delimiters : Delimiter?
 
@@ -68,14 +68,14 @@ module Markd::Lexer
 
     private def newline(node : Node)
       @pos += 1 # assume we're at a \n
-      last_child = node.last_child
+      last_child = node.last_child?
       # check previous node for trailing spaces
-      if last_child && last_child.type == Node::Type::Text &&
-         char(last_child.text, -1) == ' '
+      if last_child && last_child.type.text? &&
+         last_child.text[-1]? == ' '
         hard_break = if last_child.text.size == 1
                        false # Must be space
                      else
-                       char(last_child.text, -2) == ' '
+                       last_child.text[-2]? == ' '
                      end
         last_child.text = last_child.text.rstrip ' '
         node.append_child(Node.new(hard_break ? Node::Type::LineBreak : Node::Type::SoftBreak))
@@ -153,12 +153,12 @@ module Markd::Lexer
     end
 
     private def add_bracket(node : Node, index : Int32, image = false)
-      @brackets.not_nil!.bracket_after = true if @brackets
+      brackets.bracket_after = true if brackets?
       @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
     end
 
     private def remove_bracket
-      @brackets = @brackets.not_nil!.previous
+      @brackets = brackets.previous?
     end
 
     private def open_bracket(node : Node)
@@ -206,7 +206,7 @@ module Markd::Lexer
       if @text[@pos]? == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
-           spnl && (char(@text, @pos - 1).try(&.whitespace?) &&
+           spnl && (@text[@pos - 1]?.try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
            @text[@pos]? == ')'
           @pos += 1
@@ -222,11 +222,11 @@ module Markd::Lexer
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = normalize_refrenence(slice(@text, before_label, before_label + label_size))
+          ref_label = normalize_refernence(@text[before_label, label_size + 1])
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = normalize_refrenence(slice(@text, opener.index, start_pos - 1))
+          ref_label = normalize_refernence(@text[opener.index..(start_pos - 1)])
         end
 
         if label_size == 0
@@ -248,9 +248,9 @@ module Markd::Lexer
         child.data["destination"] = dest
         child.data["title"] = title || ""
 
-        tmp = opener.node.next
+        tmp = opener.node.next?
         while tmp
-          next_node = tmp.next
+          next_node = tmp.next?
           tmp.unlink
           child.append_child(tmp)
           tmp = next_node
@@ -265,7 +265,7 @@ module Markd::Lexer
           opener = @brackets
           while opener
             opener.active = false unless opener.image
-            opener = opener.previous
+            opener = opener.previous?
           end
         end
       else
@@ -287,8 +287,10 @@ module Markd::Lexer
 
       # find first closer above stack_bottom:
       closer = @delimiters
-      while closer && closer.previous != delimiter
-        closer = closer.previous
+      while closer
+        previous = closer.previous?
+        break if previous == delimiter
+        closer = previous
       end
 
       # move forward, looking for closers, and handling each
@@ -296,12 +298,12 @@ module Markd::Lexer
         closer_char = closer.char
 
         unless closer.can_close
-          closer = closer.next
+          closer = closer.next?
           next
         end
 
         # found emphasis closer. now look back for first matching opener:
-        opener = closer.previous
+        opener = closer.previous?
         opener_found = false
         while opener && opener != delimiter && opener != openers_bottom[closer_char]
           odd_match = (closer.can_open || opener.can_close) &&
@@ -310,36 +312,35 @@ module Markd::Lexer
             opener_found = true
             break
           end
-          opener = opener.previous
+          opener = opener.previous?
         end
+        opener = nil unless opener_found
 
         old_closer = closer
 
         case closer_char
         when '*', '_'
-          unless opener_found
-            closer = closer.next
+          unless opener
+            closer = closer.next?
           else
             # calculate actual number of delimiters used from closer
-            opener = opener.not_nil!
-            closer = closer.not_nil!
             use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
-            opener_inl = opener.node.not_nil!
-            closer_inl = closer.node.not_nil!
+            opener_inl = opener.node
+            closer_inl = closer.node
 
             # remove used delimiters from stack elts and inlines
             opener.num_delims -= use_delims
             closer.num_delims -= use_delims
 
-            opener_inl.text = slice(opener_inl.text, 0, (opener_inl.text.size - 1) - use_delims)
-            closer_inl.text = slice(closer_inl.text, 0, (closer_inl.text.size - 1) - use_delims)
+            opener_inl.text = opener_inl.text[0..(-use_delims - 1)]
+            closer_inl.text = closer_inl.text[0..(-use_delims - 1)]
 
             # build contents for new emph element
             emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
 
-            tmp = opener_inl.next
+            tmp = opener_inl.next?
             while tmp && tmp != closer_inl
-              next_node = tmp.next
+              next_node = tmp.next?
               tmp.unlink
               emph.append_child(tmp)
               tmp = next_node
@@ -358,30 +359,34 @@ module Markd::Lexer
 
             if closer.num_delims == 0
               closer_inl.unlink
-              tmp_stack = closer.next
+              tmp_stack = closer.next?
               remove_delimiter(closer)
               closer = tmp_stack
             end
           end
         when '\''
-          closer.not_nil!.node.text = "\u{2019}"
-          opener.not_nil!.node.text = "\u{2018}" if opener_found
-          closer = closer.next
+          closer.node.text = "\u{2019}"
+          if opener
+            opener.node.text = "\u{2018}"
+          end
+          closer = closer.next?
         when '"'
-          closer.not_nil!.node.text = "\u{201D}"
-          opener.not_nil!.node.text = "\u{201C}" if opener_found
-          closer = closer.next
+          closer.node.text = "\u{201D}"
+          if opener
+            opener.node.text = "\u{201C}"
+          end
+          closer = closer.next?
         end
 
-        if !opener_found && !odd_match
-          openers_bottom[closer_char] = old_closer.previous
+        if !opener && !odd_match
+          openers_bottom[closer_char] = old_closer.previous?
           remove_delimiter(old_closer) if !old_closer.can_open
         end
       end
 
       # remove all delimiters
-      while @delimiters && @delimiters != delimiter
-        remove_delimiter(@delimiters.not_nil!)
+      while (curr_delimiter = @delimiters) && curr_delimiter != delimiter
+        remove_delimiter(curr_delimiter)
       end
     end
 
@@ -409,7 +414,7 @@ module Markd::Lexer
     end
 
     private def entity(node : Node)
-      if @text[@pos] == '&'
+      if @text[@pos]? == '&'
         pos = @pos + 1
         loop do
           char = @text[pos]?
@@ -421,7 +426,7 @@ module Markd::Lexer
             return false
           end
         end
-        text = slice(@text, @pos + 1, pos - 2)
+        text = @text[(@pos + 1)..(pos - 2)]
         decoded_text = HTML.decode_entity text
 
         node.append_child(text(decoded_text))
@@ -463,7 +468,7 @@ module Markd::Lexer
     end
 
     private def link(match : String, email = false) : Node
-      dest = slice(match, 1, match.size - 2)
+      dest = match[1..-2]
       destination = email ? "mailto:#{dest}" : dest
 
       node = Node.new(Node::Type::Link)
@@ -486,12 +491,12 @@ module Markd::Lexer
       title = match(Rule::LINK_TITLE)
       return unless title
 
-      decode_entities_string(slice(title, 1, title.size - 2))
+      Utils.decode_entities_string(title[1..-2])
     end
 
     private def link_destination
       dest = if text = match(Rule::LINK_DESTINATION_BRACES)
-               slice(text, 1, text.size - 2)
+               text[1..-2]
              else
                save_pos = @pos
                open_parens = 0
@@ -515,10 +520,10 @@ module Markd::Lexer
                  end
                end
 
-               slice(@text, save_pos, @pos - 1)
+               @text[save_pos..(@pos - 1)]
              end
 
-      normalize_uri(decode_entities_string(dest))
+      normalize_uri(Utils.decode_entities_string(dest))
     end
 
     private def handle_delim(char : Char, node : Node)
@@ -534,7 +539,7 @@ module Markd::Lexer
              when '"'
                "\u{201C}"
              else
-               slice(@text, start_pos, @pos - 1)
+               @text[start_pos..(@pos - 1)]
              end
 
       child = text(text)
@@ -542,7 +547,7 @@ module Markd::Lexer
 
       delimiter = Delimiter.new(char, num_delims, num_delims, child, @delimiters, nil, res[:can_open], res[:can_close])
 
-      if prev = delimiter.previous
+      if prev = delimiter.previous?
         prev.next = delimiter
       end
 
@@ -552,20 +557,20 @@ module Markd::Lexer
     end
 
     private def remove_delimiter(delimiter : Delimiter)
-      if prev = delimiter.previous
-        prev.next = delimiter.next
+      if prev = delimiter.previous?
+        prev.next = delimiter.next?
       end
 
-      if nxt = delimiter.next
-        nxt.previous = delimiter.previous
+      if nxt = delimiter.next?
+        nxt.previous = delimiter.previous?
       else
         # top of stack
-        @delimiters = delimiter.previous
+        @delimiters = delimiter.previous?
       end
     end
 
     private def remove_delimiter_between(bottom : Delimiter, top : Delimiter)
-      if bottom.next != top
+      if bottom.next? != top
         bottom.next = top
         top.previous = bottom
       end
@@ -630,7 +635,7 @@ module Markd::Lexer
 
       # label
       return 0 if match_chars == 0
-      raw_label = slice(@text, 0, match_chars)
+      raw_label = @text[0..match_chars]
 
       # colon
       if @text[@pos]? == ':'
@@ -673,7 +678,7 @@ module Markd::Lexer
         return 0
       end
 
-      normal_label = normalize_refrenence(raw_label)
+      normal_label = normalize_refernence(raw_label)
       if normal_label.empty?
         @pos = startpos
         return 0
@@ -721,7 +726,7 @@ module Markd::Lexer
     end
 
     private def match(regex : Regex) : String?
-      text = slice(@text, @pos)
+      text = @text[@pos..-1]
       if match = text.match(regex)
         @pos += text.index(regex).as(Int32) + match[0].size
         return match[0]
@@ -734,9 +739,25 @@ module Markd::Lexer
       node
     end
 
+    # Normalize reference label: collapse internal whitespace
+    # to single space, remove leading/trailing whitespace, case fold.
+    def normalize_refernence(text : String)
+      text[1..-2].strip.downcase.gsub("\n", " ")
+    end
+
+    def normalize_uri(uri : String)
+      URI.escape(decode_uri(uri)) do |byte|
+        URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+      end
+    end
+
+    def decode_uri(text : String)
+      URI.unescape(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+    end
+
     class Bracket
       property node : Node
-      property previous : Bracket?
+      property! previous : Bracket?
       property previous_delimiter : Delimiter?
       property index : Int32
       property image : Bool
@@ -753,8 +774,8 @@ module Markd::Lexer
       property num_delims : Int32
       property orig_delims : Int32
       property node : Node
-      property previous : Delimiter?
-      property next : Delimiter?
+      property! previous : Delimiter?
+      property! next : Delimiter?
       property can_open : Bool
       property can_close : Bool
 

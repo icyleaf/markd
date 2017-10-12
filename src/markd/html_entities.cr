@@ -16,6 +16,8 @@ module Markd::HTMLEntities
   end
 
   module Decoder
+    REGEX = /&(?:([a-zA-Z0-9]{2,32};)|(#[xX][\da-fA-F]+;?|#\d+;?))/
+
     def self.decode(source)
       source.gsub(REGEX) do |chars|
         decode_entity(chars[1..-2])
@@ -52,31 +54,17 @@ module Markd::HTMLEntities
 
       codepoint.unsafe_chr
     end
-
-    REGEX = begin
-      legacy_keys = HTMLEntities::LEGACY_MAPPINGS.keys.sort
-      keys = HTMLEntities::ENTITIES_MAPPINGS.keys.sort
-
-      legacy_index = 0
-      keys.each_with_index do |key, i|
-        keys[i] += ";"
-        if legacy_keys[legacy_index]? == key
-          keys[i] += "?"
-          legacy_index += 1
-        end
-      end
-
-      Regex.new("&(?:(#{keys.join("|")})|(#[xX][\\da-fA-F]+;?|#\\d+;?))")
-    end
   end
 
   module Encoder
     ENTITIES_REGEX = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
+    ASTRAL_REGEX   = Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")
+    ENCODE_REGEX   = /[^\x{20}-\x{7E}]/
 
     def self.encode(source : String)
       source.gsub(ENTITIES_REGEX) { |chars| encode_entities(chars) }
-            .gsub(Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")) { |chars| encode_astral(chars) }
-            .gsub(/[^\x{20}-\x{7E}]/) { |chars| encode_extend(chars) }
+            .gsub(ASTRAL_REGEX) { |chars| encode_astral(chars) }
+            .gsub(ENCODE_REGEX) { |chars| encode_extend(chars) }
     end
 
     private def self.encode_entities(chars : String)

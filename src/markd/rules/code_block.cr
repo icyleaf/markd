@@ -5,9 +5,9 @@ module Markd::Rule
     CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
-    def match(parser : Lexer, container : Node) : MatchValue
+    def match(parser : Parser, container : Node) : MatchValue
       if !parser.indented &&
-         (match = slice(parser).match(CODE_FENCE))
+         (match = parser.line[parser.next_nonspace..-1].match(CODE_FENCE))
         # fenced
         fence_length = match[0].size
 
@@ -23,9 +23,8 @@ module Markd::Rule
 
         MatchValue::Leaf
       elsif parser.indented && !parser.blank && (tip = parser.tip) &&
-            tip.type != Node::Type::Paragraph &&
-            (container.type != Node::Type::List ||
-            (container.type == Node::Type::List && container.data["padding"].as(Int32) >= 4))
+            !tip.type.paragraph? &&
+            (!container.type.list? || container.data["padding"].as(Int32) >= 4)
         # indented
         parser.advance_offset(Rule::CODE_INDENT, true)
         parser.close_unmatched_blocks
@@ -37,14 +36,14 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       line = parser.line
       indent = parser.indent
       if container.fenced?
         # fenced
         match = indent <= 3 &&
-                char(line, parser.next_nonspace).to_s == container.fence_char &&
-                slice(line, parser.next_nonspace).match(CLOSING_CODE_FENCE)
+                line[parser.next_nonspace]? == container.fence_char[0] &&
+                line[parser.next_nonspace..-1].match(CLOSING_CODE_FENCE)
 
         if match && match.as(Regex::MatchData)[0].size >= container.fence_length
           # closing fence - we're at end of line, so we can return
@@ -53,7 +52,7 @@ module Markd::Rule
         else
           # skip optional spaces of fence offset
           index = container.fence_offset
-          while index > 0 && space_or_tab?(char_at(parser, parser.offset))
+          while index > 0 && space_or_tab?(parser.line[parser.offset]?)
             parser.advance_offset(1, true)
             index -= 1
           end
@@ -72,17 +71,12 @@ module Markd::Rule
       ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
+    def token(parser : Parser, container : Node)
       if container.fenced?
         # fenced
-        content = container.text
-        newline_pos = content.index("\n")
-        newline_pos = -1 unless newline_pos
-        first_line = slice(content, 0, newline_pos)
+        first_line, _, text = container.text.partition('\n')
 
-        text = slice(content, newline_pos + 1)
-
-        container.fence_language = decode_entities_string(first_line.strip)
+        container.fence_language = Utils.decode_entities_string(first_line.strip)
         container.text = text
       else
         # indented
@@ -90,7 +84,7 @@ module Markd::Rule
       end
     end
 
-    def can_contain(t)
+    def can_contain?(type)
       false
     end
 

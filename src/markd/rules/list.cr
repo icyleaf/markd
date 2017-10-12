@@ -5,13 +5,13 @@ module Markd::Rule
     BULLET_LIST_MARKERS  = {'*', '+', '-'}
     ORDERED_LIST_MARKERS = {'.', ')'}
 
-    def match(parser : Lexer, container : Node)
-      if (!parser.indented || container.type == Node::Type::List) &&
-         (data = parse_list_marker(parser, container))
-        return MatchValue::None if data.nil? || data.empty?
+    def match(parser : Parser, container : Node)
+      if (!parser.indented || container.type.list?)
+        data = parse_list_marker(parser, container)
+        return MatchValue::None unless data && !data.empty?
 
         parser.close_unmatched_blocks
-        if parser.tip.not_nil!.type != Node::Type::List || !list_match?(container.data, data.not_nil!)
+        if !parser.tip.type.list? || !list_match?(container.data, data)
           list_node = parser.add_child(Node::Type::List, parser.next_nonspace)
           list_node.data = data
         end
@@ -25,34 +25,34 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Lexer, container : Node)
+    def continue(parser : Parser, container : Node)
       ContinueStatus::Continue
     end
 
-    def token(parser : Lexer, container : Node)
-      item = container.first_child
+    def token(parser : Parser, container : Node)
+      item = container.first_child?
       while item
-        if ends_with_blankline?(item) && item.next
+        if ends_with_blankline?(item) && item.next?
           container.data["tight"] = false
           break
         end
 
-        subitem = item.first_child
+        subitem = item.first_child?
         while subitem
-          if ends_with_blankline?(subitem) && (item.next || subitem.next)
+          if ends_with_blankline?(subitem) && (item.next? || subitem.next?)
             container.data["tight"] = false
             break
           end
 
-          subitem = subitem.next
+          subitem = subitem.next?
         end
 
-        item = item.next
+        item = item.next?
       end
     end
 
-    def can_contain(t)
-      t == Node::Type::Item
+    def can_contain?(type)
+      type.item?
     end
 
     def accepts_lines?
@@ -65,8 +65,8 @@ module Markd::Rule
         list_data["bullet_char"] == item_data["bullet_char"]
     end
 
-    private def parse_list_marker(parser : Lexer, container : Node) : Node::DataType
-      line = slice(parser)
+    private def parse_list_marker(parser : Parser, container : Node) : Node::DataType
+      line = parser.line[parser.next_nonspace..-1]
 
       empty_data = {} of String => Node::DataValue
       data = {
@@ -88,7 +88,7 @@ module Markd::Rule
         end
         number = pos >= 1 ? line[0..pos - 1].to_i : -1
         if pos >= 1 && pos <= 9 && ORDERED_LIST_MARKERS.includes?(line[pos]?) &&
-           (container.type != Node::Type::Paragraph || number == 1)
+           (!container.type.paragraph? || number == 1)
           data["type"] = "ordered"
           data["start"] = number
           data["delimiter"] = line[pos].to_s
@@ -98,13 +98,13 @@ module Markd::Rule
         end
       end
 
-      next_char = char_at(parser, parser.next_nonspace + first_match_size)
+      next_char = parser.line[parser.next_nonspace + first_match_size]?
       unless next_char.nil? || space_or_tab?(next_char)
         return empty_data
       end
 
-      if container.type == Node::Type::Paragraph &&
-         slice(parser, parser.next_nonspace + first_match_size).each_char.all? &.ascii_whitespace?
+      if container.type.paragraph? &&
+         parser.line[(parser.next_nonspace + first_match_size)..-1].each_char.all? &.ascii_whitespace?
         return empty_data
       end
 
@@ -115,19 +115,19 @@ module Markd::Rule
 
       loop do
         parser.advance_offset(1, true)
-        next_char = char_at(parser, parser.offset)
+        next_char = parser.line[parser.offset]?
 
         break unless parser.column - spaces_start_column < 5 && space_or_tab?(next_char)
       end
 
-      blank_item = char_at(parser, parser.offset).nil?
+      blank_item = parser.line[parser.offset]?.nil?
       spaces_after_marker = parser.column - spaces_start_column
       if spaces_after_marker >= 5 || spaces_after_marker < 1 || blank_item
         data["padding"] = first_match_size + 1
         parser.column = spaces_start_column
         parser.offset = spaces_start_offset
 
-        parser.advance_offset(1, true) if space_or_tab?(char_at(parser, parser.offset))
+        parser.advance_offset(1, true) if space_or_tab?(parser.line[parser.offset]?)
       else
         data["padding"] = first_match_size + spaces_after_marker
       end
@@ -137,10 +137,10 @@ module Markd::Rule
 
     private def ends_with_blankline?(container : Node) : Bool
       while container
-        return true if container.last_line_blank
+        return true if container.last_line_blank?
 
         break unless [Node::Type::List, Node::Type::Item].includes?(container.type)
-        container = container.last_child
+        container = container.last_child?
       end
 
       false
