@@ -1,6 +1,7 @@
+require "html"
+
 module Markd
   abstract class Renderer
-
     def initialize(@options = Options.new)
       @output_io = IO::Memory.new
       @last_output = "\n"
@@ -20,13 +21,7 @@ module Markd
     end
 
     def escape(text)
-      # TODO: Replace with `HTML.escape` once crystal-lang/crystal#4555 is resolved
-      text.gsub({
-        '&' => "&amp;",
-        '"' => "&quot;",
-        '<' => "&lt;",
-        '>' => "&gt;",
-      })
+      HTML.escape(text)
     end
 
     def render(document : Node)
