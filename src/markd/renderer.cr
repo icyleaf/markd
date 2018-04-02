@@ -1,5 +1,3 @@
-require "html"
-
 module Markd
   abstract class Renderer
     def initialize(@options = Options.new)
@@ -21,7 +19,12 @@ module Markd
     end
 
     def escape(text)
-      HTML.escape(text)
+      text.gsub({
+        '&' => "&amp;",
+        '"' => "&quot;",
+        '<' => "&lt;",
+        '>' => "&gt;",
+      })
     end
 
     def render(document : Node)
