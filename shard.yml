@@ -1,9 +1,9 @@
 name: markd
-version: 0.1.0
+version: 0.1.1
 
 authors:
   - icyleaf <icyleaf.cn@gmail.com>
 
-crystal: 0.24.1
+crystal: 0.24.2
 
 license: MIT

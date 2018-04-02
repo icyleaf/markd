@@ -6,7 +6,7 @@
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
 [![License](https://img.shields.io/github/license/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
 
-Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification. Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
+Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.27`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
 ## Installation
 
@@ -83,13 +83,6 @@ Crystal Markdown   3.28k (305.29µs) (± 0.92%)       fastest
 ```
 
 Recently, i'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
-
-## Milestore
-
-- v0.1.0
-  - 100% Compliant to commonmark
-- v0.2.0
-  - GFM support
 
 ## Contributing
 
