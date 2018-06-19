@@ -11,12 +11,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - GFM support
 
-## [0.1.1] (12/26/2017)
+## [0.1.1] (2017-12-26)
 
 - Minor refactoring and improving speed. thanks @[straight-shoota](https://github.com/straight-shoota).
 - Use Crystal v0.24.1 as default complier.
 
-## 0.1.0 (09/22/2017)
+## 0.1.0 (2017-09-22)
 
 - [initial implementation](https://github.com/icyleaf/markd/milestone/1?closed=1)
 
