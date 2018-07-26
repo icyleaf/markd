@@ -1,10 +1,8 @@
 # markd
 
+[![Language](https://img.shields.io/badge/language-crystal-776791.svg)](https://github.com/crystal-lang/crystal)
 [![Tag](https://img.shields.io/github/tag/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/CHANGELOG.md)
-[![Dependency Status](https://shards.rocks/badge/github/icyleaf/markd/status.svg)](https://shards.rocks/github/icyleaf/markd)
-[![devDependency Status](https://shards.rocks/badge/github/icyleaf/markd/dev_status.svg)](https://shards.rocks/github/icyleaf/markd)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
-[![License](https://img.shields.io/github/license/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/LICENSE)
 
 Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.27`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
@@ -84,14 +82,28 @@ Crystal Markdown   3.28k (305.29µs) (± 0.92%)       fastest
 
 Recently, i'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
 
-## Contributing
+## Donate
 
-1. Fork it ( https://github.com/icyleaf/markd/fork )
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Add some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create a new Pull Request
+Markd is a open source, collaboratively funded project. If you run a business and are using Markd in a revenue-generating product,
+it would make business sense to sponsor Markd development. Individual users are also welcome to make a one time donation
+if Totem has helped you in your work or personal projects.
 
-## Contributors
+You can donate via [Paypal](https://www.paypal.me/icyleaf/5).
 
-- [icyleaf](https://github.com/icyleaf) - creator, maintainer
+## How to Contribute
+
+Your contributions are always welcome! Please submit a pull request or create an issue to add a new question, bug or feature to the list.
+
+All [Contributors](https://github.com/icyleaf/markd/graphs/contributors) are on the wall.
+
+## You may also like
+
+- [halite](https://github.com/icyleaf/halite) - HTTP Requests Client with a chainable REST API, built-in sessions and loggers.
+- [totem](https://github.com/icyleaf/totem) - Load and parse a configuration file or string in JSON, YAML, dotenv formats.
+- [poncho](https://github.com/icyleaf/poncho) - A .env parser/loader improved for performance.
+- [popcorn](https://github.com/icyleaf/popcorn) - Easy and Safe casting from one type to another.
+- [fast-crystal](https://github.com/icyleaf/fast-crystal) - 💨 Writing Fast Crystal 😍 -- Collect Common Crystal idioms.
+
+## License
+
+[MIT License](https://github.com/icyleaf/markd/blob/master/LICENSE) © icyleaf
