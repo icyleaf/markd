@@ -1,6 +1,0 @@
-version: 1.0
-shards:
-  crmark:
-    github: ujifgc/crmark
-    commit: 457c602725834429cd40544fbcaa505034637c8b
-

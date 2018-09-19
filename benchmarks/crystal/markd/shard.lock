@@ -1,6 +1,0 @@
-version: 1.0
-shards:
-  markd:
-    github: icyleaf/markd
-    commit: 02fe3266a9e4f00dc57c70bad1c6851d3f929684
-
