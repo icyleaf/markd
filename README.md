@@ -3,7 +3,7 @@
 [![Language](https://img.shields.io/badge/language-crystal-776791.svg)](https://github.com/crystal-lang/crystal)
 [![Tag](https://img.shields.io/github/tag/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/CHANGELOG.md)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
-
+G
 Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.27`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
 ## Installation
@@ -98,7 +98,7 @@ All [Contributors](https://github.com/icyleaf/markd/graphs/contributors) are on 
 
 ## You may also like
 
-- [halite](https://github.com/icyleaf/halite) - HTTP Requests Client with a chainable REST API, built-in sessions and loggers.
+- [halite](https://github.com/icyleaf/halite) - HTTP Requests Client with a chainable REST API, built-in sessions and middlewares.
 - [totem](https://github.com/icyleaf/totem) - Load and parse a configuration file or string in JSON, YAML, dotenv formats.
 - [poncho](https://github.com/icyleaf/poncho) - A .env parser/loader improved for performance.
 - [popcorn](https://github.com/icyleaf/popcorn) - Easy and Safe casting from one type to another.
