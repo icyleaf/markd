@@ -69,7 +69,7 @@ module Markd::Parser
     end
 
     private def prepare_input(source)
-      @lines = source.each_line.to_a
+      @lines = source.lines
       @line_size = @lines.size
       # ignore last blank line created by final newline
       @line_size -= 1 if source[-1]? == '\n'
@@ -210,7 +210,7 @@ module Markd::Parser
       container_parent = container.parent?
 
       container.open = false
-      container.source_pos[1] = [line_number, @last_line_length]
+      container.source_pos[1] = {line_number, @last_line_length}
       RULES[container.type].token(self, container)
 
       @tip = container_parent
@@ -239,7 +239,7 @@ module Markd::Parser
       column_number = offset + 1 # offset 0 = column 1
 
       node = Node.new(type)
-      node.source_pos = [[@current_line, column_number], [0, 0]]
+      node.source_pos = { {@current_line, column_number}, {0, 0} }
       node.text = ""
       tip.append_child(node)
       @tip = node

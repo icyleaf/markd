@@ -63,8 +63,8 @@ module Markd::HTMLEntities
 
     def self.encode(source : String)
       source.gsub(ENTITIES_REGEX) { |chars| encode_entities(chars) }
-            .gsub(ASTRAL_REGEX) { |chars| encode_astral(chars) }
-            .gsub(ENCODE_REGEX) { |chars| encode_extend(chars) }
+        .gsub(ASTRAL_REGEX) { |chars| encode_astral(chars) }
+        .gsub(ENCODE_REGEX) { |chars| encode_extend(chars) }
     end
 
     private def self.encode_entities(chars : String)
