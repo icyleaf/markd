@@ -50,7 +50,7 @@ module Markd
     property type : Type
 
     property data = {} of String => DataValue
-    property source_pos = [[1, 1], [0, 0]]
+    property source_pos = { {1, 1}, {0, 0} }
     property text = ""
     property? open = true
     property? fenced = false
