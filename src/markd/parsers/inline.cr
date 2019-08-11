@@ -746,11 +746,11 @@ module Markd::Parser
     end
 
     def normalize_uri(uri : String)
-      io = String::Builder.new
-      URI.encode(decode_uri(uri), io) do |byte|
-        URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+      String.build do |io|
+        URI.encode(decode_uri(uri), io) do |byte|
+          URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+        end
       end
-      io.to_s
     end
 
     def decode_uri(text : String)
