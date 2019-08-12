@@ -746,13 +746,15 @@ module Markd::Parser
     end
 
     def normalize_uri(uri : String)
-      URI.escape(decode_uri(uri)) do |byte|
-        URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+      String.build do |io|
+        URI.encode(decode_uri(uri), io) do |byte|
+          URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+        end
       end
     end
 
     def decode_uri(text : String)
-      URI.unescape(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+      URI.decode(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
     end
 
     class Bracket
