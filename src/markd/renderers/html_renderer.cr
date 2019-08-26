@@ -183,7 +183,7 @@ module Markd
     private def toc(node : Node)
       return unless node.type.heading?
 
-      title = URI.escape(node.text)
+      title = URI.encode(node.text)
 
       @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#) << title %("></a>)
       @last_output = ">"
