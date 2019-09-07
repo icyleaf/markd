@@ -33,6 +33,7 @@ module Markd
                       end
 
       if languages.size > 0 && (lang = languages[0]) && !lang.empty?
+        code_tag_attrs ||= {} of String => String
         code_tag_attrs["class"] = "language-#{lang.strip}"
       end
 
@@ -61,6 +62,7 @@ module Markd
       attrs = attrs(node)
       tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
       if entering && (start = node.data["start"].as(Int32)) && start != 1
+        attrs ||= {} of String => String
         attrs["start"] = start.to_s
       end
 
@@ -82,10 +84,12 @@ module Markd
       if entering
         attrs = attrs(node)
         if !(@options.safe && potentially_unsafe(node.data["destination"].as(String)))
+          attrs ||= {} of String => String
           attrs["href"] = escape(node.data["destination"].as(String))
         end
 
         if (title = node.data["title"].as(String)) && !title.empty?
+          attrs ||= {} of String => String
           attrs["title"] = escape(title)
         end
 
@@ -163,11 +167,11 @@ module Markd
       out(node.text)
     end
 
-    private def tag(name : String, attrs = {} of String => String, self_closing = false)
+    private def tag(name : String, attrs = nil, self_closing = false)
       return if @disable_tag > 0
 
       @output_io << "<" << name
-      attrs.each do |key, value|
+      attrs.try &.each do |key, value|
         @output_io << ' ' << key << '=' << '"' << value << '"'
       end
 
@@ -190,13 +194,11 @@ module Markd
     end
 
     private def attrs(node : Node)
-      attr = {} of String => String
-
       if @options.source_pos && (pos = node.source_pos)
-        attr["data-source-pos"] = "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"
+        {"data-source-pos" => "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"}
+      else
+        nil
       end
-
-      attr
     end
   end
 end
