@@ -730,7 +730,7 @@ module Markd::Parser
     private def match(regex : Regex) : String?
       text = @text[@pos..-1]
       if match = text.match(regex)
-        @pos += text.index(regex).as(Int32) + match[0].size
+        @pos += match.begin.not_nil! + match[0].size
         return match[0]
       end
     end
