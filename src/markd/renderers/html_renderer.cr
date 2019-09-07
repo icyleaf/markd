@@ -69,14 +69,22 @@ module Markd
 
     def list(node : Node, entering : Bool)
       attrs = attrs(node)
-      tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
+
+      if node.data["type"] == "bullet"
+        tag_name = "ul"
+        end_tag_name = "/ul"
+      else
+        tag_name = "ol"
+        end_tag_name = "/ol"
+      end
+
       if entering && (start = node.data["start"].as(Int32)) && start != 1
         attrs ||= {} of String => String
         attrs["start"] = start.to_s
       end
 
       cr
-      entering ? tag(tag_name, attrs) : tag("/#{tag_name}")
+      entering ? tag(tag_name, attrs) : tag(end_tag_name)
       cr
     end
 
