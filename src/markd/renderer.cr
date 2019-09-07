@@ -26,7 +26,24 @@ module Markd
     }
 
     def escape(text)
-      text.gsub(ESCAPES)
+      # If we can determine that the text has no escape chars
+      # then we can return the text as is, avoiding an allocation
+      # and a lot of processing in `String#gsub`.
+      if has_escape_char?(text)
+        text.gsub(ESCAPES)
+      else
+        text
+      end
+    end
+
+    private def has_escape_char?(text)
+      text.each_char do |char|
+        case char
+        when '&', '"', '<', '>'
+          return true
+        end
+      end
+      false
     end
 
     def render(document : Node)
