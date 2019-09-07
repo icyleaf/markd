@@ -33,7 +33,7 @@ module Markd
     end
 
     def code_block(node : Node, entering : Bool)
-      languages = node.fence_language ? node.fence_language.split(/\s+/) : [] of String
+      languages = node.fence_language ? node.fence_language.split(/\s+/) : nil
       code_tag_attrs = attrs(node)
       pre_tag_attrs = if @options.prettyprint
                         {"class" => "prettyprint"}
@@ -41,7 +41,7 @@ module Markd
                         nil
                       end
 
-      if languages.size > 0 && (lang = languages[0]) && !lang.empty?
+      if languages && languages.size > 0 && (lang = languages[0]) && !lang.empty?
         code_tag_attrs ||= {} of String => String
         code_tag_attrs["class"] = "language-#{lang.strip}"
       end
