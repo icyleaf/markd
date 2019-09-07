@@ -581,7 +581,7 @@ module Markd::Parser
     private def scan_delims(char : Char)
       num_delims = 0
       start_pos = @pos
-      if ['\'', '"'].includes?(char)
+      if char == '\'' || char == '"'
         num_delims += 1
         @pos += 1
       else
