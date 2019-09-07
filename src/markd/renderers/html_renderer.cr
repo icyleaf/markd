@@ -38,7 +38,7 @@ module Markd
       pre_tag_attrs = if @options.prettyprint
                         {"class" => "prettyprint"}
                       else
-                        {} of String => String
+                        nil
                       end
 
       if languages.size > 0 && (lang = languages[0]) && !lang.empty?
