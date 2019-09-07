@@ -440,7 +440,7 @@ module Markd::Parser
     end
 
     private def string(node : Node)
-      if text = match(Rule::MAIN)
+      if text = match_main
         if @options.smart
           text = text.gsub(Rule::ELLIPSIS, '\u{2026}')
             .gsub(Rule::DASH) do |chars|
@@ -733,6 +733,29 @@ module Markd::Parser
       if match = text.match(regex)
         @pos += match.byte_begin.not_nil! + match[0].bytesize
         return match[0]
+      end
+    end
+
+    private def match_main : String?
+      # This is the same as match(/^[^\n`\[\]\\!<&*_'"]+/m) but done manually (faster)
+      start_pos = @pos
+      while (char = char_at?(@pos)) && main_char?(char)
+        @pos += 1
+      end
+
+      if start_pos == @pos
+        nil
+      else
+        @text.byte_slice(start_pos, @pos - start_pos)
+      end
+    end
+
+    private def main_char?(char)
+      case char
+      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"'
+        false
+      else
+        true
       end
     end
 

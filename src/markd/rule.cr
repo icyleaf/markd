@@ -17,8 +17,6 @@ module Markd
 
     ESCAPABLE = /^#{ESCAPABLE_STRING}/
 
-    MAIN = /^[^\n`\[\]\\!<&*_'"]+/m
-
     TICKS = /`+/
 
     ELLIPSIS = "..."
