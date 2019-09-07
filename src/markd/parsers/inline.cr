@@ -71,7 +71,7 @@ module Markd::Parser
       last_child = node.last_child?
       # check previous node for trailing spaces
       if last_child && last_child.type.text? &&
-         last_child.text[-1]? == ' '
+         last_child.text.ends_with?(' ')
         hard_break = if last_child.text.size == 1
                        false # Must be space
                      else

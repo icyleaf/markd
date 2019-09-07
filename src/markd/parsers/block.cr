@@ -72,7 +72,7 @@ module Markd::Parser
       @lines = source.lines
       @line_size = @lines.size
       # ignore last blank line created by final newline
-      @line_size -= 1 if source[-1]? == '\n'
+      @line_size -= 1 if source.ends_with?('\n')
     end
 
     private def parse_blocks
