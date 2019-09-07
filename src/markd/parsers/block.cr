@@ -63,17 +63,17 @@ module Markd::Parser
     end
 
     private def parse_blocks(source)
-      line_size = 0
+      lines_size = 0
       source.each_line do |line|
         process_line(line)
-        line_size += 1
+        lines_size += 1
       end
 
       # ignore last blank line created by final newline
-      line_size -= 1 if source.ends_with?('\n')
+      lines_size -= 1 if source.ends_with?('\n')
 
       while tip = tip?
-        token(tip, line_size)
+        token(tip, lines_size)
       end
     end
 
