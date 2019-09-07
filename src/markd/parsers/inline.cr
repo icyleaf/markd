@@ -29,7 +29,7 @@ module Markd::Parser
     end
 
     private def process_line(node : Node)
-      char = @text[@pos]?
+      char = char_at?(@pos)
 
       return false unless char && char != Char::ZERO
 
@@ -84,7 +84,7 @@ module Markd::Parser
       end
 
       # gobble leading spaces in next line
-      while @text[@pos]? == ' '
+      while char_at?(@pos) == ' '
         @pos += 1
       end
 
@@ -94,8 +94,8 @@ module Markd::Parser
     private def backslash(node : Node)
       @pos += 1
 
-      char = @text.size > @pos ? @text[@pos].to_s : nil
-      child = if @text[@pos]? == '\n'
+      char = @pos < @text.bytesize ? char_at(@pos).to_s : nil
+      child = if char_at?(@pos) == '\n'
                 @pos += 1
                 Node.new(Node::Type::LineBreak)
               elsif char && char.match(Rule::ESCAPABLE)
@@ -113,7 +113,7 @@ module Markd::Parser
 
     private def backtick(node : Node)
       start_pos = @pos
-      while @text[@pos]? == '`'
+      while char_at?(@pos) == '`'
         @pos += 1
       end
       return false if start_pos == @pos
@@ -121,9 +121,9 @@ module Markd::Parser
       num_ticks = @pos - start_pos
       after_open_ticks = @pos
       while text = match(Rule::TICKS)
-        if text.size == num_ticks
+        if text.bytesize == num_ticks
           child = Node.new(Node::Type::Code)
-          child.text = @text[after_open_ticks..(@pos - num_ticks - 1)].strip.gsub(Rule::WHITESPACE, " ")
+          child.text = @text.byte_slice(after_open_ticks, (@pos - num_ticks) - after_open_ticks).strip.gsub(Rule::WHITESPACE, " ")
           node.append_child(child)
 
           return true
@@ -139,7 +139,7 @@ module Markd::Parser
     private def bang(node : Node)
       start_pos = @pos
       @pos += 1
-      if @text[@pos]? == '['
+      if char_at?(@pos) == '['
         @pos += 1
         child = text("![")
         node.append_child(child)
@@ -203,12 +203,12 @@ module Markd::Parser
       save_pos = @pos
 
       # Inline link?
-      if @text[@pos]? == '('
+      if char_at?(@pos) == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
-           spnl && (@text[@pos - 1]?.try(&.whitespace?) &&
+           spnl && (char_at?(@pos - 1).try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
-           @text[@pos]? == ')'
+           char_at?(@pos) == ')'
           @pos += 1
           matched = true
         else
@@ -222,11 +222,11 @@ module Markd::Parser
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = normalize_refernence(@text[before_label, label_size + 1])
+          ref_label = normalize_refernence(@text.byte_slice(before_label, label_size + 1))
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = normalize_refernence(@text[opener.index..(start_pos - 1)])
+          ref_label = normalize_refernence(@text.byte_slice(opener.index, start_pos - opener.index))
         end
 
         if label_size == 0
@@ -416,10 +416,10 @@ module Markd::Parser
     end
 
     private def entity(node : Node)
-      if @text[@pos]? == '&'
+      if char_at?(@pos) == '&'
         pos = @pos + 1
         loop do
-          char = @text[pos]?
+          char = char_at?(pos)
           pos += 1
           case char
           when ';'
@@ -428,7 +428,7 @@ module Markd::Parser
             return false
           end
         end
-        text = @text[(@pos + 1)..(pos - 2)]
+        text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
         decoded_text = HTML.decode_entity text
 
         node.append_child(text(decoded_text))
@@ -483,7 +483,7 @@ module Markd::Parser
     private def link_label
       text = match(Rule::LINK_LABEL)
       if text && text.size <= 1001 && (!text.ends_with?("\\]") || text[-3]? == '\\')
-        text.size - 1
+        text.bytesize - 1
       else
         0
       end
@@ -502,11 +502,11 @@ module Markd::Parser
              else
                save_pos = @pos
                open_parens = 0
-               while char = @text[@pos]?
+               while char = char_at?(@pos)
                  case char
                  when '\\'
                    @pos += 1
-                   @pos += 1 if @text[@pos]?
+                   @pos += 1 if char_at?(@pos)
                  when '('
                    @pos += 1
                    open_parens += 1
@@ -522,7 +522,7 @@ module Markd::Parser
                  end
                end
 
-               @text[save_pos..(@pos - 1)]
+               @text.byte_slice(save_pos, @pos - save_pos)
              end
 
       normalize_uri(Utils.decode_entities_string(dest))
@@ -541,7 +541,7 @@ module Markd::Parser
              when '"'
                "\u{201C}"
              else
-               @text[start_pos..(@pos - 1)]
+               @text.byte_slice(start_pos, @pos - start_pos)
              end
 
       child = text(text)
@@ -585,7 +585,7 @@ module Markd::Parser
         num_delims += 1
         @pos += 1
       else
-        while @text[@pos]? == char
+        while char_at?(@pos) == char
           num_delims += 1
           @pos += 1
         end
@@ -593,8 +593,8 @@ module Markd::Parser
 
       return if num_delims == 0
 
-      char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
-      char_after = @text[@pos]? || '\n'
+      char_before = start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)
+      char_after = unicode_char_at?(@pos) || '\n'
 
       # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
       after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
@@ -637,10 +637,10 @@ module Markd::Parser
 
       # label
       return 0 if match_chars == 0
-      raw_label = @text[0..match_chars]
+      raw_label = @text.byte_slice(0, match_chars + 1)
 
       # colon
-      if @text[@pos]? == ':'
+      if char_at?(@pos) == ':'
         @pos += 1
       else
         @pos = startpos
@@ -651,6 +651,7 @@ module Markd::Parser
       spnl
 
       dest = link_destination
+
       if dest.size == 0
         @pos = startpos
         return 0
@@ -697,11 +698,11 @@ module Markd::Parser
     end
 
     private def space_at_end_of_line?
-      while @text[@pos]? == ' '
+      while char_at?(@pos) == ' '
         @pos += 1
       end
 
-      case @text[@pos]
+      case char_at?(@pos)
       when '\n'
         @pos += 1
       when Char::ZERO
@@ -714,7 +715,7 @@ module Markd::Parser
     # Parse zero or more space characters, including at most one newline
     private def spnl
       seen_newline = false
-      while c = @text[@pos]?
+      while c = char_at?(@pos)
         if !seen_newline && c == '\n'
           seen_newline = true
         elsif c != ' '
@@ -728,9 +729,9 @@ module Markd::Parser
     end
 
     private def match(regex : Regex) : String?
-      text = @text[@pos..-1]
+      text = @text.byte_slice(@pos)
       if match = text.match(regex)
-        @pos += match.begin.not_nil! + match[0].size
+        @pos += match.byte_begin.not_nil! + match[0].bytesize
         return match[0]
       end
     end
@@ -739,6 +740,28 @@ module Markd::Parser
       node = Node.new(Node::Type::Text)
       node.text = text.to_s
       node
+    end
+
+    private def char_at?(byte_index)
+      @text.byte_at?(byte_index).try &.unsafe_chr
+    end
+
+    private def char_at(byte_index)
+      @text.byte_at(byte_index).unsafe_chr
+    end
+
+    private def previous_unicode_char_at(byte_index)
+      reader = Char::Reader.new(@text, byte_index)
+      reader.previous_char
+    end
+
+    private def unicode_char_at?(byte_index)
+      if byte_index < @text.bytesize
+        reader = Char::Reader.new(@text, byte_index)
+        reader.current_char
+      else
+        nil
+      end
     end
 
     # Normalize reference label: collapse internal whitespace

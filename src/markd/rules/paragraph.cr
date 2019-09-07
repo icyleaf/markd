@@ -15,7 +15,7 @@ module Markd::Rule
 
       while container.text[0]? == '[' &&
             (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
-        container.text = container.text[pos..-1]
+        container.text = container.text.byte_slice(pos)
         has_reference_defs = true
       end
 
