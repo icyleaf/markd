@@ -18,13 +18,15 @@ module Markd
       lit("\n") if @last_output != "\n"
     end
 
+    private ESCAPES = {
+      '&' => "&amp;",
+      '"' => "&quot;",
+      '<' => "&lt;",
+      '>' => "&gt;",
+    }
+
     def escape(text)
-      text.gsub({
-        '&' => "&amp;",
-        '"' => "&quot;",
-        '<' => "&lt;",
-        '>' => "&gt;",
-      })
+      text.gsub(ESCAPES)
     end
 
     def render(document : Node)
