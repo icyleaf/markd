@@ -132,7 +132,7 @@ module Markd::Parser
           end
         end
 
-        matched = RULES.values.each do |rule|
+        matched = RULES.each_value do |rule|
           case rule.match(self, container)
           when Rule::MatchValue::Container
             container = tip
