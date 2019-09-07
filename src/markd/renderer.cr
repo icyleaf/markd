@@ -1,7 +1,7 @@
 module Markd
   abstract class Renderer
     def initialize(@options = Options.new)
-      @output_io = IO::Memory.new
+      @output_io = String::Builder.new
       @last_output = "\n"
     end
 
