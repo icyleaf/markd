@@ -5,14 +5,23 @@ module Markd
     @disable_tag = 0
     @last_output = "\n"
 
+    private HEADINGS = {
+      1 => {"h1", "/h1"},
+      2 => {"h2", "/h2"},
+      3 => {"h3", "/h3"},
+      4 => {"h4", "/h4"},
+      5 => {"h5", "/h5"},
+      6 => {"h6", "/h6"},
+    }
+
     def heading(node : Node, entering : Bool)
-      tag_name = "h#{node.data["level"]}"
+      tag_name, end_tag_name = HEADINGS[node.data["level"]]
       if entering
         cr
         tag(tag_name, attrs(node))
         # toc(node) if @options.toc
       else
-        tag("/#{tag_name}")
+        tag(end_tag_name)
         cr
       end
     end
