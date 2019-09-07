@@ -37,8 +37,8 @@ module Markd
     end
 
     private def has_escape_char?(text)
-      text.each_char do |char|
-        case char
+      text.each_byte do |byte|
+        case byte
         when '&', '"', '<', '>'
           return true
         end
