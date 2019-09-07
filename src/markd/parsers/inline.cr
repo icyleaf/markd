@@ -747,10 +747,12 @@ module Markd::Parser
       text[1..-2].strip.downcase.gsub("\n", " ")
     end
 
+    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
+
     def normalize_uri(uri : String)
       String.build do |io|
         URI.encode(decode_uri(uri), io) do |byte|
-          URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+          URI.unreserved?(byte) || RESERVED_CHARS.includes?(byte.chr)
         end
       end
     end
