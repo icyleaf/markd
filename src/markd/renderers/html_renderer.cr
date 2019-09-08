@@ -6,30 +6,30 @@ module Markd
     @last_output = "\n"
 
     private HEADINGS = {
-      1 => {"h1", "/h1"},
-      2 => {"h2", "/h2"},
-      3 => {"h3", "/h3"},
-      4 => {"h4", "/h4"},
-      5 => {"h5", "/h5"},
-      6 => {"h6", "/h6"},
+      1 => "h1",
+      2 => "h2",
+      3 => "h3",
+      4 => "h4",
+      5 => "h5",
+      6 => "h6",
     }
 
     def heading(node : Node, entering : Bool)
-      tag_name, end_tag_name = HEADINGS[node.data["level"]]
+      tag_name = HEADINGS[node.data["level"]]
       if entering
         cr
         tag(tag_name, attrs(node))
         # toc(node) if @options.toc
       else
-        tag(end_tag_name)
+        tag(tag_name, end_tag: true)
         cr
       end
     end
 
     def code(node : Node, entering : Bool)
-      tag("code")
-      out(node.text)
-      tag("/code")
+      tag("code") do
+        out(node.text)
+      end
     end
 
     def code_block(node : Node, entering : Bool)
@@ -47,44 +47,46 @@ module Markd
       end
 
       cr
-      tag("pre", pre_tag_attrs)
-      tag("code", code_tag_attrs)
-      out(node.text)
-      tag("/code")
-      tag("/pre")
+      tag("pre", pre_tag_attrs) do
+        tag("code", code_tag_attrs) do
+          out(node.text)
+        end
+      end
       cr
     end
 
     def thematic_break(node : Node, entering : Bool)
       cr
-      tag("hr", attrs(node), true)
+      tag("hr", attrs(node), self_closing: true)
       cr
     end
 
     def block_quote(node : Node, entering : Bool)
       cr
-      entering ? tag("blockquote", attrs(node)) : tag("/blockquote")
+      if entering
+        tag("blockquote", attrs(node))
+      else
+        tag("blockquote", end_tag: true)
+      end
       cr
     end
 
     def list(node : Node, entering : Bool)
-      attrs = attrs(node)
-
-      if node.data["type"] == "bullet"
-        tag_name = "ul"
-        end_tag_name = "/ul"
-      else
-        tag_name = "ol"
-        end_tag_name = "/ol"
-      end
-
-      if entering && (start = node.data["start"].as(Int32)) && start != 1
-        attrs ||= {} of String => String
-        attrs["start"] = start.to_s
-      end
+      tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
 
       cr
-      entering ? tag(tag_name, attrs) : tag(end_tag_name)
+      if entering
+        attrs = attrs(node)
+
+        if (start = node.data["start"].as(Int32)) && start != 1
+          attrs ||= {} of String => String
+          attrs["start"] = start.to_s
+        end
+
+        tag(tag_name, attrs)
+      else
+        tag(tag_name, end_tag: true)
+      end
       cr
     end
 
@@ -92,7 +94,7 @@ module Markd
       if entering
         tag("li", attrs(node))
       else
-        tag("/li")
+        tag("li", end_tag: true)
         cr
       end
     end
@@ -112,7 +114,7 @@ module Markd
 
         tag("a", attrs)
       else
-        tag("/a")
+        tag("a", end_tag: true)
       end
     end
 
@@ -158,13 +160,13 @@ module Markd
         cr
         tag("p", attrs(node))
       else
-        tag("/p")
+        tag("p", end_tag: true)
         cr
       end
     end
 
     def emphasis(node : Node, entering : Bool)
-      tag(entering ? "em" : "/em")
+      tag("em", end_tag: !entering)
     end
 
     def soft_break(node : Node, entering : Bool)
@@ -177,17 +179,19 @@ module Markd
     end
 
     def strong(node : Node, entering : Bool)
-      tag(entering ? "strong" : "/strong")
+      tag("strong", end_tag: !entering)
     end
 
     def text(node : Node, entering : Bool)
       out(node.text)
     end
 
-    private def tag(name : String, attrs = nil, self_closing = false)
+    private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
       return if @disable_tag > 0
 
-      @output_io << "<" << name
+      @output_io << "<"
+      @output_io << "/" if end_tag
+      @output_io << name
       attrs.try &.each do |key, value|
         @output_io << ' ' << key << '=' << '"' << value << '"'
       end
@@ -195,6 +199,12 @@ module Markd
       @output_io << " /" if self_closing
       @output_io << ">"
       @last_output = ">"
+    end
+
+    private def tag(name : String, attrs = nil)
+      tag(name, attrs)
+      yield
+      tag(name, end_tag: true)
     end
 
     private def potentially_unsafe(url : String)
