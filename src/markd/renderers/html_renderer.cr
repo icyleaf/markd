@@ -33,7 +33,7 @@ module Markd
     end
 
     def code_block(node : Node, entering : Bool)
-      languages = node.fence_language ? node.fence_language.split(/\s+/) : nil
+      languages = node.fence_language ? node.fence_language.split : nil
       code_tag_attrs = attrs(node)
       pre_tag_attrs = if @options.prettyprint
                         {"class" => "prettyprint"}
