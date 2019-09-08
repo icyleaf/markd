@@ -5,17 +5,10 @@ module Markd
     @disable_tag = 0
     @last_output = "\n"
 
-    private HEADINGS = {
-      1 => "h1",
-      2 => "h2",
-      3 => "h3",
-      4 => "h4",
-      5 => "h5",
-      6 => "h6",
-    }
+    private HEADINGS = %w(h1 h2 h3 h4 h5 h6)
 
     def heading(node : Node, entering : Bool)
-      tag_name = HEADINGS[node.data["level"]]
+      tag_name = HEADINGS[node.data["level"].as(Int32) - 1]
       if entering
         cr
         tag(tag_name, attrs(node))
