@@ -796,7 +796,7 @@ module Markd::Parser
     private RESERVED_CHARS = ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
 
     def normalize_uri(uri : String)
-      String.build do |io|
+      String.build(capacity: uri.bytesize) do |io|
         URI.encode(decode_uri(uri), io) do |byte|
           URI.unreserved?(byte) || RESERVED_CHARS.includes?(byte.chr)
         end
