@@ -804,7 +804,11 @@ module Markd::Parser
     end
 
     def decode_uri(text : String)
-      URI.decode(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+      decoded = URI.decode(text)
+      if decoded.includes?('&') && decoded.includes?(';')
+        decoded = decoded.gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+      end
+      decoded
     end
 
     class Bracket
