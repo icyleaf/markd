@@ -731,7 +731,7 @@ module Markd::Parser
     private def match(regex : Regex) : String?
       text = @text.byte_slice(@pos)
       if match = text.match(regex)
-        @pos += match.byte_begin.not_nil! + match[0].bytesize
+        @pos += match.byte_end.not_nil!
         return match[0]
       end
     end
