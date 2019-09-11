@@ -1,7 +1,7 @@
 module Markd
   abstract class Renderer
     def initialize(@options = Options.new)
-      @output_io = IO::Memory.new
+      @output_io = String::Builder.new
       @last_output = "\n"
     end
 
@@ -18,13 +18,32 @@ module Markd
       lit("\n") if @last_output != "\n"
     end
 
+    private ESCAPES = {
+      '&' => "&amp;",
+      '"' => "&quot;",
+      '<' => "&lt;",
+      '>' => "&gt;",
+    }
+
     def escape(text)
-      text.gsub({
-        '&' => "&amp;",
-        '"' => "&quot;",
-        '<' => "&lt;",
-        '>' => "&gt;",
-      })
+      # If we can determine that the text has no escape chars
+      # then we can return the text as is, avoiding an allocation
+      # and a lot of processing in `String#gsub`.
+      if has_escape_char?(text)
+        text.gsub(ESCAPES)
+      else
+        text
+      end
+    end
+
+    private def has_escape_char?(text)
+      text.each_byte do |byte|
+        case byte
+        when '&', '"', '<', '>'
+          return true
+        end
+      end
+      false
     end
 
     def render(document : Node)

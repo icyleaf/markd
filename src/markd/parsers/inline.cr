@@ -29,7 +29,7 @@ module Markd::Parser
     end
 
     private def process_line(node : Node)
-      char = @text[@pos]?
+      char = char_at?(@pos)
 
       return false unless char && char != Char::ZERO
 
@@ -71,7 +71,7 @@ module Markd::Parser
       last_child = node.last_child?
       # check previous node for trailing spaces
       if last_child && last_child.type.text? &&
-         last_child.text[-1]? == ' '
+         last_child.text.ends_with?(' ')
         hard_break = if last_child.text.size == 1
                        false # Must be space
                      else
@@ -84,7 +84,7 @@ module Markd::Parser
       end
 
       # gobble leading spaces in next line
-      while @text[@pos]? == ' '
+      while char_at?(@pos) == ' '
         @pos += 1
       end
 
@@ -94,8 +94,8 @@ module Markd::Parser
     private def backslash(node : Node)
       @pos += 1
 
-      char = @text.size > @pos ? @text[@pos].to_s : nil
-      child = if @text[@pos]? == '\n'
+      char = @pos < @text.bytesize ? char_at(@pos).to_s : nil
+      child = if char_at?(@pos) == '\n'
                 @pos += 1
                 Node.new(Node::Type::LineBreak)
               elsif char && char.match(Rule::ESCAPABLE)
@@ -113,7 +113,7 @@ module Markd::Parser
 
     private def backtick(node : Node)
       start_pos = @pos
-      while @text[@pos]? == '`'
+      while char_at?(@pos) == '`'
         @pos += 1
       end
       return false if start_pos == @pos
@@ -121,9 +121,9 @@ module Markd::Parser
       num_ticks = @pos - start_pos
       after_open_ticks = @pos
       while text = match(Rule::TICKS)
-        if text.size == num_ticks
+        if text.bytesize == num_ticks
           child = Node.new(Node::Type::Code)
-          child.text = @text[after_open_ticks..(@pos - num_ticks - 1)].strip.gsub(Rule::WHITESPACE, " ")
+          child.text = @text.byte_slice(after_open_ticks, (@pos - num_ticks) - after_open_ticks).strip.gsub(Rule::WHITESPACE, " ")
           node.append_child(child)
 
           return true
@@ -139,7 +139,7 @@ module Markd::Parser
     private def bang(node : Node)
       start_pos = @pos
       @pos += 1
-      if @text[@pos]? == '['
+      if char_at?(@pos) == '['
         @pos += 1
         child = text("![")
         node.append_child(child)
@@ -203,12 +203,12 @@ module Markd::Parser
       save_pos = @pos
 
       # Inline link?
-      if @text[@pos]? == '('
+      if char_at?(@pos) == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
-           spnl && (@text[@pos - 1]?.try(&.whitespace?) &&
+           spnl && (char_at?(@pos - 1).try(&.whitespace?) &&
            (title = link_title) || true) && spnl &&
-           @text[@pos]? == ')'
+           char_at?(@pos) == ')'
           @pos += 1
           matched = true
         else
@@ -222,11 +222,11 @@ module Markd::Parser
         before_label = @pos
         label_size = link_label
         if label_size > 2
-          ref_label = normalize_refernence(@text[before_label, label_size + 1])
+          ref_label = normalize_refernence(@text.byte_slice(before_label, label_size + 1))
         elsif !opener.bracket_after
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
-          ref_label = normalize_refernence(@text[opener.index..(start_pos - 1)])
+          ref_label = normalize_refernence(@text.byte_slice(opener.index, start_pos - opener.index))
         end
 
         if label_size == 0
@@ -278,13 +278,6 @@ module Markd::Parser
     end
 
     private def process_emphasis(delimiter : Delimiter?)
-      openers_bottom = {
-        '_'  => delimiter,
-        '*'  => delimiter,
-        '\'' => delimiter,
-        '"'  => delimiter,
-      } of Char => Delimiter?
-
       # find first closer above stack_bottom:
       closer = @delimiters
       while closer
@@ -293,94 +286,103 @@ module Markd::Parser
         closer = previous
       end
 
-      # move forward, looking for closers, and handling each
-      while closer
-        closer_char = closer.char
+      if closer
+        openers_bottom = {
+          '_'  => delimiter,
+          '*'  => delimiter,
+          '\'' => delimiter,
+          '"'  => delimiter,
+        } of Char => Delimiter?
 
-        unless closer.can_close
-          closer = closer.next?
-          next
-        end
+        # move forward, looking for closers, and handling each
+        while closer
+          closer_char = closer.char
 
-        # found emphasis closer. now look back for first matching opener:
-        opener = closer.previous?
-        opener_found = false
-        while opener && opener != delimiter && opener != openers_bottom[closer_char]
-          odd_match = (closer.can_open || opener.can_close) &&
-                      (opener.orig_delims + closer.orig_delims) % 3 == 0
-          if opener.char == closer.char && opener.can_open && !odd_match
-            opener_found = true
-            break
-          end
-          opener = opener.previous?
-        end
-        opener = nil unless opener_found
-
-        old_closer = closer
-
-        case closer_char
-        when '*', '_'
-          unless opener
+          unless closer.can_close
             closer = closer.next?
-          else
-            # calculate actual number of delimiters used from closer
-            use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
-            opener_inl = opener.node
-            closer_inl = closer.node
-
-            # remove used delimiters from stack elts and inlines
-            opener.num_delims -= use_delims
-            closer.num_delims -= use_delims
-
-            opener_inl.text = opener_inl.text[0..(-use_delims - 1)]
-            closer_inl.text = closer_inl.text[0..(-use_delims - 1)]
-
-            # build contents for new emph element
-            emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
-
-            tmp = opener_inl.next?
-            while tmp && tmp != closer_inl
-              next_node = tmp.next?
-              tmp.unlink
-              emph.append_child(tmp)
-              tmp = next_node
-            end
-
-            opener_inl.insert_after(emph)
-
-            # remove elts between opener and closer in delimiters stack
-            remove_delimiter_between(opener, closer)
-
-            # if opener has 0 delims, remove it and the inline
-            if opener.num_delims == 0
-              opener_inl.unlink
-              remove_delimiter(opener)
-            end
-
-            if closer.num_delims == 0
-              closer_inl.unlink
-              tmp_stack = closer.next?
-              remove_delimiter(closer)
-              closer = tmp_stack
-            end
+            next
           end
-        when '\''
-          closer.node.text = "\u{2019}"
-          if opener
-            opener.node.text = "\u{2018}"
-          end
-          closer = closer.next?
-        when '"'
-          closer.node.text = "\u{201D}"
-          if opener
-            opener.node.text = "\u{201C}"
-          end
-          closer = closer.next?
-        end
 
-        if !opener && !odd_match
-          openers_bottom[closer_char] = old_closer.previous?
-          remove_delimiter(old_closer) if !old_closer.can_open
+          # found emphasis closer. now look back for first matching opener:
+          opener = closer.previous?
+          opener_found = false
+          while opener && opener != delimiter && opener != openers_bottom[closer_char]
+            odd_match = (closer.can_open || opener.can_close) &&
+                        (opener.orig_delims + closer.orig_delims) % 3 == 0
+            if opener.char == closer.char && opener.can_open && !odd_match
+              opener_found = true
+              break
+            end
+            opener = opener.previous?
+          end
+          opener = nil unless opener_found
+
+          old_closer = closer
+
+          case closer_char
+          when '*', '_'
+            unless opener
+              closer = closer.next?
+            else
+              # calculate actual number of delimiters used from closer
+              use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
+              opener_inl = opener.node
+              closer_inl = closer.node
+
+              # remove used delimiters from stack elts and inlines
+              opener.num_delims -= use_delims
+              closer.num_delims -= use_delims
+
+              opener_inl.text = opener_inl.text[0..(-use_delims - 1)]
+              closer_inl.text = closer_inl.text[0..(-use_delims - 1)]
+
+              # build contents for new emph element
+              emph = Node.new((use_delims == 1) ? Node::Type::Emphasis : Node::Type::Strong)
+
+              tmp = opener_inl.next?
+              while tmp && tmp != closer_inl
+                next_node = tmp.next?
+                tmp.unlink
+                emph.append_child(tmp)
+                tmp = next_node
+              end
+
+              opener_inl.insert_after(emph)
+
+              # remove elts between opener and closer in delimiters stack
+              remove_delimiter_between(opener, closer)
+
+              # if opener has 0 delims, remove it and the inline
+              if opener.num_delims == 0
+                opener_inl.unlink
+                remove_delimiter(opener)
+              end
+
+              if closer.num_delims == 0
+                closer_inl.unlink
+                tmp_stack = closer.next?
+                remove_delimiter(closer)
+                closer = tmp_stack
+              end
+            end
+          when '\''
+            closer.node.text = "\u{2019}"
+            if opener
+              opener.node.text = "\u{2018}"
+            end
+            closer = closer.next?
+          when '"'
+            closer.node.text = "\u{201D}"
+            if opener
+              opener.node.text = "\u{201C}"
+            end
+            closer = closer.next?
+          end
+
+          if !opener && !odd_match
+            openers_bottom[closer_char] = old_closer.previous?
+            remove_delimiter(old_closer) if !old_closer.can_open
+          end
         end
       end
 
@@ -414,10 +416,10 @@ module Markd::Parser
     end
 
     private def entity(node : Node)
-      if @text[@pos]? == '&'
+      if char_at?(@pos) == '&'
         pos = @pos + 1
         loop do
-          char = @text[pos]?
+          char = char_at?(pos)
           pos += 1
           case char
           when ';'
@@ -426,7 +428,7 @@ module Markd::Parser
             return false
           end
         end
-        text = @text[(@pos + 1)..(pos - 2)]
+        text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
         decoded_text = HTML.decode_entity text
 
         node.append_child(text(decoded_text))
@@ -438,7 +440,7 @@ module Markd::Parser
     end
 
     private def string(node : Node)
-      if text = match(Rule::MAIN)
+      if text = match_main
         if @options.smart
           text = text.gsub(Rule::ELLIPSIS, '\u{2026}')
             .gsub(Rule::DASH) do |chars|
@@ -481,7 +483,7 @@ module Markd::Parser
     private def link_label
       text = match(Rule::LINK_LABEL)
       if text && text.size <= 1001 && (!text.ends_with?("\\]") || text[-3]? == '\\')
-        text.size - 1
+        text.bytesize - 1
       else
         0
       end
@@ -500,11 +502,11 @@ module Markd::Parser
              else
                save_pos = @pos
                open_parens = 0
-               while char = @text[@pos]?
+               while char = char_at?(@pos)
                  case char
                  when '\\'
                    @pos += 1
-                   @pos += 1 if @text[@pos]?
+                   @pos += 1 if char_at?(@pos)
                  when '('
                    @pos += 1
                    open_parens += 1
@@ -520,7 +522,7 @@ module Markd::Parser
                  end
                end
 
-               @text[save_pos..(@pos - 1)]
+               @text.byte_slice(save_pos, @pos - save_pos)
              end
 
       normalize_uri(Utils.decode_entities_string(dest))
@@ -539,7 +541,7 @@ module Markd::Parser
              when '"'
                "\u{201C}"
              else
-               @text[start_pos..(@pos - 1)]
+               @text.byte_slice(start_pos, @pos - start_pos)
              end
 
       child = text(text)
@@ -579,11 +581,11 @@ module Markd::Parser
     private def scan_delims(char : Char)
       num_delims = 0
       start_pos = @pos
-      if ['\'', '"'].includes?(char)
+      if char == '\'' || char == '"'
         num_delims += 1
         @pos += 1
       else
-        while @text[@pos]? == char
+        while char_at?(@pos) == char
           num_delims += 1
           @pos += 1
         end
@@ -591,8 +593,8 @@ module Markd::Parser
 
       return if num_delims == 0
 
-      char_before = start_pos == 0 ? '\n' : @text[start_pos - 1]
-      char_after = @text[@pos]? || '\n'
+      char_before = start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)
+      char_after = unicode_char_at?(@pos) || '\n'
 
       # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
       after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
@@ -635,10 +637,10 @@ module Markd::Parser
 
       # label
       return 0 if match_chars == 0
-      raw_label = @text[0..match_chars]
+      raw_label = @text.byte_slice(0, match_chars + 1)
 
       # colon
-      if @text[@pos]? == ':'
+      if char_at?(@pos) == ':'
         @pos += 1
       else
         @pos = startpos
@@ -649,6 +651,7 @@ module Markd::Parser
       spnl
 
       dest = link_destination
+
       if dest.size == 0
         @pos = startpos
         return 0
@@ -695,11 +698,11 @@ module Markd::Parser
     end
 
     private def space_at_end_of_line?
-      while @text[@pos]? == ' '
+      while char_at?(@pos) == ' '
         @pos += 1
       end
 
-      case @text[@pos]
+      case char_at?(@pos)
       when '\n'
         @pos += 1
       when Char::ZERO
@@ -712,7 +715,7 @@ module Markd::Parser
     # Parse zero or more space characters, including at most one newline
     private def spnl
       seen_newline = false
-      while c = @text[@pos]?
+      while c = char_at?(@pos)
         if !seen_newline && c == '\n'
           seen_newline = true
         elsif c != ' '
@@ -726,10 +729,33 @@ module Markd::Parser
     end
 
     private def match(regex : Regex) : String?
-      text = @text[@pos..-1]
+      text = @text.byte_slice(@pos)
       if match = text.match(regex)
-        @pos += text.index(regex).as(Int32) + match[0].size
+        @pos += match.byte_end.not_nil!
         return match[0]
+      end
+    end
+
+    private def match_main : String?
+      # This is the same as match(/^[^\n`\[\]\\!<&*_'"]+/m) but done manually (faster)
+      start_pos = @pos
+      while (char = char_at?(@pos)) && main_char?(char)
+        @pos += 1
+      end
+
+      if start_pos == @pos
+        nil
+      else
+        @text.byte_slice(start_pos, @pos - start_pos)
+      end
+    end
+
+    private def main_char?(char)
+      case char
+      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"'
+        false
+      else
+        true
       end
     end
 
@@ -739,22 +765,50 @@ module Markd::Parser
       node
     end
 
+    private def char_at?(byte_index)
+      @text.byte_at?(byte_index).try &.unsafe_chr
+    end
+
+    private def char_at(byte_index)
+      @text.byte_at(byte_index).unsafe_chr
+    end
+
+    private def previous_unicode_char_at(byte_index)
+      reader = Char::Reader.new(@text, byte_index)
+      reader.previous_char
+    end
+
+    private def unicode_char_at?(byte_index)
+      if byte_index < @text.bytesize
+        reader = Char::Reader.new(@text, byte_index)
+        reader.current_char
+      else
+        nil
+      end
+    end
+
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_refernence(text : String)
       text[1..-2].strip.downcase.gsub("\n", " ")
     end
 
+    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
+
     def normalize_uri(uri : String)
-      String.build do |io|
+      String.build(capacity: uri.bytesize) do |io|
         URI.encode(decode_uri(uri), io) do |byte|
-          URI.unreserved?(byte) || ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '='].includes?(byte.chr)
+          URI.unreserved?(byte) || RESERVED_CHARS.includes?(byte.chr)
         end
       end
     end
 
     def decode_uri(text : String)
-      URI.decode(text).gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+      decoded = URI.decode(text)
+      if decoded.includes?('&') && decoded.includes?(';')
+        decoded = decoded.gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
+      end
+      decoded
     end
 
     class Bracket

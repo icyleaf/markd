@@ -49,7 +49,7 @@ module Markd
 
     property type : Type
 
-    property data = {} of String => DataValue
+    property(data) { {} of String => DataValue }
     property source_pos = { {1, 1}, {0, 0} }
     property text = ""
     property? open = true
@@ -126,7 +126,10 @@ module Markd
       io << " @type=" << @type
       io << " @parent=" << @parent if @parent
       io << " @next=" << @next if @next
-      io << " @data=" << @data if @data.size > 0
+
+      data = @data
+      io << " @data=" << data if data && !data.empty?
+
       io << ">"
       nil
     end

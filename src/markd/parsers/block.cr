@@ -32,11 +32,9 @@ module Markd::Parser
       @oldtip = @tip
       @last_matched_container = @tip
 
-      @lines = [] of String
       @line = ""
 
       @current_line = 0
-      @line_size = 0
       @offset = 0
       @column = 0
       @last_line_length = 0
@@ -53,12 +51,8 @@ module Markd::Parser
     end
 
     def parse(source : String)
-      Utils.timer("preparing input", @options.time) do
-        prepare_input(source)
-      end
-
       Utils.timer("block parsing", @options.time) do
-        parse_blocks
+        parse_blocks(source)
       end
 
       Utils.timer("inline parsing", @options.time) do
@@ -68,18 +62,18 @@ module Markd::Parser
       @document
     end
 
-    private def prepare_input(source)
-      @lines = source.lines
-      @line_size = @lines.size
-      # ignore last blank line created by final newline
-      @line_size -= 1 if source[-1]? == '\n'
-    end
+    private def parse_blocks(source)
+      lines_size = 0
+      source.each_line do |line|
+        process_line(line)
+        lines_size += 1
+      end
 
-    private def parse_blocks
-      @lines.each { |line| process_line(line) }
+      # ignore last blank line created by final newline
+      lines_size -= 1 if source.ends_with?('\n')
 
       while tip = tip?
-        token(tip, @line_size)
+        token(tip, lines_size)
       end
     end
 
@@ -132,7 +126,7 @@ module Markd::Parser
           end
         end
 
-        matched = RULES.values.each do |rule|
+        matched = RULES.each_value do |rule|
           case rule.match(self, container)
           when Rule::MatchValue::Container
             container = tip

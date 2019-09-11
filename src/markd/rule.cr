@@ -17,8 +17,6 @@ module Markd
 
     ESCAPABLE = /^#{ESCAPABLE_STRING}/
 
-    MAIN = /^[^\n`\[\]\\!<&*_'"]+/m
-
     TICKS = /`+/
 
     ELLIPSIS = "..."
@@ -104,7 +102,7 @@ module Markd
     abstract def accepts_lines? : Bool
 
     private def space_or_tab?(char : Char?) : Bool
-      [' ', '\t'].includes?(char)
+      char == ' ' || char == '\t'
     end
   end
 end
