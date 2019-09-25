@@ -36,7 +36,7 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       line = parser.line
       indent = parser.indent
       if container.fenced?
@@ -71,7 +71,7 @@ module Markd::Rule
       ContinueStatus::Continue
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       if container.fenced?
         # fenced
         first_line, _, text = container.text.partition('\n')
@@ -88,7 +88,7 @@ module Markd::Rule
       false
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       true
     end
   end

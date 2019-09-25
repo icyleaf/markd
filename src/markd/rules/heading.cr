@@ -43,11 +43,11 @@ module Markd::Rule
       end
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       # do nothing
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       # a heading can never container > 1 line, so fail to match
       ContinueStatus::Stop
     end
@@ -56,7 +56,7 @@ module Markd::Rule
       false
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       false
     end
 
