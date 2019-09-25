@@ -2,12 +2,12 @@ module Markd::Rule
   struct Item
     include Rule
 
-    def match(parser : Parser, container : Node)
+    def match(parser : Parser, container : Node) : MatchValue
       # match and parse in Rule::List
       MatchValue::None
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       indent_offset = container.data["marker_offset"].as(Int32) + container.data["padding"].as(Int32)
 
       if parser.blank
@@ -26,7 +26,7 @@ module Markd::Rule
       ContinueStatus::Continue
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       # do nothing
     end
 
@@ -34,7 +34,7 @@ module Markd::Rule
       !type.item?
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       false
     end
   end

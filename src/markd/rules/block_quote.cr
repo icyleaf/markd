@@ -2,7 +2,7 @@ module Markd::Rule
   struct BlockQuote
     include Rule
 
-    def match(parser : Parser, container : Node)
+    def match(parser : Parser, container : Node) : MatchValue
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
@@ -14,7 +14,7 @@ module Markd::Rule
       end
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       if match?(parser)
         seek(parser)
         ContinueStatus::Continue
@@ -23,7 +23,7 @@ module Markd::Rule
       end
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       # do nothing
     end
 
@@ -31,7 +31,7 @@ module Markd::Rule
       !type.item?
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       false
     end
 

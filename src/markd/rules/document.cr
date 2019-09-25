@@ -2,15 +2,15 @@ module Markd::Rule
   struct Document
     include Rule
 
-    def match(parser : Parser, container : Node)
+    def match(parser : Parser, container : Node) : MatchValue
       MatchValue::None
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       ContinueStatus::Continue
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       # do nothing
     end
 
@@ -18,7 +18,7 @@ module Markd::Rule
       !type.item?
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       false
     end
   end

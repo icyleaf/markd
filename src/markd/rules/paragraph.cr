@@ -2,15 +2,15 @@ module Markd::Rule
   struct Paragraph
     include Rule
 
-    def match(parser : Parser, container : Node)
+    def match(parser : Parser, container : Node) : MatchValue
       MatchValue::None
     end
 
-    def continue(parser : Parser, container : Node)
+    def continue(parser : Parser, container : Node) : ContinueStatus
       parser.blank ? ContinueStatus::Stop : ContinueStatus::Continue
     end
 
-    def token(parser : Parser, container : Node)
+    def token(parser : Parser, container : Node) : Nil
       has_reference_defs = false
 
       while container.text[0]? == '[' &&
@@ -26,7 +26,7 @@ module Markd::Rule
       false
     end
 
-    def accepts_lines?
+    def accepts_lines? : Bool
       true
     end
   end
