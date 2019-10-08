@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - GFM support
 
+## [0.2.0] (2019-10-08)
+
+### Changed
+
+- Optimizations speed. many thanks @[asterite](https://github.com/asterite). #[19](https://github.com/icyleaf/markd/pull/19)
+
+### Fixed
+
+- Compatibility with Crystal 0.31. #[22](https://github.com/icyleaf/markd/pull/22).
+
 ## [0.1.2] (2019-08-26)
 
 - Use Crystal v0.31.0 as default complier.
