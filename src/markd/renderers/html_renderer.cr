@@ -95,9 +95,12 @@ module Markd
     def link(node : Node, entering : Bool)
       if entering
         attrs = attrs(node)
-        if !(@options.safe && potentially_unsafe(node.data["destination"].as(String)))
+        destination = node.data["destination"].as(String)
+
+        unless @options.safe && potentially_unsafe(destination)
           attrs ||= {} of String => String
-          attrs["href"] = escape(node.data["destination"].as(String))
+          destination = resolve_uri(destination)
+          attrs["href"] = escape(destination)
         end
 
         if (title = node.data["title"].as(String)) && !title.empty?
@@ -111,13 +114,25 @@ module Markd
       end
     end
 
+    private def resolve_uri(destination)
+      base_url = @options.base_url
+      return destination unless base_url
+
+      uri = URI.parse(destination)
+      return destination if uri.absolute?
+
+      base_url.resolve(uri).to_s
+    end
+
     def image(node : Node, entering : Bool)
       if entering
         if @disable_tag == 0
-          if @options.safe && potentially_unsafe(node.data["destination"].as(String))
+          destination = node.data["destination"].as(String)
+          if @options.safe && potentially_unsafe(destination)
             lit(%(<img src="" alt=""))
           else
-            lit(%(<img src="#{escape(node.data["destination"].as(String))}" alt="))
+            destination = resolve_uri(destination)
+            lit(%(<img src="#{escape(destination)}" alt="))
           end
         end
         @disable_tag += 1
