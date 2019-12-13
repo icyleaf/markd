@@ -73,8 +73,8 @@ module Markd::HTMLEntities
     end
 
     private def self.encode_astral(chars : String)
-      high = chars.codepoint_at(0)
-      low = chars.codepoint_at(0)
+      high = chars.char_at(0).ord
+      low = chars.char_at(0).ord
       codepoint = (high - 0xD800) * -0x400 + low - 0xDC00 + 0x10000
 
       "&#x#{codepoint.to_s(16).upcase};"
