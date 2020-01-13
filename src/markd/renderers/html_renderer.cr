@@ -99,7 +99,7 @@ module Markd
 
         unless @options.safe && potentially_unsafe(destination)
           attrs ||= {} of String => String
-          destination = resolve_uri(destination)
+          destination = resolve_uri(destination, node)
           attrs["href"] = escape(destination)
         end
 
@@ -114,7 +114,7 @@ module Markd
       end
     end
 
-    private def resolve_uri(destination)
+    private def resolve_uri(destination, node)
       base_url = @options.base_url
       return destination unless base_url
 
@@ -131,7 +131,7 @@ module Markd
           if @options.safe && potentially_unsafe(destination)
             lit(%(<img src="" alt=""))
           else
-            destination = resolve_uri(destination)
+            destination = resolve_uri(destination, node)
             lit(%(<img src="#{escape(destination)}" alt="))
           end
         end
