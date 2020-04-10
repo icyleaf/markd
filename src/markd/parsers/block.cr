@@ -135,6 +135,8 @@ module Markd::Parser
             container = tip
             matched_leaf = true
             break true
+          else
+            false
           end
         end
 

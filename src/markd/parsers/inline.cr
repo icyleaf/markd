@@ -377,6 +377,8 @@ module Markd::Parser
               opener.node.text = "\u{201C}"
             end
             closer = closer.next?
+          else
+            nil
           end
 
           if !opener && !odd_match
@@ -426,6 +428,8 @@ module Markd::Parser
             break
           when Char::ZERO, nil
             return false
+          else
+            nil
           end
         end
         text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))

@@ -41,6 +41,8 @@ module Markd
         case byte
         when '&', '"', '<', '>'
           return true
+        else
+          next
         end
       end
       false
