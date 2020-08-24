@@ -5,17 +5,18 @@ module Markd
       @last_output = "\n"
     end
 
-    def out(string : String)
-      lit(escape(string))
+    def output(string : String)
+      literal(escape(string))
     end
 
-    def lit(string : String)
+    def literal(string : String)
       @output_io << string
       @last_output = string
     end
 
-    def cr
-      lit("\n") if @last_output != "\n"
+    # render a Line Feed character
+    def newline
+      literal("\n") if @last_output != "\n"
     end
 
     private ESCAPES = {

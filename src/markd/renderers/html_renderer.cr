@@ -5,23 +5,23 @@ module Markd
     @disable_tag = 0
     @last_output = "\n"
 
-    private HEADINGS = %w(h1 h2 h3 h4 h5 h6)
+    HEADINGS = %w(h1 h2 h3 h4 h5 h6)
 
     def heading(node : Node, entering : Bool)
       tag_name = HEADINGS[node.data["level"].as(Int32) - 1]
       if entering
-        cr
+        newline
         tag(tag_name, attrs(node))
         # toc(node) if @options.toc
       else
         tag(tag_name, end_tag: true)
-        cr
+        newline
       end
     end
 
     def code(node : Node, entering : Bool)
       tag("code") do
-        out(node.text)
+        output(node.text)
       end
     end
 
@@ -39,35 +39,35 @@ module Markd
         code_tag_attrs["class"] = "language-#{lang.strip}"
       end
 
-      cr
+      newline
       tag("pre", pre_tag_attrs) do
         tag("code", code_tag_attrs) do
-          out(node.text)
+          output(node.text)
         end
       end
-      cr
+      newline
     end
 
     def thematic_break(node : Node, entering : Bool)
-      cr
+      newline
       tag("hr", attrs(node), self_closing: true)
-      cr
+      newline
     end
 
     def block_quote(node : Node, entering : Bool)
-      cr
+      newline
       if entering
         tag("blockquote", attrs(node))
       else
         tag("blockquote", end_tag: true)
       end
-      cr
+      newline
     end
 
     def list(node : Node, entering : Bool)
       tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
 
-      cr
+      newline
       if entering
         attrs = attrs(node)
 
@@ -80,7 +80,7 @@ module Markd
       else
         tag(tag_name, end_tag: true)
       end
-      cr
+      newline
     end
 
     def item(node : Node, entering : Bool)
@@ -88,7 +88,7 @@ module Markd
         tag("li", attrs(node))
       else
         tag("li", end_tag: true)
-        cr
+        newline
       end
     end
 
@@ -129,10 +129,10 @@ module Markd
         if @disable_tag == 0
           destination = node.data["destination"].as(String)
           if @options.safe && potentially_unsafe(destination)
-            lit(%(<img src="" alt=""))
+            literal(%(<img src="" alt=""))
           else
             destination = resolve_uri(destination, node)
-            lit(%(<img src="#{escape(destination)}" alt="))
+            literal(%(<img src="#{escape(destination)}" alt="))
           end
         end
         @disable_tag += 1
@@ -140,23 +140,23 @@ module Markd
         @disable_tag -= 1
         if @disable_tag == 0
           if (title = node.data["title"].as(String)) && !title.empty?
-            lit(%(" title="#{escape(title)}))
+            literal(%(" title="#{escape(title)}))
           end
-          lit(%(" />))
+          literal(%(" />))
         end
       end
     end
 
     def html_block(node : Node, entering : Bool)
-      cr
+      newline
       content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
-      lit(content)
-      cr
+      literal(content)
+      newline
     end
 
     def html_inline(node : Node, entering : Bool)
       content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
-      lit(content)
+      literal(content)
     end
 
     def paragraph(node : Node, entering : Bool)
@@ -165,11 +165,11 @@ module Markd
       end
 
       if entering
-        cr
+        newline
         tag("p", attrs(node))
       else
         tag("p", end_tag: true)
-        cr
+        newline
       end
     end
 
@@ -178,12 +178,12 @@ module Markd
     end
 
     def soft_break(node : Node, entering : Bool)
-      lit("\n")
+      literal("\n")
     end
 
     def line_break(node : Node, entering : Bool)
       tag("br", self_closing: true)
-      cr
+      newline
     end
 
     def strong(node : Node, entering : Bool)
@@ -191,7 +191,7 @@ module Markd
     end
 
     def text(node : Node, entering : Bool)
-      out(node.text)
+      output(node.text)
     end
 
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
