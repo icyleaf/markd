@@ -11,6 +11,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - GFM support
 
+## [0.2.1] (2020-08-24)
+
+### Added
+
+- Add Options#base_url to allow resolving relative links. #[26](https://github.com/icyleaf/markd/pull/26), #[28](https://github.com/icyleaf/markd/pull/28) thanks @[straight-shoota](https://github.com/straight-shoota).
+
+### Fixed
+
+- [high severity] escape unsafe html entry inline of code block. #[32](https://github.com/icyleaf/markd/pull/32).
+- Fixed some typos in README. #[29](https://github.com/icyleaf/markd/pull/29) thanks @[Calamari](https://github.com/Calamari).
+
 ## [0.2.0] (2019-10-08)
 
 ### Changed
@@ -34,6 +45,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - [initial implementation](https://github.com/icyleaf/markd/milestone/1?closed=1)
 
-[Unreleased]: https://github.com/icyleaf/markd/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/icyleaf/markd/compare/v0.2.1...HEAD
+[0.2.1]: https://github.com/icyleaf/halite/compare/v0.2.0...v0.2.1
+[0.2.0]: https://github.com/icyleaf/halite/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/icyleaf/halite/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/icyleaf/halite/compare/v0.1.0...v0.1.1
