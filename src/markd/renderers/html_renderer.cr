@@ -36,7 +36,7 @@ module Markd
 
       if languages && languages.size > 0 && (lang = languages[0]) && !lang.empty?
         code_tag_attrs ||= {} of String => String
-        code_tag_attrs["class"] = "language-#{lang.strip}"
+        code_tag_attrs["class"] = "language-#{escape(lang.strip)}"
       end
 
       newline
