@@ -47,7 +47,7 @@ def assert_exapmle(file, section, index, example, smart)
   options.smart = true if smart
   it "- #{index}\n#{show_space(markdown)}", file, line do
     output = Markd.to_html(markdown, options)
-    output.should eq(html), file, line
+    output.should eq(html), file: file, line: line
   end
 end
 
