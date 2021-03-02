@@ -208,7 +208,7 @@ module Markd::Parser
       container.open = false
       container.source_pos = {
         container.source_pos[0],
-        {line_number, @last_line_length}
+        {line_number, @last_line_length},
       }
       RULES[container.type].token(self, container)
 
