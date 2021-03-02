@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - GFM support
 
+## [0.3.0] (2021-03-02)
+
+No changelog.
+
 ## [0.2.1] (2020-08-24)
 
 ### Added
@@ -45,7 +49,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - [initial implementation](https://github.com/icyleaf/markd/milestone/1?closed=1)
 
-[Unreleased]: https://github.com/icyleaf/markd/compare/v0.2.1...HEAD
+[Unreleased]: https://github.com/icyleaf/markd/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/icyleaf/halite/compare/v0.2.1...v0.3.0
 [0.2.1]: https://github.com/icyleaf/halite/compare/v0.2.0...v0.2.1
 [0.2.0]: https://github.com/icyleaf/halite/compare/v0.1.2...v0.2.0
 [0.1.2]: https://github.com/icyleaf/halite/compare/v0.1.1...v0.1.2
