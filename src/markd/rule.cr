@@ -7,7 +7,7 @@ module Markd
     ATTRIBUTE_NAME_STRING       = %Q([a-zA-Z_:][a-zA-Z0-9:._-]*)
     UNQUOTED_VALUE_STRING       = %Q([^"'=<>`\\x00-\\x20]+)
     SINGLE_QUOTED_VALUE_STRING  = %Q('[^']*')
-    DOUBLE_QUOTED_VALUE_STRING  = %Q("[^\"]*")
+    DOUBLE_QUOTED_VALUE_STRING  = %Q("[^"]*")
     ATTRIBUTE_VALUE_STRING      = "(?:" + UNQUOTED_VALUE_STRING + "|" + SINGLE_QUOTED_VALUE_STRING + "|" + DOUBLE_QUOTED_VALUE_STRING + ")"
     ATTRIBUTE_VALUE_SPEC_STRING = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE_STRING + ")"
     ATTRIBUTE                   = "(?:" + "\\s+" + ATTRIBUTE_NAME_STRING + ATTRIBUTE_VALUE_SPEC_STRING + "?)"
@@ -53,7 +53,7 @@ module Markd
     ]
 
     LINK_TITLE = Regex.new("^(?:\"(#{ESCAPED_CHAR_STRING}|[^\"\\x00])*\"" +
-                           "|\'(#{ESCAPED_CHAR_STRING}|[^\'\\x00])*\'" +
+                           "|'(#{ESCAPED_CHAR_STRING}|[^'\\x00])*'" +
                            "|\\((#{ESCAPED_CHAR_STRING}|[^)\\x00])*\\))")
 
     LINK_LABEL = Regex.new("^\\[(?:[^\\\\\\[\\]]|" + ESCAPED_CHAR_STRING + "|\\\\){0,}\\]")

@@ -9,7 +9,6 @@ describe_spec("fixtures/smart_punct.txt", smart: true)
 # Regression exapmles
 describe_spec("fixtures/regression.txt")
 
-
 describe Markd do
   # Thanks Ryan Westlund <rlwestlund@gmail.com> feedback via email.
   it "should escape unsafe html" do
