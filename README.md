@@ -1,7 +1,6 @@
 # markd
 
-[![Language](https://img.shields.io/badge/language-crystal-black.svg)](https://github.com/crystal-lang/crystal)
-[![Language](https://img.shields.io/badge/crystal-v0.32.0-776791.svg)](https://github.com/crystal-lang/crystal)
+[![Language](https://img.shields.io/badge/language-crystal-776791.svg)](https://github.com/crystal-lang/crystal)
 [![Tag](https://img.shields.io/github/tag/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/CHANGELOG.md)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
 
