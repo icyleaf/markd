@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 - GFM support
 
+## [0.4.0] (2021-03-23)
+
+- Compatibility with Crystal 1.0. #[34](https://github.com/icyleaf/markd/pull/34) thanks @[bcardiff](https://github.com/bcardiff).
+
 ## [0.3.0] (2021-03-02)
 
 No changelog.
