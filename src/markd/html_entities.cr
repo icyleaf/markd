@@ -58,7 +58,7 @@ module Markd::HTMLEntities
 
   module Encoder
     ENTITIES_REGEX = Regex.union(HTMLEntities::ENTITIES_MAPPINGS.values)
-    ASTRAL_REGEX   = Regex.new("[\uD800-\uDBFF][\uDC00-\uDFFF]")
+    ASTRAL_REGEX   = Regex.new("[\xED\xA0\x80-\xED\xAF\xBF][\xED\xB0\x80-\xED\xBF\xBF]")
     ENCODE_REGEX   = /[^\x{20}-\x{7E}]/
 
     def self.encode(source : String)
