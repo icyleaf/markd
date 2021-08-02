@@ -21,8 +21,12 @@ module Markd
 
     def code(node : Node, entering : Bool)
       tag("code") do
-        output(node.text)
+        code_body(node)
       end
+    end
+
+    def code_body(node : Node)
+      output(node.text)
     end
 
     def code_block(node : Node, entering : Bool)
@@ -42,7 +46,7 @@ module Markd
       newline
       tag("pre", pre_tag_attrs) do
         tag("code", code_tag_attrs) do
-          output(node.text)
+          code_block_body(node)
         end
       end
       newline
@@ -50,6 +54,10 @@ module Markd
 
     def code_block_language(languages)
       languages.try(&.first?).try(&.strip.presence)
+    end
+
+    def code_block_body(node : Node)
+      output(node.text)
     end
 
     def thematic_break(node : Node, entering : Bool)
