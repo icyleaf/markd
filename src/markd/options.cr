@@ -2,7 +2,7 @@ require "uri"
 
 module Markd
   # Markdown rendering options.
-  struct Options
+  class Options
     property time, gfm, toc
 
     # If `true`:
