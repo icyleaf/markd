@@ -38,7 +38,8 @@ module Markd
                         nil
                       end
 
-      if lang = code_block_language(languages)
+      lang = code_block_language(languages)
+      if lang
         code_tag_attrs ||= {} of String => String
         code_tag_attrs["class"] = "language-#{escape(lang)}"
       end
@@ -46,7 +47,7 @@ module Markd
       newline
       tag("pre", pre_tag_attrs) do
         tag("code", code_tag_attrs) do
-          code_block_body(node)
+          code_block_body(node, lang)
         end
       end
       newline
@@ -56,7 +57,7 @@ module Markd
       languages.try(&.first?).try(&.strip.presence)
     end
 
-    def code_block_body(node : Node)
+    def code_block_body(node : Node, lang : String?)
       output(node.text)
     end
 
