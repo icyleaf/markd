@@ -21,8 +21,12 @@ module Markd
 
     def code(node : Node, entering : Bool)
       tag("code") do
-        output(node.text)
+        code_body(node)
       end
+    end
+
+    def code_body(node : Node)
+      output(node.text)
     end
 
     def code_block(node : Node, entering : Bool)
@@ -34,18 +38,26 @@ module Markd
                         nil
                       end
 
-      if languages && languages.size > 0 && (lang = languages[0]) && !lang.empty?
+      if lang = code_block_language(languages)
         code_tag_attrs ||= {} of String => String
-        code_tag_attrs["class"] = "language-#{escape(lang.strip)}"
+        code_tag_attrs["class"] = "language-#{escape(lang)}"
       end
 
       newline
       tag("pre", pre_tag_attrs) do
         tag("code", code_tag_attrs) do
-          output(node.text)
+          code_block_body(node)
         end
       end
       newline
+    end
+
+    def code_block_language(languages)
+      languages.try(&.first?).try(&.strip.presence)
+    end
+
+    def code_block_body(node : Node)
+      output(node.text)
     end
 
     def thematic_break(node : Node, entering : Bool)
