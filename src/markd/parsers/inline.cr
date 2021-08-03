@@ -43,7 +43,7 @@ module Markd::Parser
             when '*', '_'
               handle_delim(char, node)
             when '\'', '"'
-              @options.smart && handle_delim(char, node)
+              @options.smart? && handle_delim(char, node)
             when '['
               open_bracket(node)
             when '!'
@@ -445,7 +445,7 @@ module Markd::Parser
 
     private def string(node : Node)
       if text = match_main
-        if @options.smart
+        if @options.smart?
           text = text.gsub(Rule::ELLIPSIS, '\u{2026}')
             .gsub(Rule::DASH) do |chars|
               en_count = em_count = 0

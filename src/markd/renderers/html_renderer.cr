@@ -28,7 +28,7 @@ module Markd
     def code_block(node : Node, entering : Bool)
       languages = node.fence_language ? node.fence_language.split : nil
       code_tag_attrs = attrs(node)
-      pre_tag_attrs = if @options.prettyprint
+      pre_tag_attrs = if @options.prettyprint?
                         {"class" => "prettyprint"}
                       else
                         nil
@@ -97,7 +97,7 @@ module Markd
         attrs = attrs(node)
         destination = node.data["destination"].as(String)
 
-        unless @options.safe && potentially_unsafe(destination)
+        unless @options.safe? && potentially_unsafe(destination)
           attrs ||= {} of String => String
           destination = resolve_uri(destination, node)
           attrs["href"] = escape(destination)
@@ -128,7 +128,7 @@ module Markd
       if entering
         if @disable_tag == 0
           destination = node.data["destination"].as(String)
-          if @options.safe && potentially_unsafe(destination)
+          if @options.safe? && potentially_unsafe(destination)
             literal(%(<img src="" alt=""))
           else
             destination = resolve_uri(destination, node)
@@ -149,13 +149,13 @@ module Markd
 
     def html_block(node : Node, entering : Bool)
       newline
-      content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
+      content = @options.safe? ? "<!-- raw HTML omitted -->" : node.text
       literal(content)
       newline
     end
 
     def html_inline(node : Node, entering : Bool)
-      content = @options.safe ? "<!-- raw HTML omitted -->" : node.text
+      content = @options.safe? ? "<!-- raw HTML omitted -->" : node.text
       literal(content)
     end
 
@@ -229,7 +229,7 @@ module Markd
     end
 
     private def attrs(node : Node)
-      if @options.source_pos && (pos = node.source_pos)
+      if @options.source_pos? && (pos = node.source_pos)
         {"data-source-pos" => "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"}
       else
         nil
