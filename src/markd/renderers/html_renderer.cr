@@ -12,7 +12,7 @@ module Markd
       if entering
         newline
         tag(tag_name, attrs(node))
-        # toc(node) if @options.toc
+        toc(node) if @options.toc
       else
         tag(tag_name, end_tag: true)
         newline
@@ -235,9 +235,9 @@ module Markd
     private def toc(node : Node)
       return unless node.type.heading?
 
-      title = URI.encode(node.text)
+      title = URI.encode(node.first_child.text)
 
-      @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#) << title %("></a>)
+      @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#anchor-) << title << %("></a>)
       @last_output = ">"
     end
 
