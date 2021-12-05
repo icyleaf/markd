@@ -76,8 +76,8 @@ html = renderer.render(document)
 Here is the result of [a sample markdown file](benchmarks/source.md) parse at MacBook Pro Retina 2015 (2.2 GHz):
 
 ```
-Crystal Markdown   3.28k (305.29µs) (± 0.92%)       fastest
-           Markd 305.36  (  3.27ms) (± 5.52%) 10.73× slower
+Crystal Markdown (no longer present)   3.28k (305.29µs) (± 0.92%)       fastest
+           Markd                       305.36 (  3.27ms) (± 5.52%) 10.73× slower
 ```
 
 Recently, I'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
