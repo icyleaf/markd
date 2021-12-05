@@ -73,8 +73,6 @@ html = renderer.render(document)
 
 ## Performance
 
-First of all, Markd is slower than [Crystal Built-in Markdown](https://crystal-lang.org/api/0.23.0/Markdown.html) which it is a lite version, only apply for generte Cystal documents ([#4496](https://github.com/crystal-lang/crystal/pull/4496), [#4613](https://github.com/crystal-lang/crystal/issues/4613)).
-
 Here is the result of [a sample markdown file](benchmarks/source.md) parse at MacBook Pro Retina 2015 (2.2 GHz):
 
 ```
