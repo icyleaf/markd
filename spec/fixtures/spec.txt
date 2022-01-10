@@ -403,7 +403,7 @@ Normally the `>` that begins a block quote may be followed
 optionally by a space, which is not considered part of the
 content.  In the following case `>` is followed by a tab,
 which is treated as if it were expanded into spaces.
-Since one of theses spaces is considered part of the
+Since one of these spaces is considered part of the
 delimiter, `foo` is considered to be indented six spaces
 inside the block quote context, so we get an indented
 code block starting with two spaces.
@@ -5476,7 +5476,7 @@ foo
 ## Entity and numeric character references
 
 All valid HTML entity references and numeric character
-references, except those occuring in code blocks and code spans,
+references, except those occurring in code blocks and code spans,
 are recognized as such and treated as equivalent to the
 corresponding Unicode characters.  Conforming CommonMark parsers
 need not store information about whether a particular character

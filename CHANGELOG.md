@@ -60,12 +60,12 @@ No changelog.
 
 ## [0.1.2] (2019-08-26)
 
-- Use Crystal v0.31.0 as default complier.
+- Use Crystal v0.31.0 as default compiler.
 
 ## [0.1.1] (2017-12-26)
 
 - Minor refactoring and improving speed. thanks @[straight-shoota](https://github.com/straight-shoota).
-- Use Crystal v0.24.1 as default complier.
+- Use Crystal v0.24.1 as default compiler.
 
 ## 0.1.0 (2017-09-22)
 
