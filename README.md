@@ -4,6 +4,15 @@
 [![Tag](https://img.shields.io/github/tag/icyleaf/markd.svg)](https://github.com/icyleaf/markd/blob/master/CHANGELOG.md)
 [![Build Status](https://img.shields.io/circleci/project/github/icyleaf/markd/master.svg?style=flat)](https://circleci.com/gh/icyleaf/markd)
 
+
+**THIS PROJECT IS LOOKING FOR MAINTAINER**
+
+Unfortunately, the maintainer no longer has the time and/or resources to work on markd further. This means that bugs will not be fixed and features will not be added unless someone else does so. 
+
+If you're interested in fixing up markd, please [file an issue](https://github.com/icyleaf/markd/issues/new) let me know.
+
+<hr />
+
 Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.27`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
 ## Installation
@@ -81,14 +90,6 @@ Crystal Markdown (no longer present)   3.28k (305.29µs) (± 0.92%)       fastes
 ```
 
 Recently, I'm working to compare the other popular commonmark parser, the code is stored in [benchmarks](/benchmarks).
-
-## Donate
-
-Markd is an open source, collaboratively funded project. If you run a business and are using Markd in a revenue-generating product,
-it would make business sense to sponsor Markd development. Individual users are also welcome to make a one time donation
-if Markd has helped you in your work or personal projects.
-
-You can donate via [Paypal](https://www.paypal.me/icyleaf/5).
 
 ## How to Contribute
 
