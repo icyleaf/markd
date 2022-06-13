@@ -675,7 +675,10 @@ module Markd::Parser
 
       before_title = @pos
       spnl
-      title = link_title
+      if @pos != before_title
+        title = link_title
+      end
+
       unless title
         title = ""
         @pos = before_title
