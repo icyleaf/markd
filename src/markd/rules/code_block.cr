@@ -2,7 +2,7 @@ module Markd::Rule
   struct CodeBlock
     include Rule
 
-    CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}(?!.*~)/
+    CODE_FENCE         = /^`{3,}(?!.*`)|^~{3,}/
     CLOSING_CODE_FENCE = /^(?:`{3,}|~{3,})(?= *$)/
 
     def match(parser : Parser, container : Node) : MatchValue
