@@ -313,6 +313,7 @@ module Markd::Parser
           opener_found = false
           while opener && opener != delimiter && opener != openers_bottom[closer_char]
             odd_match = (closer.can_open || opener.can_close) &&
+                        closer.orig_delims % 3 != 0 &&
                         (opener.orig_delims + closer.orig_delims) % 3 == 0
             if opener.char == closer.char && opener.can_open && !odd_match
               opener_found = true
