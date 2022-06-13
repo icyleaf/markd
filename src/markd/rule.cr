@@ -60,7 +60,7 @@ module Markd
 
     LINK_LABEL = Regex.new("^\\[(?:[^\\\\\\[\\]]|" + ESCAPED_CHAR_STRING + "|\\\\){0,}\\]")
 
-    LINK_DESTINATION_BRACES = Regex.new("^(?:[<](?:[^ <>\\t\\n\\\\\\x00]|" + ESCAPED_CHAR_STRING + "|\\\\)*[>])")
+    LINK_DESTINATION_BRACES = Regex.new("^(?:[<](?:[^<>\\t\\n\\\\\\x00]|" + ESCAPED_CHAR_STRING + ")*[>])")
 
     EMAIL_AUTO_LINK = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
     AUTO_LINK       = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i

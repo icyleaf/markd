@@ -250,7 +250,7 @@ module Markd::Parser
 
       if matched
         child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
-        child.data["destination"] = dest
+        child.data["destination"] = dest.not_nil!
         child.data["title"] = title || ""
 
         tmp = opener.node.next?
@@ -514,7 +514,7 @@ module Markd::Parser
     private def link_destination
       dest = if text = match(Rule::LINK_DESTINATION_BRACES)
                text[1..-2]
-             else
+             elsif char_at?(@pos) != '<'
                save_pos = @pos
                open_parens = 0
                while char = char_at?(@pos)
@@ -540,7 +540,7 @@ module Markd::Parser
                @text.byte_slice(save_pos, @pos - save_pos)
              end
 
-      normalize_uri(Utils.decode_entities_string(dest))
+      normalize_uri(Utils.decode_entities_string(dest)) if dest
     end
 
     private def handle_delim(char : Char, node : Node)
@@ -667,7 +667,7 @@ module Markd::Parser
 
       dest = link_destination
 
-      if dest.size == 0
+      if !dest || dest.size == 0
         @pos = startpos
         return 0
       end
