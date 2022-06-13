@@ -3,6 +3,8 @@ module Markd
     ESCAPABLE_STRING    = %Q([!"#$%&'()*+,./:;<=>?@[\\\\\\]^_`{|}~-])
     ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 
+    NUMERIC_HTML_ENTITY = /^&#(?:[Xx][0-9a-fA-F]{1,6}|[0-9]{1,7});/
+
     TAG_NAME_STRING             = %Q([A-Za-z][A-Za-z0-9-]*)
     ATTRIBUTE_NAME_STRING       = %Q([a-zA-Z_:][a-zA-Z0-9:._-]*)
     UNQUOTED_VALUE_STRING       = %Q([^"'=<>`\\x00-\\x20]+)

@@ -424,24 +424,29 @@ module Markd::Parser
 
     private def entity(node : Node)
       if char_at?(@pos) == '&'
-        pos = @pos + 1
-        loop do
-          char = char_at?(pos)
-          pos += 1
-          case char
-          when ';'
-            break
-          when Char::ZERO, nil
-            return false
-          else
-            nil
+        if char_at?(@pos + 1) == '#'
+          text = match(Rule::NUMERIC_HTML_ENTITY) || return false
+          text = text.byte_slice(1, text.bytesize - 2)
+        else
+          pos = @pos + 1
+          loop do
+            char = char_at?(pos)
+            pos += 1
+            case char
+            when ';'
+              break
+            when Char::ZERO, nil
+              return false
+            else
+              nil
+            end
           end
+          text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
+          @pos = pos
         end
-        text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
-        decoded_text = HTML.decode_entity text
 
+        decoded_text = HTML.decode_entity text
         node.append_child(text(decoded_text))
-        @pos = pos
         true
       else
         false
