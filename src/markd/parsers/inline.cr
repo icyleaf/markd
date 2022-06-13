@@ -665,9 +665,10 @@ module Markd::Parser
       # link url
       spnl
 
+      save_pos = @pos
       dest = link_destination
 
-      if !dest || dest.size == 0
+      if !dest || (dest.size == 0 && !(@pos == save_pos + 2 && @text.byte_slice(save_pos, 2) == "<>"))
         @pos = startpos
         return 0
       end
