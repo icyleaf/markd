@@ -123,7 +123,11 @@ module Markd::Parser
       while text = match(Rule::TICKS)
         if text.bytesize == num_ticks
           child = Node.new(Node::Type::Code)
-          child.text = @text.byte_slice(after_open_ticks, (@pos - num_ticks) - after_open_ticks).strip.gsub(Rule::WHITESPACE, " ")
+          child_text = @text.byte_slice(after_open_ticks, (@pos - num_ticks) - after_open_ticks).gsub(Rule::LINE_ENDING, " ")
+          if child_text.bytesize >= 2 && child_text[0] == ' ' && child_text[-1] == ' ' && child_text.matches?(/[^ ]/)
+            child_text = child_text.byte_slice(1, child_text.bytesize - 2)
+          end
+          child.text = child_text
           node.append_child(child)
 
           return true
