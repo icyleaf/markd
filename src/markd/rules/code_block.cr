@@ -23,8 +23,7 @@ module Markd::Rule
 
         MatchValue::Leaf
       elsif parser.indented && !parser.blank && (tip = parser.tip) &&
-            !tip.type.paragraph? &&
-            (!container.type.list? || container.data["padding"].as(Int32) >= 4)
+            !tip.type.paragraph?
         # indented
         parser.advance_offset(Rule::CODE_INDENT, true)
         parser.close_unmatched_blocks
