@@ -143,7 +143,8 @@ module Markd::Rule
       while container
         return true if container.last_line_blank?
 
-        break unless container.type == Node::Type::List || container.type == Node::Type::Item
+        break unless !container.last_line_checked? && container.type.in?(Node::Type::List, Node::Type::Item)
+        container.last_line_checked = true
         container = container.last_child?
       end
 
