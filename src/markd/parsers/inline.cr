@@ -521,7 +521,7 @@ module Markd::Parser
                  case char
                  when '\\'
                    @pos += 1
-                   @pos += 1 if char_at?(@pos)
+                   match(Rule::ESCAPABLE)
                  when '('
                    @pos += 1
                    open_parens += 1
