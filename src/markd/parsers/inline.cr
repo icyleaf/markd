@@ -812,7 +812,7 @@ module Markd::Parser
       text[1..-2].strip.downcase.gsub("\n", " ")
     end
 
-    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
+    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '\'', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
 
     def normalize_uri(uri : String)
       String.build(capacity: uri.bytesize) do |io|
