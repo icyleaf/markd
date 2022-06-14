@@ -13,7 +13,7 @@ If you're interested in fixing up markd, please [file an issue](https://github.c
 
 <hr />
 
-Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.27`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
+Yet another markdown parser built for speed, written in [Crystal](https://crystal-lang.org), Compliant to [CommonMark](http://spec.commonmark.org) specification (`v0.29`). Copy from [commonmark.js](https://github.com/jgm/commonmark.js).
 
 ## Installation
 
