@@ -26,6 +26,13 @@ module Markd::Rule
             !parent.type.block_quote?
         # Setext Heading matched
         parser.close_unmatched_blocks
+
+        while container.text[0]? == '[' &&
+              (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
+          container.text = container.text.byte_slice(pos)
+        end
+        return MatchValue::None if container.text.empty?
+
         heading = Node.new(Node::Type::Heading)
         heading.source_pos = container.source_pos
         heading.data["level"] = match[0][0] == '=' ? 1 : 2
