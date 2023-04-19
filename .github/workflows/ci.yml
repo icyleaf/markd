@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  specs:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        crystal:
+          - "1.0.0"
+          - "1.1.0"
+          - "1.2.0"
+          - latest
+          - nightly
+
+    name: Crystal ${{ matrix.crystal }} specs
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Install Crystal
+      uses: crystal-lang/install-crystal@v1
+      with:
+        crystal: ${{ matrix.crystal }}
+
+    - name: Install Ameba
+      uses: crystal-ameba/github-action@v0.7.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Install dependencies
+      run: shards install --without-development
+
+    - name: Run specs
+      run: crystal spec --error-on-warnings --error-trace
+
+    - name: Run formatting checks
+      run: |
+        if ! crystal tool format --check; then
+          crystal tool format
+          git diff
+          exit 1
+        fi
