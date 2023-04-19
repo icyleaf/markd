@@ -42,10 +42,7 @@ module Markd::Rule
     private def seek(parser : Parser)
       parser.advance_next_nonspace
       parser.advance_offset(1, false)
-
-      if space_or_tab?(parser.line[parser.offset]?)
-        parser.advance_offset(1, true)
-      end
+      parser.advance_offset(1, true) if space_or_tab?(parser.line[parser.offset]?)
     end
   end
 end

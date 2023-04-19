@@ -327,9 +327,7 @@ module Markd::Parser
 
           case closer_char
           when '*', '_'
-            unless opener
-              closer = closer.next?
-            else
+            if opener
               # calculate actual number of delimiters used from closer
               use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
               opener_inl = opener.node
@@ -370,6 +368,8 @@ module Markd::Parser
                 remove_delimiter(closer)
                 closer = tmp_stack
               end
+            else
+              closer = closer.next?
             end
           when '\''
             closer.node.text = "\u{2019}"
@@ -587,10 +587,9 @@ module Markd::Parser
     end
 
     private def remove_delimiter_between(bottom : Delimiter, top : Delimiter)
-      if bottom.next? != top
-        bottom.next = top
-        top.previous = bottom
-      end
+      return unless bottom.next? != top
+      bottom.next = top
+      top.previous = bottom
     end
 
     private def scan_delims(char : Char)
@@ -713,7 +712,7 @@ module Markd::Parser
         }
       end
 
-      return @pos - startpos
+      @pos - startpos
     end
 
     private def space_at_end_of_line?
@@ -728,7 +727,8 @@ module Markd::Parser
       else
         return false
       end
-      return true
+
+      true
     end
 
     # Parse zero or more space characters, including at most one newline
@@ -744,15 +744,15 @@ module Markd::Parser
         @pos += 1
       end
 
-      return true
+      true
     end
 
     private def match(regex : Regex) : String?
       text = @text.byte_slice(@pos)
-      if match = text.match(regex)
-        @pos += match.byte_end.not_nil!
-        return match[0]
-      end
+      return unless match = text.match(regex)
+      @pos += match.byte_end.not_nil!
+
+      match[0]
     end
 
     private def match_main : String?

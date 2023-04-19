@@ -4,6 +4,11 @@ version: 0.5.0
 authors:
   - icyleaf <icyleaf.cn@gmail.com>
 
+development_dependencies:
+  ameba:
+    github: crystal-ameba/ameba
+    version: ~> 1.4.0
+
 crystal: ">= 0.36.1, < 2.0.0"
 
 license: MIT

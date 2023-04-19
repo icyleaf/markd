@@ -156,7 +156,7 @@ module Markd
           end
         elsif current == @root
           @current = nil
-        elsif nxt = current.next?
+        elsif current.next?
           @current = current.next?
           @entering = true
         else

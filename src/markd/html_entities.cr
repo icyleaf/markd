@@ -27,13 +27,8 @@ module Markd::HTMLEntities
     def self.decode_entity(chars)
       if chars[0] == '#'
         if chars.size > 1
-          if chars[1].downcase == 'x'
-            if chars.size > 2
-              return decode_codepoint(chars[2..-1].to_i(16))
-            end
-          else
-            return decode_codepoint(chars[1..-1].to_i(10))
-          end
+          return decode_codepoint(chars[1..-1].to_i(10)) unless chars[1].downcase == 'x'
+          return decode_codepoint(chars[2..-1].to_i(16)) if chars.size > 2
         end
       else
         entities_key = chars[0..-1]

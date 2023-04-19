@@ -6,7 +6,7 @@ module Markd::Rule
     ORDERED_LIST_MARKERS = {'.', ')'}
 
     def match(parser : Parser, container : Node) : MatchValue
-      if (!parser.indented || container.type.list?)
+      if !parser.indented || container.type.list?
         data = parse_list_marker(parser, container)
         return MatchValue::None unless data && !data.empty?
 

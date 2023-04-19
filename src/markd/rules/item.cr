@@ -11,12 +11,8 @@ module Markd::Rule
       indent_offset = container.data["marker_offset"].as(Int32) + container.data["padding"].as(Int32)
 
       if parser.blank
-        if container.first_child?
-          parser.advance_next_nonspace
-        else
-          # Blank line after empty list item
-          return ContinueStatus::Stop
-        end
+        return ContinueStatus::Stop unless container.first_child?
+        parser.advance_next_nonspace
       elsif parser.indent >= indent_offset
         parser.advance_offset(indent_offset, true)
       else

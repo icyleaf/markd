@@ -8,8 +8,8 @@ module Markd::Rule
         block_type_size = Rule::HTML_BLOCK_OPEN.size - 1
 
         Rule::HTML_BLOCK_OPEN.each_with_index do |regex, index|
-          if (text.match(regex) &&
-             (index < block_type_size || !container.type.paragraph?))
+          if text.match(regex) &&
+             (index < block_type_size || !container.type.paragraph?)
             parser.close_unmatched_blocks
             # We don't adjust parser.offset;
             # spaces are part of the HTML block:
