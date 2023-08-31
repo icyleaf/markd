@@ -31,6 +31,7 @@ jobs:
         crystal: ${{ matrix.crystal }}
 
     - name: Crystal Ameba Linter
+      if: matrix.os == 'ubuntu-latest'
       uses: crystal-ameba/github-action@v0.8.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
