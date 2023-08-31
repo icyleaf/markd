@@ -10,16 +10,15 @@ on:
 
 jobs:
   specs:
-    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        crystal:
-          - "1.0.0"
-          - "1.1.0"
-          - "1.2.0"
-          - latest
-          - nightly
+        include:
+          - {os: ubuntu-latest, crystal: latest}
+          - {os: ubuntu-latest, crystal: nightly}
+          - {os: macos-latest}
+          - {os: windows-latest}
+    runs-on: ${{matrix.os}}
 
     name: Crystal ${{ matrix.crystal }} specs
     steps:
@@ -31,8 +30,8 @@ jobs:
       with:
         crystal: ${{ matrix.crystal }}
 
-    - name: Install Ameba
-      uses: crystal-ameba/github-action@v0.7.1
+    - name: Crystal Ameba Linter
+      uses: crystal-ameba/github-action@v0.8.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
