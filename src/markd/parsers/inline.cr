@@ -54,6 +54,8 @@ module Markd::Parser
               auto_link(node) || html_tag(node)
             when '&'
               entity(node)
+            when ':'
+              emoji(node)
             else
               string(node)
             end
@@ -454,6 +456,41 @@ module Markd::Parser
       end
     end
 
+    private def emoji(node : Node)
+      return false unless @options.emoji
+
+      if char_at?(@pos) == ':'
+        pos = @pos + 1
+        loop do
+          char = char_at?(pos)
+          pos += 1
+
+          case char
+          when ':'
+            break
+          when Char::ZERO, nil
+            return false
+          when 'a'..'z', 'A'..'Z', '0'..'9', '+', '-', '_'
+            nil
+          else
+            return false
+          end
+        end
+
+        text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
+        if (emoji = EmojiEntities::EMOJI_MAPPINGS[text]?)
+          @pos = pos
+          node.append_child(text(emoji))
+
+          true
+        else
+          false
+        end
+      else
+        false
+      end
+    end
+
     private def string(node : Node)
       if text = match_main
         if @options.smart?
@@ -756,7 +793,7 @@ module Markd::Parser
     end
 
     private def match_main : String?
-      # This is the same as match(/^[^\n`\[\]\\!<&*_'"]+/m) but done manually (faster)
+      # This is the same as match(/^[^\n`\[\]\\!<&*_'":]+/m) but done manually (faster)
       start_pos = @pos
       while (char = char_at?(@pos)) && main_char?(char)
         @pos += 1
@@ -771,7 +808,7 @@ module Markd::Parser
 
     private def main_char?(char)
       case char
-      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"'
+      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"', ':'
         false
       else
         true
