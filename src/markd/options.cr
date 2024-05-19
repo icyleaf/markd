@@ -42,6 +42,8 @@ module Markd
     # of a Markdown document.
     property base_url : URI?
 
+    property emoji : Bool
+
     def initialize(
       @time = false,
       @gfm = false,
@@ -50,6 +52,7 @@ module Markd
       @source_pos = false,
       @safe = false,
       @prettyprint = false,
+      @emoji = false,
       @base_url = nil
     )
     end

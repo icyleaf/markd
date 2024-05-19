@@ -1,7 +1,9 @@
 require "spec"
 require "../src/markd"
 
-def describe_spec(file, smart = false, render = false)
+def describe_spec(file, smart = false, render = false, gfm = false)
+  file = File.join(__DIR__, file)
+
   specs = extract_spec_tests(file)
 
   skip_examples = [] of Int32
@@ -26,24 +28,27 @@ def describe_spec(file, smart = false, render = false)
   specs.each_with_index do |(section, examples), index|
     no = index + 1
     next if skip_examples.includes?(no)
-    assert_section(file, section, examples, smart)
+    assert_section(file, section, examples, smart, gfm)
   end
 end
 
-def assert_section(file, section, examples, smart)
+def assert_section(file, section, examples, smart, gfm = false)
   describe section do
     examples.each do |index, example|
-      assert_example(file, section, index, example, smart)
+      assert_example(file, section, index, example, smart, gfm)
     end
   end
 end
 
-def assert_example(file, section, index, example, smart)
+def assert_example(file, section, index, example, smart, gfm = false)
   markdown = example["markdown"].gsub("→", "\t").chomp
   html = example["html"].gsub("→", "\t")
   line = example["line"].to_i
 
-  options = Markd::Options.new
+  options = Markd::Options.new(
+    gfm: gfm || example["test_tag"] == "gfm",
+    emoji: example["test_tag"] == "emoji",
+  )
   options.smart = true if smart
   it "- #{index}\n#{show_space(markdown)}", file, line do
     output = Markd.to_html(markdown, options)
@@ -62,10 +67,11 @@ def extract_spec_tests(file)
   test_start = false
   result_start = false
 
-  path = File.expand_path(File.join("..", file), __FILE__)
   begin
-    File.open(path) do |f|
+    File.open(file) do |f|
       line_number = 0
+      test_tag = ""
+
       while line = f.read_line
         line_number += 1
         line = line.gsub(/\r\n?/, "\n")
@@ -76,8 +82,9 @@ def extract_spec_tests(file)
           examples[current_section] = {} of Int32 => Hash(String, String)
           example_count = 0
         else
-          if !test_start && !result_start && line =~ /^`{32} example$/
+          if !test_start && !result_start && line =~ /^`{32} example([a-z ])*$/
             test_start = true
+            test_tag = line[line.rindex!(' ') + 1..-1]
           elsif test_start && !result_start && line =~ /^\.$/
             test_start = false
             result_start = true
@@ -89,6 +96,7 @@ def extract_spec_tests(file)
               "line"     => line_number.to_s,
               "markdown" => "",
               "html"     => "",
+              "test_tag" => (test_tag == "example" ? "" : test_tag),
             } of String => String
 
             examples[current_section][example_count]["markdown"] += line + "\n"
