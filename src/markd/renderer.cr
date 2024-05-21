@@ -84,6 +84,8 @@ module Markd
             line_break(node, entering)
           when Node::Type::Strong
             strong(node, entering)
+          when Node::Type::Strikethrough
+            strikethrough(node, entering)
           when Node::Type::Link
             link(node, entering)
           when Node::Type::Image

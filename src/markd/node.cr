@@ -7,6 +7,7 @@ module Markd
       Text
       Strong
       Emphasis
+      Strikethrough
       Link
       Image
       Heading
@@ -34,6 +35,7 @@ module Markd
       Type::Paragraph,
       Type::Strong,
       Type::Emphasis,
+      Type::Strikethrough,
       Type::Link,
       Type::Image,
       Type::Heading,

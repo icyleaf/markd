@@ -203,6 +203,10 @@ module Markd
       tag("strong", end_tag: !entering)
     end
 
+    def strikethrough(node : Node, entering : Bool)
+      tag("del", end_tag: !entering)
+    end
+
     def text(node : Node, entering : Bool)
       output(node.text)
     end
