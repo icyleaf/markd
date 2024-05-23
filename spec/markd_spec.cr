@@ -11,8 +11,7 @@ describe_spec("fixtures/regression.txt")
 
 describe_spec("fixtures/emoji.txt")
 
-# NOTE(margret): Temporarily copying strikethrough specs
-# describe_spec("fixtures/gfm-spec.txt", gfm: true)
+describe_spec("fixtures/gfm-spec.txt", gfm: true)
 
 describe_spec("fixtures/gfm-extra.txt", gfm: true)
 

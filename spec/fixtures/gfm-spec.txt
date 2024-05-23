@@ -3323,7 +3323,7 @@ The [delimiter row](@) consists of cells whose only content are hyphens (`-`),
 and optionally, a leading or trailing colon (`:`), or both, to indicate left,
 right, or center alignment respectively.
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | foo | bar |
 | --- | --- |
 | baz | bim |
@@ -3347,7 +3347,7 @@ right, or center alignment respectively.
 Cells in one column don't need to match length, though it's easier to read if
 they are. Likewise, use of leading and trailing pipes may be inconsistent:
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | abc | defghi |
 :-: | -----------:
 bar | baz
@@ -3371,7 +3371,7 @@ bar | baz
 Include a pipe in a cell's content by escaping it, including inside other
 inline spans:
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | f\|oo  |
 | ------ |
 | b `\|` az |
@@ -3397,7 +3397,7 @@ inline spans:
 The table is broken at the first empty line, or beginning of another
 block-level structure:
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | abc | def |
 | --- | --- |
 | bar | baz |
@@ -3422,7 +3422,7 @@ block-level structure:
 </blockquote>
 ````````````````````````````````
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | abc | def |
 | --- | --- |
 | bar | baz |
@@ -3468,7 +3468,7 @@ The remainder of the table's rows may vary in the number of cells.  If there
 are a number of cells fewer than the number of cells in the header row, empty
 cells are inserted.  If there are greater, the excess is ignored:
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | abc | def |
 | --- | --- |
 | bar |
@@ -3496,7 +3496,7 @@ cells are inserted.  If there are greater, the excess is ignored:
 
 If there are no rows in the body, no `<tbody>` is generated in HTML output:
 
-```````````````````````````````` example table
+```````````````````````````````` example table pending
 | abc | def |
 | --- | --- |
 .
@@ -5105,7 +5105,7 @@ implementors are free to render the checkboxes as disabled or inmutable elements
 or they may dynamically handle dynamic interactions (i.e. checking, unchecking) in
 the final rendered document.
 
-```````````````````````````````` example disabled
+```````````````````````````````` example disabled pending
 - [ ] foo
 - [x] bar
 .
@@ -5117,7 +5117,7 @@ the final rendered document.
 
 Task lists can be arbitrarily nested:
 
-```````````````````````````````` example disabled
+```````````````````````````````` example disabled pending
 - [x] foo
   - [ ] bar
   - [x] baz
@@ -5949,7 +5949,7 @@ document <https://html.spec.whatwg.org/multipage/entities.json>
 is used as an authoritative source for the valid entity
 references and their corresponding code points.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 &nbsp; &amp; &copy; &AElig; &Dcaron;
 &frac34; &HilbertSpace; &DifferentialD;
 &ClockwiseContourIntegral; &ngE;
@@ -6192,7 +6192,7 @@ sides of the string:
 Only [spaces], and not [unicode whitespace] in general, are
 stripped in this way:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ` b `
 .
 <p><code> b </code></p>
@@ -6597,7 +6597,7 @@ a*"foo"*
 
 Unicode nonbreaking spaces count as whitespace, too:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 * a *
 .
 <p>* a *</p>
@@ -6923,7 +6923,7 @@ foo__bar__
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 __foo, __bar__, baz__
 .
 <p><strong>foo, bar, baz</strong></p>
@@ -7194,7 +7194,7 @@ foo***bar***baz
 <p>foo<em><strong>bar</strong></em>baz</p>
 ````````````````````````````````
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 foo******bar*********baz
 .
 <p>foo<strong>bar</strong>***baz</p>
@@ -7265,21 +7265,21 @@ __foo _bar_ baz__
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 __foo __bar__ baz__
 .
 <p><strong>foo bar baz</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ____foo__ bar__
 .
 <p><strong>foo bar</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 **foo **bar****
 .
 <p><strong>foo bar</strong></p>
@@ -7564,14 +7564,14 @@ _*foo*_
 However, strong emphasis within strong emphasis is possible without
 switching delimiters:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ****foo****
 .
 <p><strong>foo</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ____foo____
 .
 <p><strong>foo</strong></p>
@@ -7582,7 +7582,7 @@ ____foo____
 Rule 13 can be applied to arbitrarily long sequences of
 delimiters:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ******foo******
 .
 <p><strong>foo</strong></p>
@@ -7598,7 +7598,7 @@ Rule 14:
 ````````````````````````````````
 
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 _____foo_____
 .
 <p><em><strong>foo</strong></em></p>
@@ -8023,7 +8023,7 @@ may be used in titles:
 Titles must be separated from the link using a [whitespace].
 Other [Unicode whitespace] like non-breaking space doesn't work.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 [link](/url "title")
 .
 <p><a href="/url%C2%A0%22title%22">link</a></p>
@@ -9210,7 +9210,7 @@ and no underscores may be present in the last two segments of the domain.
 
 The scheme `http` will be inserted automatically:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 www.commonmark.org
 .
 <p><a href="http://www.commonmark.org">www.commonmark.org</a></p>
@@ -9218,7 +9218,7 @@ www.commonmark.org
 
 After a [valid domain], zero or more non-space non-`<` characters may follow:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 Visit www.commonmark.org/help for more information.
 .
 <p>Visit <a href="http://www.commonmark.org/help">www.commonmark.org/help</a> for more information.</p>
@@ -9230,7 +9230,7 @@ Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
 will not be considered part of the autolink, though they may be included in the
 interior of the link:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 Visit www.commonmark.org.
 
 Visit www.commonmark.org/a.b.
@@ -9244,7 +9244,7 @@ of parentheses.  If there is a greater number of closing parentheses than
 opening ones, we don't consider the unmatched trailing parentheses part of the
 autolink, in order to facilitate including an autolink inside a parenthesis:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 www.google.com/search?q=Markup+(business)
 
 www.google.com/search?q=Markup+(business)))
@@ -9263,7 +9263,7 @@ This check is only done when the link ends in a closing parentheses `)`, so if
 the only parentheses are in the interior of the autolink, no special rules are
 applied:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 www.google.com/search?q=(business))+ok
 .
 <p><a href="http://www.google.com/search?q=(business))+ok">www.google.com/search?q=(business))+ok</a></p>
@@ -9274,7 +9274,7 @@ resemble an [entity reference][entity references]; if the preceding text is `&`
 followed by one or more alphanumeric characters.  If so, it is excluded from
 the autolink:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 www.google.com/search?q=commonmark&hl=en
 
 www.google.com/search?q=commonmark&hl;
@@ -9285,7 +9285,7 @@ www.google.com/search?q=commonmark&hl;
 
 `<` immediately ends an autolink.
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 www.commonmark.org/he<lp
 .
 <p><a href="http://www.commonmark.org/he">www.commonmark.org/he</a>&lt;lp</p>
@@ -9296,7 +9296,7 @@ An [extended url autolink](@) will be recognised when one of the schemes
 more non-space non-`<` characters according to
 [extended autolink path validation]:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 http://commonmark.org
 
 (Visit https://encrypted.google.com/search?q=Markup+(business))
@@ -9322,7 +9322,7 @@ the following rules:
 
 The scheme `mailto:` will automatically be added to the generated link:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 foo@bar.baz
 .
 <p><a href="mailto:foo@bar.baz">foo@bar.baz</a></p>
@@ -9330,7 +9330,7 @@ foo@bar.baz
 
 `+` can occur before the `@`, but not after.
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 .
 <p>hello@mail+xyz.example isn't valid, but <a href="mailto:hello+xyz@mail.example">hello+xyz@mail.example</a> is.</p>
@@ -9340,7 +9340,7 @@ hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 the end of the email address, in which case it will not be considered part of
 the address:
 
-```````````````````````````````` example autolink
+```````````````````````````````` example autolink pending
 a.b-c_d@a.b
 
 a.b-c_d@a.b.
@@ -9549,7 +9549,7 @@ Illegal attributes in closing tag:
 
 Comments:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 foo <!-- this is a --
 comment - with hyphens -->
 .
@@ -9557,7 +9557,7 @@ comment - with hyphens -->
 comment - with hyphens --></p>
 ````````````````````````````````
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 foo <!--> foo -->
 
 foo <!---> foo -->
@@ -9644,7 +9644,7 @@ usually undesireable in the context of other rendered Markdown content.
 
 All other HTML tags are left untouched.
 
-```````````````````````````````` example tagfilter
+```````````````````````````````` example tagfilter pending
 <strong> <title> <style> <em>
 
 <blockquote>

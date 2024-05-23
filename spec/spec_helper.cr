@@ -50,9 +50,17 @@ def assert_example(file, section, index, example, smart, gfm = false)
     emoji: example["test_tag"] == "emoji",
   )
   options.smart = true if smart
-  it "- #{index}\n#{show_space(markdown)}", file, line do
-    output = Markd.to_html(markdown, options)
-    output.should eq(html), file: file, line: line
+
+  if example["test_tag"].ends_with?("pending")
+    pending "- #{index}\n#{show_space(markdown)}", file, line do
+      output = Markd.to_html(markdown, options)
+      output.should eq(html), file: file, line: line
+    end
+  else
+    it "- #{index}\n#{show_space(markdown)}", file, line do
+      output = Markd.to_html(markdown, options)
+      output.should eq(html), file: file, line: line
+    end
   end
 end
 
