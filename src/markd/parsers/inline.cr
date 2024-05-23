@@ -750,7 +750,7 @@ module Markd::Parser
         }
       end
 
-      return @pos - startpos
+      @pos - startpos
     end
 
     private def space_at_end_of_line?
@@ -765,7 +765,8 @@ module Markd::Parser
       else
         return false
       end
-      return true
+
+      true
     end
 
     # Parse zero or more space characters, including at most one newline
@@ -781,7 +782,7 @@ module Markd::Parser
         @pos += 1
       end
 
-      return true
+      true
     end
 
     private def match(regex : Regex) : String?

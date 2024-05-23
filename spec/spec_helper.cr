@@ -57,9 +57,6 @@ def assert_example(file, section, index, example, smart, gfm = false)
 end
 
 def extract_spec_tests(file)
-  data = [] of String
-  delimiter = "`" * 32
-
   examples = {} of String => Hash(Int32, Hash(String, String))
 
   current_section = 0
