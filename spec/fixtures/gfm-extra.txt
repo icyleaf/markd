@@ -1,0 +1,9 @@
+## Strikethrough
+
+Don't strikethrough with only one tilde.
+
+```````````````````````````````` example gfm
+~hello~
+.
+<p>~hello~</p>
+````````````````````````````````
