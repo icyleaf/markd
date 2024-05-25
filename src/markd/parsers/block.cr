@@ -24,6 +24,8 @@ module Markd::Parser
     getter line, current_line, blank, inline_lexer,
       indent, indented, next_nonspace, refmap
 
+    delegate gfm, to: @options
+
     def initialize(@options : Options)
       @inline_lexer = Inline.new(@options)
 
@@ -289,7 +291,7 @@ module Markd::Parser
       nil
     end
 
-    def advance_offset(count, columns = false)
+    def advance_offset(count : Int32, columns = false)
       line = @line
       while count > 0 && (char = line[@offset]?)
         if char == '\t'

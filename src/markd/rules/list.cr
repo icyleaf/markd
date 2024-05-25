@@ -82,8 +82,21 @@ module Markd::Rule
       line = parser.line[parser.next_nonspace..-1]
 
       if BULLET_LIST_MARKERS.includes?(line[0])
-        data["type"] = "bullet"
-        data["bullet_char"] = line[0].to_s
+        if parser.gfm && line[1..].strip.starts_with?("[ ]")
+          data["type"] = "checkbox"
+          data["bullet_char"] = line[0].to_s
+          data["checked"] = false
+          padding_checkbox = line.index!(']')
+        elsif parser.gfm && line[1..].strip.starts_with?("[x]")
+          data["type"] = "checkbox"
+          data["bullet_char"] = line[0].to_s
+          data["checked"] = true
+          padding_checkbox = line.index!(']')
+        else
+          data["type"] = "bullet"
+          data["bullet_char"] = line[0].to_s
+        end
+
         first_match_size = 1
       else
         pos = 0
@@ -114,6 +127,12 @@ module Markd::Rule
 
       parser.advance_next_nonspace
       parser.advance_offset(first_match_size, true)
+
+      # Skip past the checkbox brackets ([])
+      if parser.gfm && padding_checkbox
+        parser.advance_offset(padding_checkbox, true)
+      end
+
       spaces_start_column = parser.column
       spaces_start_offset = parser.offset
 

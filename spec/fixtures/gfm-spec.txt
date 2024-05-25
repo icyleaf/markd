@@ -5105,7 +5105,7 @@ implementors are free to render the checkboxes as disabled or inmutable elements
 or they may dynamically handle dynamic interactions (i.e. checking, unchecking) in
 the final rendered document.
 
-```````````````````````````````` example disabled pending
+```````````````````````````````` example disabled
 - [ ] foo
 - [x] bar
 .
@@ -5117,7 +5117,7 @@ the final rendered document.
 
 Task lists can be arbitrarily nested:
 
-```````````````````````````````` example disabled pending
+```````````````````````````````` example disabled
 - [x] foo
   - [ ] bar
   - [x] baz
@@ -5949,12 +5949,12 @@ document <https://html.spec.whatwg.org/multipage/entities.json>
 is used as an authoritative source for the valid entity
 references and their corresponding code points.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 &nbsp; &amp; &copy; &AElig; &Dcaron;
 &frac34; &HilbertSpace; &DifferentialD;
 &ClockwiseContourIntegral; &ngE;
 .
-<p>  &amp; © Æ Ď
+<p>  &amp; © Æ Ď
 ¾ ℋ ⅆ
 ∲ ≧̸</p>
 ````````````````````````````````
@@ -6192,19 +6192,19 @@ sides of the string:
 Only [spaces], and not [unicode whitespace] in general, are
 stripped in this way:
 
-```````````````````````````````` example pending
-` b `
+```````````````````````````````` example
+` b `
 .
-<p><code> b </code></p>
+<p><code> b </code></p>
 ````````````````````````````````
 
 No stripping occurs if the code span contains only spaces:
 
 ```````````````````````````````` example
-` `
+` `
 `  `
 .
-<p><code> </code>
+<p><code> </code>
 <code>  </code></p>
 ````````````````````````````````
 
@@ -6597,10 +6597,10 @@ a*"foo"*
 
 Unicode nonbreaking spaces count as whitespace, too:
 
-```````````````````````````````` example pending
-* a *
+```````````````````````````````` example
+* a *
 .
-<p>* a *</p>
+<p>* a *</p>
 ````````````````````````````````
 
 
@@ -8023,8 +8023,8 @@ may be used in titles:
 Titles must be separated from the link using a [whitespace].
 Other [Unicode whitespace] like non-breaking space doesn't work.
 
-```````````````````````````````` example pending
-[link](/url "title")
+```````````````````````````````` example
+[link](/url "title")
 .
 <p><a href="/url%C2%A0%22title%22">link</a></p>
 ````````````````````````````````
