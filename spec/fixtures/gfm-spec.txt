@@ -5105,7 +5105,7 @@ implementors are free to render the checkboxes as disabled or inmutable elements
 or they may dynamically handle dynamic interactions (i.e. checking, unchecking) in
 the final rendered document.
 
-```````````````````````````````` example disabled pending
+```````````````````````````````` example disabled
 - [ ] foo
 - [x] bar
 .
@@ -5117,7 +5117,7 @@ the final rendered document.
 
 Task lists can be arbitrarily nested:
 
-```````````````````````````````` example disabled pending
+```````````````````````````````` example disabled
 - [x] foo
   - [ ] bar
   - [x] baz

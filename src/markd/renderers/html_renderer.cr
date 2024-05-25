@@ -78,7 +78,7 @@ module Markd
     end
 
     def list(node : Node, entering : Bool)
-      tag_name = node.data["type"] == "bullet" ? "ul" : "ol"
+      tag_name = node.data["type"] == "ordered" ? "ol" : "ul"
 
       newline
       if entering
@@ -99,6 +99,24 @@ module Markd
     def item(node : Node, entering : Bool)
       if entering
         tag("li", attrs(node))
+
+        if node.data["type"] == "checkbox"
+          if node.data["checked"]?
+            attributes = {
+              "checked"  => "",
+              "disabled" => "",
+              "type"     => "checkbox",
+            }
+          else
+            attributes = {
+              "disabled" => "",
+              "type"     => "checkbox",
+            }
+          end
+
+          tag("input", attributes)
+          literal(" ")
+        end
       else
         tag("li", end_tag: true)
         newline
