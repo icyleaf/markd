@@ -75,6 +75,8 @@ module Markd
 
     CODE_INDENT = 4
 
+    GFM_DISALLOWED_HTML_TAGS = %w[title textarea style xmp iframe noembed noframes script plaintext]
+
     # Match Value
     #
     # - None: no match

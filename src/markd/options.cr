@@ -44,6 +44,8 @@ module Markd
 
     property emoji : Bool
 
+    property tagfilter : Bool
+
     def initialize(
       @time = false,
       @gfm = false,
@@ -53,6 +55,7 @@ module Markd
       @safe = false,
       @prettyprint = false,
       @emoji = false,
+      @tagfilter = false,
       @base_url = nil
     )
     end
