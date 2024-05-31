@@ -48,6 +48,7 @@ def assert_example(file, section, index, example, smart, gfm = false)
   options = Markd::Options.new(
     gfm: gfm || example["test_tag"] == "gfm",
     emoji: example["test_tag"] == "emoji",
+    tagfilter: example["test_tag"] == "tagfilter"
   )
   options.smart = true if smart
 

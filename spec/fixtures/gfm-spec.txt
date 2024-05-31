@@ -9644,7 +9644,7 @@ usually undesireable in the context of other rendered Markdown content.
 
 All other HTML tags are left untouched.
 
-```````````````````````````````` example tagfilter pending
+```````````````````````````````` example tagfilter
 <strong> <title> <style> <em>
 
 <blockquote>
