@@ -10,7 +10,7 @@ license: '[CC-BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)'
 
 Here's a well-formed table, doing everything it should.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | abc | def |
 | --- | --- |
 | ghi | jkl |
@@ -40,7 +40,7 @@ We're going to mix up the table now; we'll demonstrate that inline formatting
 works fine, but block elements don't.  You can also have empty cells, and the
 textual alignment of the columns is shown to be irrelevant.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 Hello!
 
 | _abc_ | セン |
@@ -74,7 +74,7 @@ Hi!
 
 Here we demonstrate some edge cases about what is and isn't a table.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | Not enough table | to be considered table |
 
 | Not enough table | to be considered table |
@@ -121,7 +121,7 @@ Here we demonstrate some edge cases about what is and isn't a table.
 
 A "simpler" table, GFM style:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 abc | def
 --- | ---
 xyz | ghi
@@ -145,7 +145,7 @@ xyz | ghi
 We are making the parser slighly more lax here. Here is a table with spaces at
 the end:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 Hello!
 
 | _abc_ | セン |
@@ -179,7 +179,7 @@ Hi!
 
 Table alignment:
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 aaa | bbb | ccc | ddd | eee
 :-- | --- | :-: | --- | --:
 fff | ggg | hhh | iii | jjj
@@ -223,7 +223,7 @@ The header and delimiter row must match.
 But any of the body rows can be shorter. Rows longer
 than the header are truncated.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b | c |
 | --- | --- | ---
 | x
@@ -262,7 +262,7 @@ than the header are truncated.
 
 Tables with embedded pipes could be tricky.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b |
 | --- | --- |
 | Escaped pipes are \|okay\|. | Like \| this. |
@@ -302,7 +302,7 @@ Tables with embedded pipes could be tricky.
 
 This shouldn't assert.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a |
 --- |
 .
@@ -317,7 +317,7 @@ This shouldn't assert.
 
 ### Escaping
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b |
 | --- | --- |
 | \\ | `\\` |
@@ -375,7 +375,7 @@ This shouldn't assert.
 
 ### Embedded HTML
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a |
 | --- |
 | <strong>hello</strong> |
@@ -400,7 +400,7 @@ This shouldn't assert.
 
 ### Reference-style links
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 Here's a link to [Freedom Planet 2][].
 
 | Here's a link to [Freedom Planet 2][] in a table header. |
@@ -426,7 +426,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Sequential cells
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b | c |
 | --- | --- | --- |
 | d || e |
@@ -451,7 +451,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Interaction with emphasis
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b |
 | --- | --- |
 |***(a)***|
@@ -474,7 +474,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### a table can be recognised when separated from a paragraph of text without an empty line
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 123
 456
 | a | b |
@@ -511,7 +511,7 @@ A proper ~strikethrough~.
 
 Some strikethrough edge cases.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 These are ~not strikethroughs.
 
 No, they are not~
@@ -538,7 +538,7 @@ size (100) for parsing delimiters in inlines.c
 
 ## Autolinks
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 : http://google.com https://google.com
 
 <http://google.com/å> http://google.com/å
@@ -637,7 +637,7 @@ http://🍄.ga/ http://x🍄.ga/
 <p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>
 ````````````````````````````````
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 This shouldn't crash everything: (_A_@_.A
 .
 <IGNORE>
@@ -701,7 +701,7 @@ Even with {"x":"y"} or 1 > 2 or whatever. Even **markdown**.
 
 ## Footnotes
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 This is some text![^1]. Other text.[^footnote].
 
 Here's a thing[^other-note].
@@ -761,7 +761,7 @@ Hi!
 
 ## When a footnote is used multiple times, we insert multiple backrefs.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 This is some text. It has a footnote[^a-footnote].
 
 This footnote is referenced[^a-footnote] multiple times, in lots of different places.[^a-footnote]
@@ -781,7 +781,7 @@ This footnote is referenced[^a-footnote] multiple times, in lots of different pl
 
 ## Footnote reference labels are href escaped
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 Hello[^"><script>alert(1)</script>]
 
 [^"><script>alert(1)</script>]: pwned
@@ -800,7 +800,7 @@ Hello[^"><script>alert(1)</script>]
 
 Autolink and strikethrough.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 ~~www.google.com~~
 
 ~~http://google.com~~
@@ -811,7 +811,7 @@ Autolink and strikethrough.
 
 Autolink and tables.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b |
 | --- | --- |
 | https://github.com www.github.com | http://pokemon.com |
