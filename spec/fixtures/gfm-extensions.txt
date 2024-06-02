@@ -839,8 +839,8 @@ Autolink and tables.
 - [x] bar
 .
 <ul>
-<li><input type="checkbox" disabled="" /> foo</li>
-<li><input type="checkbox" checked="" disabled="" /> bar</li>
+<li><input disabled="" type="checkbox"> foo</li>
+<li><input checked="" disabled="" type="checkbox"> bar</li>
 </ul>
 ````````````````````````````````
 
@@ -864,13 +864,13 @@ Show a regular (non task) list to show that it has the same structure
 - [@] bim
 .
 <ul>
-<li><input type="checkbox" checked="" disabled="" /> foo
+<li><input checked="" disabled="" type="checkbox"> foo
 <ul>
-<li><input type="checkbox" disabled="" /> bar</li>
-<li><input type="checkbox" checked="" disabled="" /> baz</li>
+<li><input disabled="" type="checkbox"> bar</li>
+<li><input checked="" disabled="" type="checkbox"> baz</li>
 </ul>
 </li>
-<li><input type="checkbox" disabled="" /> bim</li>
+<li><input disabled="" type="checkbox"> bim</li>
 </ul>
 <p>Show a regular (non task) list to show that it has the same structure</p>
 <ul>
@@ -899,13 +899,13 @@ Show a regular (non task) list to show that it has the same structure
 - [@] bim
 .
 <ul>
-<li><input type="checkbox" checked="" disabled="" /> foo
+<li><input checked="" disabled="" type="checkbox"> foo
 <ul>
-<li><input type="checkbox" disabled="" /> bar</li>
-<li><input type="checkbox" checked="" disabled="" /> baz</li>
+<li><input disabled="" type="checkbox"> bar</li>
+<li><input checked="" disabled="" type="checkbox"> baz</li>
 </ul>
 </li>
-<li><input type="checkbox" disabled="" /> bim</li>
+<li><input disabled="" type="checkbox"> bim</li>
 </ul>
 <p>Show a regular (non task) list to show that it has the same structure</p>
 <ul>
