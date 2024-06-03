@@ -511,7 +511,7 @@ A proper ~strikethrough~.
 
 Some strikethrough edge cases.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 These are ~not strikethroughs.
 
 No, they are not~

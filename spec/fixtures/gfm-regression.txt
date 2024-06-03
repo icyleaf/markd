@@ -151,7 +151,7 @@ cmark-gfm strikethrough rules
 <p><del>Hi</del> Hello, world!</p>
 ````````````````````````````````
 
-```````````````````````````````` example strikethrough pending
+```````````````````````````````` example strikethrough
 This ~text~ ~~is~~ ~~~curious~~~.
 .
 <p>This <del>text</del> <del>is</del> ~~~curious~~~.</p>

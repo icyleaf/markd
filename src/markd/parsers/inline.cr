@@ -344,6 +344,15 @@ module Markd::Parser
                 # calculate actual number of delimiters used from closer
                 use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
 
+                if closer_char == '~' && (
+                     closer.num_delims > 2 ||
+                     opener.num_delims > 2 ||
+                     closer.num_delims != opener.num_delims
+                   )
+                  closer = closer.next?
+                  next
+                end
+
                 opener_inl = opener.node
                 closer_inl = closer.node
 
