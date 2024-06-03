@@ -25,7 +25,7 @@ module Markd::Parser
       end
 
       node.text = ""
-      process_emphasis(nil)
+      process_delimiters(nil)
     end
 
     private def process_line(node : Node)
@@ -270,7 +270,7 @@ module Markd::Parser
         end
 
         node.append_child(child)
-        process_emphasis(opener.previous_delimiter)
+        process_delimiters(opener.previous_delimiter)
         remove_bracket
         opener.node.unlink
 
@@ -290,7 +290,7 @@ module Markd::Parser
       true
     end
 
-    private def process_emphasis(delimiter : Delimiter?)
+    private def process_delimiters(delimiter : Delimiter?)
       # find first closer above stack_bottom:
       closer = @delimiters
       while closer
