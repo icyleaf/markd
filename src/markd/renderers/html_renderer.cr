@@ -5,6 +5,8 @@ module Markd
     @disable_tag = 0
     @last_output = "\n"
 
+    @strong_stack = 0
+
     HEADINGS = %w(h1 h2 h3 h4 h5 h6)
 
     def heading(node : Node, entering : Bool)
@@ -205,7 +207,16 @@ module Markd
     end
 
     def emphasis(node : Node, entering : Bool)
+      if entering
+        node.data["strong_stack"] = @strong_stack
+        @strong_stack = 0
+      end
+
       tag("em", end_tag: !entering)
+
+      if !entering
+        @strong_stack = node.data["strong_stack"].as(Int32)
+      end
     end
 
     def soft_break(node : Node, entering : Bool)
@@ -218,7 +229,11 @@ module Markd
     end
 
     def strong(node : Node, entering : Bool)
-      tag("strong", end_tag: !entering)
+      @strong_stack -= 1 if @options.gfm && !entering
+
+      tag("strong", end_tag: !entering) if (@strong_stack == 0)
+
+      @strong_stack += 1 if @options.gfm && entering
     end
 
     def strikethrough(node : Node, entering : Bool)

@@ -35,23 +35,3 @@
 .
 <p>👨‍👦‍👦</p>
 ````````````````````````````````
-10,212 changes: 10,212 additions & 0 deletions
-10,212
-spec/fixtures/gfm-spec.txt
-Large diffs are not rendered by default.
-
-8 changes: 8 additions & 0 deletions
-8
-spec/fixtures/regression.txt
-@@ -147,3 +147,11 @@ Issue #289.
-.
-<p>[a](&lt;b) c&gt;</p>
-````````````````````````````````
-
-Don't strikethrough with only one tilde.
-
-```````````````````````````````` example gfm
-~hello~
-.
-<p>~hello~</p>
-````````````````````````````````

@@ -44,15 +44,16 @@ def assert_example(file, section, index, example, smart, gfm = false)
   markdown = example["markdown"].gsub("→", "\t").chomp
   html = example["html"].gsub("→", "\t")
   line = example["line"].to_i
+  tags = example["test_tags"].split(" ")
 
   options = Markd::Options.new(
-    gfm: gfm || example["test_tag"] == "gfm",
-    emoji: example["test_tag"] == "emoji",
-    tagfilter: example["test_tag"] == "tagfilter"
+    gfm: gfm || tags.includes?("gfm"),
+    emoji: tags.includes?("emoji"),
+    tagfilter: tags.includes?("tagfilter")
   )
   options.smart = true if smart
 
-  if example["test_tag"].ends_with?("pending")
+  if example["test_tags"].ends_with?("pending")
     pending "- #{index}\n#{show_space(markdown)}", file, line do
       output = Markd.to_html(markdown, options)
       output.should eq(html), file: file, line: line
@@ -76,7 +77,7 @@ def extract_spec_tests(file)
   begin
     File.open(file) do |f|
       line_number = 0
-      test_tag = ""
+      test_tags = ""
 
       while line = f.read_line
         line_number += 1
@@ -90,7 +91,7 @@ def extract_spec_tests(file)
         else
           if !test_start && !result_start && line =~ /^`{32} example([a-z ])*$/
             test_start = true
-            test_tag = line[line.rindex!(' ') + 1..-1]
+            test_tags = line[line.rindex!(' ') + 1..-1]
           elsif test_start && !result_start && line =~ /^\.$/
             test_start = false
             result_start = true
@@ -99,10 +100,10 @@ def extract_spec_tests(file)
             example_count += 1
           elsif test_start && !result_start
             examples[current_section][example_count] ||= {
-              "line"     => line_number.to_s,
-              "markdown" => "",
-              "html"     => "",
-              "test_tag" => (test_tag == "example" ? "" : test_tag),
+              "line"      => line_number.to_s,
+              "markdown"  => "",
+              "html"      => "",
+              "test_tags" => (test_tags == "example" ? "" : test_tags),
             } of String => String
 
             examples[current_section][example_count]["markdown"] += line + "\n"

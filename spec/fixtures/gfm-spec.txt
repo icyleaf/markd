@@ -6923,7 +6923,7 @@ foo__bar__
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 __foo, __bar__, baz__
 .
 <p><strong>foo, bar, baz</strong></p>
@@ -7194,7 +7194,7 @@ foo***bar***baz
 <p>foo<em><strong>bar</strong></em>baz</p>
 ````````````````````````````````
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 foo******bar*********baz
 .
 <p>foo<strong>bar</strong>***baz</p>
@@ -7265,21 +7265,21 @@ __foo _bar_ baz__
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 __foo __bar__ baz__
 .
 <p><strong>foo bar baz</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 ____foo__ bar__
 .
 <p><strong>foo bar</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 **foo **bar****
 .
 <p><strong>foo bar</strong></p>
@@ -7564,14 +7564,14 @@ _*foo*_
 However, strong emphasis within strong emphasis is possible without
 switching delimiters:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 ****foo****
 .
 <p><strong>foo</strong></p>
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 ____foo____
 .
 <p><strong>foo</strong></p>
@@ -7582,7 +7582,7 @@ ____foo____
 Rule 13 can be applied to arbitrarily long sequences of
 delimiters:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 ******foo******
 .
 <p><strong>foo</strong></p>
@@ -7598,7 +7598,7 @@ Rule 14:
 ````````````````````````````````
 
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 _____foo_____
 .
 <p><em><strong>foo</strong></em></p>

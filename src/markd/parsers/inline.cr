@@ -25,7 +25,7 @@ module Markd::Parser
       end
 
       node.text = ""
-      process_emphasis(nil)
+      process_delimiters(nil)
     end
 
     private def process_line(node : Node)
@@ -270,7 +270,7 @@ module Markd::Parser
         end
 
         node.append_child(child)
-        process_emphasis(opener.previous_delimiter)
+        process_delimiters(opener.previous_delimiter)
         remove_bracket
         opener.node.unlink
 
@@ -290,7 +290,7 @@ module Markd::Parser
       true
     end
 
-    private def process_emphasis(delimiter : Delimiter?)
+    private def process_delimiters(delimiter : Delimiter?)
       # find first closer above stack_bottom:
       closer = @delimiters
       while closer
@@ -344,7 +344,14 @@ module Markd::Parser
                 # calculate actual number of delimiters used from closer
                 use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
 
-                return if (closer_char == '~') && use_delims == 1
+                if closer_char == '~' && (
+                     closer.num_delims > 2 ||
+                     opener.num_delims > 2 ||
+                     closer.num_delims != opener.num_delims
+                   )
+                  closer = closer.next?
+                  next
+                end
 
                 opener_inl = opener.node
                 closer_inl = closer.node

@@ -13,7 +13,9 @@ describe_spec("fixtures/emoji.txt")
 
 describe_spec("fixtures/gfm-spec.txt", gfm: true)
 
-describe_spec("fixtures/gfm-extra.txt", gfm: true)
+describe_spec("fixtures/gfm-extensions.txt", gfm: true)
+
+describe_spec("fixtures/gfm-regression.txt", gfm: true)
 
 describe Markd do
   # Thanks Ryan Westlund <rlwestlund@gmail.com> feedback via email.
