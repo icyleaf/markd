@@ -5,9 +5,28 @@ module Markd
       @last_output = "\n"
     end
 
-    def output(string : String)
-      literal(escape(string))
-    end
+    abstract def output(string : String)
+    abstract def block_quote(node : Node, entering : Bool)
+    abstract def code_block(node : Node, entering : Bool)
+    abstract def code(node : Node, entering : Bool)
+    abstract def custom_block(node : Node, entering : Bool)
+    abstract def custom_inline(node : Node, entering : Bool)
+    abstract def document(node : Node, entering : Bool)
+    abstract def emphasis(node : Node, entering : Bool)
+    abstract def heading(node : Node, entering : Bool)
+    abstract def html_block(node : Node, entering : Bool)
+    abstract def html_inline(node : Node, entering : Bool)
+    abstract def image(node : Node, entering : Bool)
+    abstract def item(node : Node, entering : Bool)
+    abstract def line_break(node : Node, entering : Bool)
+    abstract def link(node : Node, entering : Bool)
+    abstract def list(node : Node, entering : Bool)
+    abstract def paragraph(node : Node, entering : Bool)
+    abstract def soft_break(node : Node, entering : Bool)
+    abstract def strikethrough(node : Node, entering : Bool)
+    abstract def strong(node : Node, entering : Bool)
+    abstract def text(node : Node, entering : Bool)
+    abstract def thematic_break(node : Node, entering : Bool)
 
     def literal(string : String)
       @output_io << string
@@ -19,36 +38,6 @@ module Markd
       literal("\n") if @last_output != "\n"
     end
 
-    private ESCAPES = {
-      '&' => "&amp;",
-      '"' => "&quot;",
-      '<' => "&lt;",
-      '>' => "&gt;",
-    }
-
-    def escape(text)
-      # If we can determine that the text has no escape chars
-      # then we can return the text as is, avoiding an allocation
-      # and a lot of processing in `String#gsub`.
-      if has_escape_char?(text)
-        text.gsub(ESCAPES)
-      else
-        text
-      end
-    end
-
-    private def has_escape_char?(text)
-      text.each_byte do |byte|
-        case byte
-        when '&', '"', '<', '>'
-          return true
-        else
-          next
-        end
-      end
-      false
-    end
-
     def render(document : Node)
       Utils.timer("rendering", @options.time) do
         walker = document.walker
@@ -56,42 +45,48 @@ module Markd
           node, entering = event
 
           case node.type
-          when Node::Type::Heading
+          in Node::Type::Heading
             heading(node, entering)
-          when Node::Type::List
+          in Node::Type::List
             list(node, entering)
-          when Node::Type::Item
+          in Node::Type::Item
             item(node, entering)
-          when Node::Type::BlockQuote
+          in Node::Type::BlockQuote
             block_quote(node, entering)
-          when Node::Type::ThematicBreak
+          in Node::Type::ThematicBreak
             thematic_break(node, entering)
-          when Node::Type::CodeBlock
+          in Node::Type::CodeBlock
             code_block(node, entering)
-          when Node::Type::Code
+          in Node::Type::Code
             code(node, entering)
-          when Node::Type::HTMLBlock
+          in Node::Type::HTMLBlock
             html_block(node, entering)
-          when Node::Type::HTMLInline
+          in Node::Type::HTMLInline
             html_inline(node, entering)
-          when Node::Type::Paragraph
+          in Node::Type::Paragraph
             paragraph(node, entering)
-          when Node::Type::Emphasis
+          in Node::Type::Emphasis
             emphasis(node, entering)
-          when Node::Type::SoftBreak
+          in Node::Type::SoftBreak
             soft_break(node, entering)
-          when Node::Type::LineBreak
+          in Node::Type::LineBreak
             line_break(node, entering)
-          when Node::Type::Strong
+          in Node::Type::Strong
             strong(node, entering)
-          when Node::Type::Strikethrough
+          in Node::Type::Strikethrough
             strikethrough(node, entering)
-          when Node::Type::Link
+          in Node::Type::Link
             link(node, entering)
-          when Node::Type::Image
+          in Node::Type::Image
             image(node, entering)
-          else
+          in Node::Type::Document
+            document(node, entering)
+          in Node::Type::Text
             text(node, entering)
+          in Node::Type::CustomInLine
+            custom_inline(node, entering)
+          in Node::Type::CustomBlock
+            custom_block(node, entering)
           end
         end
       end
