@@ -55,12 +55,22 @@ def assert_example(file, section, index, example, smart, gfm = false)
 
   if example["test_tags"].ends_with?("pending")
     pending "- #{index}\n#{show_space(markdown)}", file, line do
-      output = Markd.to_html(markdown, options)
+      if tags.includes?("markdown")
+        output = Markd.to_markdown(markdown, options)
+      else
+        output = Markd.to_html(markdown, options)
+      end
+
       output.should eq(html), file: file, line: line
     end
   else
     it "- #{index}\n#{show_space(markdown)}", file, line do
-      output = Markd.to_html(markdown, options)
+      if tags.includes?("markdown")
+        output = Markd.to_markdown(markdown, options)
+      else
+        output = Markd.to_html(markdown, options)
+      end
+
       output.should eq(html), file: file, line: line
     end
   end

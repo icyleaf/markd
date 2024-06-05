@@ -15,4 +15,12 @@ module Markd
     renderer = HTMLRenderer.new(options)
     renderer.render(document)
   end
+
+  def self.to_markdown(source : String, options = Options.new)
+    return "" if source.empty?
+
+    document = Parser.parse(source, options)
+    renderer = MarkdownRenderer.new(options)
+    renderer.render(document)
+  end
 end

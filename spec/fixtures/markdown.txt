@@ -1,0 +1,27 @@
+## Markdown
+
+```````````````````````````````` example markdown
+hello world
+.
+hello world
+````````````````````````````````
+
+
+```````````````````````````````` example markdown
+`hello world`
+*general kenobi*
+.
+`hello world`
+*general kenobi*
+````````````````````````````````
+
+
+```````````````````````````````` example markdown
+```txt
+hello world
+```
+.
+```txt
+hello world
+```
+````````````````````````````````
