@@ -49,7 +49,7 @@ module Markd
       false
     end
 
-    def render(document : Node)
+    def render(document : Node, formatter : Tartrazine::Formatter)
       Utils.timer("rendering", @options.time) do
         walker = document.walker
         while event = walker.next
@@ -67,7 +67,7 @@ module Markd
           when Node::Type::ThematicBreak
             thematic_break(node, entering)
           when Node::Type::CodeBlock
-            code_block(node, entering)
+            code_block(node, entering, formatter)
           when Node::Type::Code
             code(node, entering)
           when Node::Type::HTMLBlock

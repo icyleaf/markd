@@ -31,27 +31,32 @@ module Markd
       output(node.text)
     end
 
-    def code_block(node : Node, entering : Bool)
+    def code_block(node : Node, entering : Bool, formatter : Tartrazine::Formatter)
       languages = node.fence_language ? node.fence_language.split : nil
-      code_tag_attrs = attrs(node)
-      pre_tag_attrs = if @options.prettyprint?
-                        {"class" => "prettyprint"}
-                      else
-                        nil
-                      end
-
       lang = code_block_language(languages)
-      if lang
-        code_tag_attrs ||= {} of String => String
-        code_tag_attrs["class"] = "language-#{escape(lang)}"
-      end
+      text = node.text.chomp
 
       newline
-      tag("pre", pre_tag_attrs) do
-        tag("code", code_tag_attrs) do
-          code_block_body(node, lang)
+
+      if lang
+        lexer = Tartrazine.lexer(lang)
+
+        literal(formatter.format(text, lexer))
+      else
+        code_tag_attrs = attrs(node)
+        pre_tag_attrs = if @options.prettyprint?
+                          {"class" => "prettyprint"}
+                        else
+                          nil
+                        end
+
+        tag("pre", pre_tag_attrs) do
+          tag("code", code_tag_attrs) do
+            code_block_body(node, lang)
+          end
         end
       end
+
       newline
     end
 
