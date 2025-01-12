@@ -80,6 +80,133 @@ renderer = CustomRenderer.new(options)
 html = renderer.render(document)
 ```
 
+## Use tartrazine shards to render code block.
+
+Added and require [tartrazine](https://github.com/ralsina/tartrazine) before markd will use it to render code block.
+
+By default, it use formatter like following:
+
+```crystal
+formatter = Tartrazine::Html.new(
+  theme: Tartrazine.theme("catppuccin-macchiato"),
+  line_numbers: true,
+  standalone: true,
+)
+```
+
+You can passing a formatter instead.
+
+e.g.
+
+```crystal
+require "tartrazine" # require it before markd
+require "markd"
+
+formatter = Tartrazine::Html.new(
+  theme: Tartrazine.theme("emacs"),
+  
+  # Disable print line number
+  line_numbers: false,
+  
+  # Set standalone to false for better performace.
+  #
+  # You need generate css file use `bin/tartrazine -f html -t "emacs" --css`, 
+  # then link it in you site.
+  standalone: false,
+)
+
+html = Markd.to_html(markdown,formatter: formatter)
+```
+
+If you don't care about the formatter config, you can just passing a string instead.
+
+```crystal
+require "tartrazine" # require it before markd
+require "markd"
+
+html = Markd.to_html(markdown, formatter: "emacs")
+```
+
+
+Currently Tartrazine supports 247 languages and [331 themes](https://github.com/ralsina/tartrazine/tree/main/styles), you can retrieve the supported languages use `Tartrazine::LEXERS_BY_NAME.values.uniq.sort`, for now the result is:
+
+```crystal
+[
+  "LiquidLexer", "VelocityLexer", 
+  
+  "abap", "abnf", "actionscript", "actionscript_3", "ada", "agda", "al", "alloy", "angular2", 
+  "antlr",   "apacheconf", "apl", "applescript", "arangodb_aql", "arduino", "armasm", 
+  "autohotkey", "autoit", "awk", 
+  
+  "ballerina", "bash", "bash_session", "batchfile", "bbcode", "bibtex", "bicep", "blitzbasic", 
+  "bnf", "bqn", "brainfuck", 
+  
+  "c", "c#", "c++", "cap_n_proto", "cassandra_cql", "ceylon", "cfengine3", "cfstatement", 
+  "chaiscript", "chapel",   "cheetah", "clojure", "cmake", "cobol", "coffeescript", 
+  "common_lisp", "coq", "crystal", "css", "cue", "cython", 
+  
+  "d", "dart", "dax", "desktop_entry", "diff", "django_jinja", "dns", "docker", "dtd", "dylan", 
+  
+  "ebnf", "elixir", "elm", "emacslisp", "erlang", 
+  
+  "factor", "fennel", "fish", "forth", "fortran", "fortranfixed", "fsharp", 
+  
+  "gas", "gdscript", "gdscript3", "gherkin", "gleam", "glsl", "gnuplot", "go_template", 
+  "graphql", "groff", "groovy", 
+  
+  "handlebars", "hare", "haskell", "hcl", "hexdump", "hlb", "hlsl", "holyc", "html", "hy", 
+  
+  "idris", "igor", "ini", "io", "iscdhcpd", 
+  
+  "j", "java", "javascript", "json", "jsonata", "julia", "jungle", 
+  
+  "kotlin", 
+  
+  "lighttpd_configuration_file", "llvm", "lua", 
+  
+  "makefile", "mako", "markdown", "mason", "materialize_sql_dialect", "mathematica", "matlab", 
+  "mcfunction", "meson", "metal", "minizinc", "mlir", "modula-2", "moinwiki", "monkeyc", 
+  "morrowindscript", "myghty", "mysql", 
+  
+  "nasm", "natural", "ndisasm", "newspeak", "nginx_configuration_file", "nim", "nix", 
+  
+  "objective-c", "objectpascal", "ocaml", "octave", "odin", "onesenterprise", "openedge_abl", 
+  "openscad", "org_mode", 
+  
+  "pacmanconf", "perl", "php", "pig", "pkgconfig", "pl_pgsql", "plaintext", "plutus_core", 
+  "pony", "postgresql_sql_dialect", "postscript", "povray", "powerquery", "powershell", 
+  "prolog", "promela", "promql", "properties", "protocol_buffer",   "prql", "psl", "puppet", 
+  "python", "python_2", 
+  
+  "qbasic", "qml", 
+  
+  "r", "racket", "ragel", "react", "reasonml", "reg", "rego", "rexx", "rpm_spec", "rst", 
+  "ruby", "rust", 
+  
+  "sas", "sass", "scala", "scheme", "scilab", "scss", "sed", "sieve", "smali", "smalltalk", 
+  "smarty", "snobol", "solidity", "sourcepawn", "sparql", "sql", "squidconf", "standard_ml", 
+  "stas", "stylus", "swift", "systemd", "systemverilog", 
+  
+  "tablegen", "tal", "tasm", "tcl", "tcsh", "termcap", "terminfo", "terraform", "tex", 
+  "thrift",  "toml", "tradingview", "transact-sql", "turing", "turtle", "twig", "typescript", 
+  "typoscript", "typoscriptcssdata", "typoscripthtmldata", 
+  
+  "ucode", 
+  
+  "v", "v_shell", "vala", "vb_net", "verilog", "vhdl", "vhs", "viml", "vue", "wdte", 
+  
+  "webgpu_shading_language", "whiley", 
+  
+  "xml", "xorg", 
+  
+  "yaml", "yang", "z80_assembly", 
+  
+  "zed", "zig"
+]
+```
+
+For details usage, check [tartrazine](https://github.com/ralsina/tartrazine) documents.
+
 ## Performance
 
 Here is the result of [a sample markdown file](benchmarks/source.md) parse at MacBook Pro Retina 2015 (2.2 GHz):
