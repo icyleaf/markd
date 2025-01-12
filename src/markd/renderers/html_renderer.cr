@@ -31,33 +31,12 @@ module Markd
       output(node.text)
     end
 
-    def code_block(node : Node, entering : Bool, formatter : Tartrazine::Formatter)
-      languages = node.fence_language ? node.fence_language.split : nil
-      lang = code_block_language(languages)
-      text = node.text.chomp
-
-      newline
-
-      if lang
-        lexer = Tartrazine.lexer(lang)
-
-        literal(formatter.format(text, lexer))
-      else
-        code_tag_attrs = attrs(node)
-        pre_tag_attrs = if @options.prettyprint?
-                          {"class" => "prettyprint"}
-                        else
-                          nil
-                        end
-
-        tag("pre", pre_tag_attrs) do
-          tag("code", code_tag_attrs) do
-            code_block_body(node, lang)
-          end
-        end
-      end
-
-      newline
+    def code_block(node : Node, entering : Bool, formatter : T?) forall T
+      {% if @top_level.has_constant?("Tartrazine") %}
+        render_code_block_use_tartrazine(node, formatter)
+      {% else %}
+        render_code_block_use_code_tag(node)
+      {% end %}
     end
 
     def code_block_language(languages)
@@ -293,6 +272,58 @@ module Markd
       else
         nil
       end
+    end
+
+    private def render_code_block_use_tartrazine(node : Node, formatter : Tartrazine::Formatter?)
+      languages = node.fence_language ? node.fence_language.split : nil
+      lang = code_block_language(languages)
+
+      newline
+
+      if lang
+        lexer = Tartrazine.lexer(lang)
+
+        literal(formatter.format(node.text.chomp, lexer))
+      else
+        code_tag_attrs = attrs(node)
+        pre_tag_attrs = if @options.prettyprint?
+                          {"class" => "prettyprint"}
+                        else
+                          nil
+                        end
+
+        tag("pre", pre_tag_attrs) do
+          tag("code", code_tag_attrs) do
+            code_block_body(node, lang)
+          end
+        end
+      end
+
+      newline
+    end
+
+    private def render_code_block_use_code_tag(node : Node)
+      languages = node.fence_language ? node.fence_language.split : nil
+      code_tag_attrs = attrs(node)
+      pre_tag_attrs = if @options.prettyprint?
+                        {"class" => "prettyprint"}
+                      else
+                        nil
+                      end
+
+      lang = code_block_language(languages)
+      if lang
+        code_tag_attrs ||= {} of String => String
+        code_tag_attrs["class"] = "language-#{escape(lang)}"
+      end
+
+      newline
+      tag("pre", pre_tag_attrs) do
+        tag("code", code_tag_attrs) do
+          code_block_body(node, lang)
+        end
+      end
+      newline
     end
   end
 end

@@ -49,7 +49,7 @@ module Markd
       false
     end
 
-    def render(document : Node, formatter : Tartrazine::Formatter)
+    def render(document : Node, formatter : T?) forall T
       Utils.timer("rendering", @options.time) do
         walker = document.walker
         while event = walker.next
