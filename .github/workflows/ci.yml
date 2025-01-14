@@ -30,12 +30,6 @@ jobs:
       with:
         crystal: ${{ matrix.crystal }}
 
-    - name: Crystal Ameba Linter
-      if: matrix.os == 'ubuntu-latest'
-      uses: crystal-ameba/github-action@v0.9.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
     - name: Install dependencies
       run: shards install --without-development
 
@@ -50,3 +44,9 @@ jobs:
           git diff
           exit 1
         fi
+    
+    - name: Run Crystal Ameba Linter
+      if: matrix.os == 'ubuntu-latest'
+      uses: crystal-ameba/github-action@v0.12.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
