@@ -283,7 +283,7 @@ module Markd
       if lang
         lexer = Tartrazine.lexer(lang)
 
-        literal(formatter.format(node.text.chomp, lexer))
+        literal(formatter.format("\n#{node.text.chomp}\n", lexer))
       else
         code_tag_attrs = attrs(node)
         pre_tag_attrs = if @options.prettyprint?
