@@ -49,6 +49,25 @@ module Markd
       false
     end
 
+    abstract def heading(node : Node, entering : Bool) : Nil
+    abstract def list(node : Node, entering : Bool) : Nil
+    abstract def item(node : Node, entering : Bool) : Nil
+    abstract def block_quote(node : Node, entering : Bool) : Nil
+    abstract def thematic_break(node : Node, entering : Bool) : Nil
+    abstract def code_block(node : Node, entering : Bool, formatter : T?) : Nil forall T
+    abstract def code(node : Node, entering : Bool) : Nil
+    abstract def html_block(node : Node, entering : Bool) : Nil
+    abstract def html_inline(node : Node, entering : Bool) : Nil
+    abstract def paragraph(node : Node, entering : Bool) : Nil
+    abstract def emphasis(node : Node, entering : Bool) : Nil
+    abstract def soft_break(node : Node, entering : Bool) : Nil
+    abstract def line_break(node : Node, entering : Bool) : Nil
+    abstract def strong(node : Node, entering : Bool) : Nil
+    abstract def strikethrough(node : Node, entering : Bool) : Nil
+    abstract def link(node : Node, entering : Bool) : Nil
+    abstract def image(node : Node, entering : Bool) : Nil
+    abstract def text(node : Node, entering : Bool) : Nil
+
     def render(document : Node, formatter : T?) forall T
       Utils.timer("rendering", @options.time) do
         walker = document.walker
