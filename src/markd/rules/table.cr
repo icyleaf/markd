@@ -2,7 +2,7 @@ module Markd::Rule
   struct Table
     include Rule
 
-    SEPARATOR_REGEX = /^(\|?\s*-+\s*)+(\||\s*)$/
+    SEPARATOR_REGEX = /^(\|?\s*:{0,1}-:{0,1}+\s*)+(\||\s*)$/
 
     def match(parser : Parser, container : Node) : MatchValue
       if match?(parser) # Looks like the 1st line of a table
@@ -33,15 +33,6 @@ module Markd::Rule
       end.join("\n")
       lines = container.text.strip.split("\n")
 
-      # Make all lines end with '|' for convenience
-      lines = lines.map do |l|
-        if l.rstrip.ends_with? '|'
-          l
-        else
-          l + '|'
-        end
-      end
-
       row_sizes = lines[...2].map do |l|
         l.strip.strip("|").split(/(?<!\\)\|/).size
       end.uniq!
@@ -66,6 +57,18 @@ module Markd::Rule
       has_body = lines.size > 2
       container.data["has_body"] = has_body
 
+      alignments = lines[1].strip.strip("|").split(/(?<!\\)\|/).map do |cell|
+        if cell.strip.starts_with?(":") && cell.strip.ends_with?(":")
+          "center"
+        elsif cell.strip.starts_with?(":")
+          "left"
+        elsif cell.strip.ends_with?(":")
+          "right"
+        else
+          ""
+        end
+      end
+
       # Each line maps to a table row
       lines.each_with_index do |line, i|
         next if i == 1
@@ -82,9 +85,10 @@ module Markd::Rule
         end
 
         # Create cells with text and metadata
-        cells.each do |text|
+        cells.each_with_index do |text, j|
           cell = Node.new(Node::Type::TableCell)
           cell.text = text.strip
+          cell.data["align"] = alignments[j]
           cell.data["heading"] = i == 0
           row.append_child(cell)
         end

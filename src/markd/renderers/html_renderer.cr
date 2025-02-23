@@ -104,9 +104,14 @@ module Markd
 
     def table_cell(node : Node, entering : Bool)
       tag_name = node.data["heading"] ? "th" : "td"
+      if !node.data["align"].to_s.empty?
+        attrs = {"align" => node.data["align"]}
+      else
+        attrs = {} of String => String
+      end
       if entering
         newline
-        tag(tag_name, attrs(node))
+        tag(tag_name, attrs)
       else
         tag(tag_name, end_tag: true)
         newline

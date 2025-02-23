@@ -179,7 +179,7 @@ Hi!
 
 Table alignment:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 aaa | bbb | ccc | ddd | eee
 :-- | --- | :-: | --- | --:
 fff | ggg | hhh | iii | jjj
