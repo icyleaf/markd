@@ -400,7 +400,7 @@ This shouldn't assert.
 
 ### Reference-style links
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Here's a link to [Freedom Planet 2][].
 
 | Here's a link to [Freedom Planet 2][] in a table header. |
