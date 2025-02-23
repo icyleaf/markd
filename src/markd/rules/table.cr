@@ -33,8 +33,12 @@ module Markd::Rule
       lines = container.text.strip.split('\n')
 
       # Do we have a real table?
+      # * At least two lines
+      # * Second line is a divider
+      # * All lines have the same number of cells 
       # FIXME: do a real regex for divider
-      if lines.size < 2 || !"|#{lines[1]}".match(/-/)
+      if lines.size < 2 || !"|#{lines[1]}".match(/-/) ||
+        lines.map(&.count "|").uniq.size != 1
         # Not enough table. We need to convert it into a paragraph
         # Turn the table into a paragraph. I am fairly sure this is not supposed to work
         container.type = Node::Type::Paragraph
@@ -42,6 +46,9 @@ module Markd::Rule
         container.text = original_text
         return
       end
+
+      # Do we have row cell count mismatches?
+      lines.map(&.count "|").uniq.size
 
       has_body = lines.size > 2
       container.data["has_body"] = has_body

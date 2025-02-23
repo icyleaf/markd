@@ -210,7 +210,7 @@ fff | ggg | hhh | iii | jjj
 
 The header and delimiter row must match.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b | c |
 | --- | --- |
 | this | isn't | okay |
