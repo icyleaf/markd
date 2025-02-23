@@ -17,7 +17,6 @@ module Markd::Rule
     end
 
     def continue(parser : Parser, container : Node) : ContinueStatus
-      pp! parser.line
       if match_continuation?(parser)
         seek(parser)
         ContinueStatus::Continue
