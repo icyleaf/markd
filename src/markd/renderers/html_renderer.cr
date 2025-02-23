@@ -75,10 +75,13 @@ module Markd
 
     def table_row(node : Node, entering : Bool)
       newline
+      is_heading= node.data["heading"] ? "th" : "td"
       if entering
+        tag("thead") if is_heading
         tag("tr", attrs(node))
       else
         tag("tr", end_tag: true)
+        tag("thead, end_tag: true") if is_heading
       end
       newline
     end

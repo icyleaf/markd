@@ -28,11 +28,11 @@ module Markd::Rule
       # So, let's parse it and shove them into the tree
 
       lines = container.text.split('\n')
-      lines.each do |line| 
+      lines.each_with_index do |line, i|
         row = Node.new(Node::Type::TableRow)
+        row.data["heading"] = i == 0
         container.append_child(row)
         line.rstrip("|").split('|').each do |text|
-          pp! text
           cell = Node.new(Node::Type::TableCell)
           cell.text = text.strip
           row.append_child(cell)
