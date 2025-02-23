@@ -74,7 +74,7 @@ Hi!
 
 Here we demonstrate some edge cases about what is and isn't a table.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | Not enough table | to be considered table |
 
 | Not enough table | to be considered table |

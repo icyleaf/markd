@@ -28,6 +28,23 @@ module Markd::Rule
       # So, let's parse it and shove them into the tree
 
       lines = container.text.strip.split('\n')
+
+      # Do we have a real table?
+      # FIXME: do a real regex for divider
+      if lines.size < 2 || !"|#{lines[1]}".match(/---/)
+        # Not enough table. We need to convert it into a paragraph
+        text = lines.map do |line|
+          "|#{line}"
+        end.join("\n")
+        # Create a paragraph with this text and replace the table node with it
+        paragraph = Node.new(Node::Type::Paragraph)
+        paragraph.text = text
+        container.insert_after(paragraph)
+        container.unlink
+        parser.tip = paragraph
+        return
+      end
+
       lines.each_with_index do |line, i|
         next if i == 1
         row = Node.new(Node::Type::TableRow)
