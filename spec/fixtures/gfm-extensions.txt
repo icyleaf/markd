@@ -223,7 +223,7 @@ The header and delimiter row must match.
 But any of the body rows can be shorter. Rows longer
 than the header are truncated.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b | c |
 | --- | --- | ---
 | x

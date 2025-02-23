@@ -32,13 +32,25 @@ module Markd::Rule
       end.join("\n")
       lines = container.text.strip.split('\n')
 
+      # Make all lines end with '|'
+      lines = lines.map do |l|
+        if l.rstrip.ends_with? '|'
+          l
+        else
+          l + '|'
+        end
+      end
+
+      row_sizes = lines[...2].map(&.count "|").uniq!
+
       # Do we have a real table?
       # * At least two lines
       # * Second line is a divider
-      # * All lines have the same number of cells
+      # * First two lines have the same number of cells
       # FIXME: do a real regex for divider
+
       if lines.size < 2 || !"|#{lines[1]}".match(/-/) ||
-         lines.map(&.count "|").uniq!.size != 1
+         row_sizes.size != 1
         # Not enough table. We need to convert it into a paragraph
         # Turn the table into a paragraph. I am fairly sure this is not supposed to work
         container.type = Node::Type::Paragraph
@@ -47,9 +59,7 @@ module Markd::Rule
         return
       end
 
-      # Do we have row cell count mismatches?
-      lines.map(&.count "|").uniq!.size
-
+      max_row_size = row_sizes[0]
       has_body = lines.size > 2
       container.data["has_body"] = has_body
 
@@ -59,7 +69,11 @@ module Markd::Rule
         row.data["heading"] = i == 0
         row.data["has_body"] = has_body
         container.append_child(row)
-        line.rstrip.rstrip("|").split('|').each do |text|
+        cells = line.rstrip.rstrip("|").split('|')[...max_row_size]
+        while cells.size < max_row_size
+          cells << ""
+        end
+        cells.each do |text|
           cell = Node.new(Node::Type::TableCell)
           cell.text = text.strip
           cell.data["heading"] = i == 0
