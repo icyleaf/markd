@@ -145,7 +145,7 @@ xyz | ghi
 We are making the parser slighly more lax here. Here is a table with spaces at
 the end:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Hello!
 
 | _abc_ | セン |

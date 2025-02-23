@@ -52,7 +52,7 @@ module Markd::Rule
         row.data["heading"] = i == 0
         row.data["has_body"] = has_body
         container.append_child(row)
-        line.rstrip("|").split('|').each do |text|
+        line.rstrip.rstrip("|").split('|').each do |text|
           cell = Node.new(Node::Type::TableCell)
           cell.text = text.strip
           cell.data["heading"] = i == 0
