@@ -73,6 +73,27 @@ module Markd
       newline
     end
 
+    def table_row(node : Node, entering : Bool)
+      newline
+      if entering
+        tag("tr", attrs(node))
+      else
+        tag("tr", end_tag: true)
+      end
+      newline
+    end
+
+
+    def table_cell(node : Node, entering : Bool)
+      newline
+      if entering
+        tag("td", attrs(node))
+        output(node.text)
+        tag("td", end_tag: true)
+      end
+      newline
+    end
+
     def list(node : Node, entering : Bool)
       tag_name = node.data["type"] == "ordered" ? "ol" : "ul"
 

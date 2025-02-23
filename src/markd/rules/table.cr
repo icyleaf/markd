@@ -25,7 +25,20 @@ module Markd::Rule
 
     def token(parser : Parser, container : Node) : Nil
       # The table contents are in container.text (except the leading | in each line)
-      # So, let's parse it and shove it into container.data
+      # So, let's parse it and shove them into the tree
+
+      lines = container.text.split('\n')
+      lines.each do |line| 
+        row = Node.new(Node::Type::TableRow)
+        container.append_child(row)
+        line.rstrip("|").split('|').each do |text|
+          pp! text
+          cell = Node.new(Node::Type::TableCell)
+          cell.text = text.strip
+          row.append_child(cell)
+          pp! row.last_child.text
+        end
+      end
     end
 
     def can_contain?(type : Node::Type) : Bool
