@@ -451,7 +451,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Interaction with emphasis
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b |
 | --- | --- |
 |***(a)***|
