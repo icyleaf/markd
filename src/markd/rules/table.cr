@@ -93,7 +93,7 @@ module Markd::Rule
     end
 
     private def match?(parser)
-      !parser.indented && parser.line[0]? == '|'
+      !parser.indented && parser.line[0]? == '|' && parser.line.size > 2
     end
 
     private def match_continuation?(parser : Parser)
