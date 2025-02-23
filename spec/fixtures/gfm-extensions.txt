@@ -121,7 +121,7 @@ Here we demonstrate some edge cases about what is and isn't a table.
 
 A "simpler" table, GFM style:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 abc | def
 --- | ---
 xyz | ghi
