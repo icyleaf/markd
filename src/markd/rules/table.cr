@@ -97,7 +97,7 @@ module Markd::Rule
     end
 
     private def match_continuation?(parser : Parser)
-      !parser.indented && (parser.line[0]? == '|' || parser.line.match(SEPARATOR_REGEX))
+      !parser.indented && (parser.line[0]? == '|' || parser.line.match(SEPARATOR_REGEX) || parser.line.match(/(?<!\\)\|/))
     end
 
     private def seek(parser : Parser)
