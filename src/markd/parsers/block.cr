@@ -16,6 +16,7 @@ module Markd::Parser
       Node::Type::List          => Rule::List.new,
       Node::Type::Item          => Rule::Item.new,
       Node::Type::Paragraph     => Rule::Paragraph.new,
+      Node::Type::Table         => Rule::Table.new,
     }
 
     property! tip : Node?
