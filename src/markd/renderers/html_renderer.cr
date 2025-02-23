@@ -68,6 +68,8 @@ module Markd
       if entering
         tag("table", attrs(node))
       else
+        tag("tbody", end_tag: true)
+        newline
         tag("table", end_tag: true)
       end
       newline
@@ -75,24 +77,32 @@ module Markd
 
     def table_row(node : Node, entering : Bool)
       newline
-      is_heading= node.data["heading"] ? "th" : "td"
+      is_heading = node.data["heading"]
       if entering
-        tag("thead") if is_heading
+        if is_heading
+          tag("thead")
+          newline
+        end
         tag("tr", attrs(node))
       else
         tag("tr", end_tag: true)
-        tag("thead, end_tag: true") if is_heading
+        newline
+        if is_heading
+          tag("thead", end_tag: true)
+          newline
+          tag("tbody")
+          newline
+        end
       end
-      newline
     end
-
 
     def table_cell(node : Node, entering : Bool)
       newline
+      tag_name = node.data["heading"] ? "th" : "td"
       if entering
-        tag("td", attrs(node))
+        tag(tag_name, attrs(node))
         output(node.text)
-        tag("td", end_tag: true)
+        tag(tag_name, end_tag: true)
       end
       newline
     end

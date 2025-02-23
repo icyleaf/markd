@@ -27,14 +27,16 @@ module Markd::Rule
       # The table contents are in container.text (except the leading | in each line)
       # So, let's parse it and shove them into the tree
 
-      lines = container.text.split('\n')
+      lines = container.text.strip.split('\n')
       lines.each_with_index do |line, i|
+        next if i == 1
         row = Node.new(Node::Type::TableRow)
         row.data["heading"] = i == 0
         container.append_child(row)
         line.rstrip("|").split('|').each do |text|
           cell = Node.new(Node::Type::TableCell)
           cell.text = text.strip
+          cell.data["heading"] = i == 0
           row.append_child(cell)
           pp! row.last_child.text
         end
