@@ -2,6 +2,8 @@ module Markd::Rule
   struct Table
     include Rule
 
+    SEPARATOR_REGEX = /^(\|?\s*-+\s*)+(\||\s*)$/
+
     def match(parser : Parser, container : Node) : MatchValue
       if match?(parser)
         seek(parser)
@@ -15,7 +17,8 @@ module Markd::Rule
     end
 
     def continue(parser : Parser, container : Node) : ContinueStatus
-      if match?(parser)
+      pp! parser.line
+      if match_continuation?(parser)
         seek(parser)
         ContinueStatus::Continue
       else
@@ -48,7 +51,7 @@ module Markd::Rule
       # * Second line is a divider
       # * First two lines have the same number of cells
 
-      if lines.size < 2 || !"|#{lines[1]}".match(/^(\|\s*-+\s*)+(\||\s*)$/) ||
+      if lines.size < 2 || !"|#{lines[1]}".match(SEPARATOR_REGEX) ||
          row_sizes.size != 1
         # Not enough table. We need to convert it into a paragraph
         # Turn the table into a paragraph. I am fairly sure this is not supposed to work
@@ -92,6 +95,10 @@ module Markd::Rule
 
     private def match?(parser)
       !parser.indented && parser.line[0]? == '|'
+    end
+
+    private def match_continuation?(parser : Parser)
+      !parser.indented && (parser.line[0]? == '|' || parser.line.match(SEPARATOR_REGEX))
     end
 
     private def seek(parser : Parser)
