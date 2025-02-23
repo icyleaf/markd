@@ -97,14 +97,14 @@ module Markd
     end
 
     def table_cell(node : Node, entering : Bool)
-      newline
       tag_name = node.data["heading"] ? "th" : "td"
       if entering
+        newline
         tag(tag_name, attrs(node))
-        output(node.text)
+      else
         tag(tag_name, end_tag: true)
+        newline
       end
-      newline
     end
 
     def list(node : Node, entering : Bool)

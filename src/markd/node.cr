@@ -49,6 +49,7 @@ module Markd
       Type::CustomBlock,
       Type::Table,
       Type::TableRow,
+      Type::TableCell,
     }
 
     alias DataValue = String | Int32 | Bool

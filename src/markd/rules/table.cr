@@ -38,7 +38,6 @@ module Markd::Rule
           cell.text = text.strip
           cell.data["heading"] = i == 0
           row.append_child(cell)
-          pp! row.last_child.text
         end
       end
     end
