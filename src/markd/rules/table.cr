@@ -47,9 +47,8 @@ module Markd::Rule
       # * At least two lines
       # * Second line is a divider
       # * First two lines have the same number of cells
-      # FIXME: do a real regex for divider
 
-      if lines.size < 2 || !"|#{lines[1]}".match(/-/) ||
+      if lines.size < 2 || !"|#{lines[1]}".match(/^(\|\s*-+\s*)+(\||\s*)$/) ||
          row_sizes.size != 1
         # Not enough table. We need to convert it into a paragraph
         # Turn the table into a paragraph. I am fairly sure this is not supposed to work
