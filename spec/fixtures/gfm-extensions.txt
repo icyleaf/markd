@@ -474,7 +474,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### a table can be recognised when separated from a paragraph of text without an empty line
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 123
 456
 | a | b |
