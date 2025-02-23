@@ -69,7 +69,7 @@ module Markd::Rule
         row.data["heading"] = i == 0
         row.data["has_body"] = has_body
         container.append_child(row)
-        cells = line.rstrip.rstrip("|").split('|')[...max_row_size]
+        cells = line.rstrip.rstrip("|").split(/(?<!\\)\|/)[...max_row_size]
         while cells.size < max_row_size
           cells << ""
         end
