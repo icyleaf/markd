@@ -6,9 +6,9 @@ module Markd::Rule
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
-        node = parser.add_child(Node::Type::Table, parser.next_nonspace)
+        parser.add_child(Node::Type::Table, 0)
 
-        MatchValue::Container
+        MatchValue::Leaf
       else
         MatchValue::None
       end
@@ -27,28 +27,30 @@ module Markd::Rule
       # The table contents are in container.text (except the leading | in each line)
       # So, let's parse it and shove them into the tree
 
+      original_text = container.text.rstrip.split("\n").map do |l|
+        "|#{l}"
+      end.join("\n")
       lines = container.text.strip.split('\n')
 
       # Do we have a real table?
       # FIXME: do a real regex for divider
-      if lines.size < 2 || !"|#{lines[1]}".match(/---/)
+      if lines.size < 2 || !"|#{lines[1]}".match(/-/)
         # Not enough table. We need to convert it into a paragraph
-        text = lines.map do |line|
-          "|#{line}"
-        end.join("\n")
-        # Create a paragraph with this text and replace the table node with it
-        paragraph = Node.new(Node::Type::Paragraph)
-        paragraph.text = text
-        container.insert_after(paragraph)
-        container.unlink
-        parser.tip = paragraph
+        # Turn the table into a paragraph. I am fairly sure this is not supposed to work
+        container.type = Node::Type::Paragraph
+        # Patch the text to have the leading |s
+        container.text = original_text
         return
       end
+
+      has_body = lines.size > 2
+      container.data["has_body"] = has_body
 
       lines.each_with_index do |line, i|
         next if i == 1
         row = Node.new(Node::Type::TableRow)
         row.data["heading"] = i == 0
+        row.data["has_body"] = has_body
         container.append_child(row)
         line.rstrip("|").split('|').each do |text|
           cell = Node.new(Node::Type::TableCell)
@@ -68,16 +70,11 @@ module Markd::Rule
     end
 
     private def match?(parser)
-      !parser.indented && parser.line[parser.next_nonspace]? == '|'
+      !parser.indented && parser.line[0]? == '|'
     end
 
     private def seek(parser : Parser)
-      parser.advance_next_nonspace
       parser.advance_offset(1, false)
-
-      if space_or_tab?(parser.line[parser.offset]?)
-        parser.advance_offset(1, true)
-      end
     end
   end
 end

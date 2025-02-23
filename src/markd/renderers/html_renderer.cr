@@ -64,12 +64,15 @@ module Markd
     end
 
     def table(node : Node, entering : Bool)
+      has_body = node.data["has_body"]
       newline
       if entering
         tag("table", attrs(node))
       else
-        tag("tbody", end_tag: true)
-        newline
+        if has_body
+          tag("tbody", end_tag: true)
+          newline
+        end
         tag("table", end_tag: true)
       end
       newline
@@ -78,6 +81,7 @@ module Markd
     def table_row(node : Node, entering : Bool)
       newline
       is_heading = node.data["heading"]
+      has_body = node.data["has_body"]
       if entering
         if is_heading
           tag("thead")
@@ -90,8 +94,10 @@ module Markd
         if is_heading
           tag("thead", end_tag: true)
           newline
-          tag("tbody")
-          newline
+          if has_body
+            tag("tbody")
+            newline
+          end
         end
       end
     end
