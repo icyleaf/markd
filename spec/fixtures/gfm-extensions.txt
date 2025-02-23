@@ -426,7 +426,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Sequential cells
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b | c |
 | --- | --- | --- |
 | d || e |
