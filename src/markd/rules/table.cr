@@ -6,7 +6,7 @@ module Markd::Rule
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
-        parser.add_child(Node::Type::Table, parser.next_nonspace)
+        node = parser.add_child(Node::Type::Table, parser.next_nonspace)
 
         MatchValue::Container
       else
@@ -24,15 +24,16 @@ module Markd::Rule
     end
 
     def token(parser : Parser, container : Node) : Nil
-      # do nothing
+      # The table contents are in container.text (except the leading | in each line)
+      # So, let's parse it and shove it into container.data
     end
 
     def can_contain?(type : Node::Type) : Bool
-      !type.item?
+      !type.container?
     end
 
     def accepts_lines? : Bool
-      false
+      true
     end
 
     private def match?(parser)
