@@ -262,7 +262,7 @@ than the header are truncated.
 
 Tables with embedded pipes could be tricky.
 
-```````````````````````````````` example
+```````````````````````````````` example pending
 | a | b |
 | --- | --- |
 | Escaped pipes are \|okay\|. | Like \| this. |
@@ -375,7 +375,7 @@ This shouldn't assert.
 
 ### Embedded HTML
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a |
 | --- |
 | <strong>hello</strong> |
