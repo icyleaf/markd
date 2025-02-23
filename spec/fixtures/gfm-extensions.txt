@@ -302,7 +302,7 @@ Tables with embedded pipes could be tricky.
 
 This shouldn't assert.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a |
 --- |
 .
