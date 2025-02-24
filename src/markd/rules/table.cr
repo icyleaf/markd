@@ -52,8 +52,6 @@ module Markd::Rule
         # We need to convert it into a paragraph
         # I am fairly sure this is not supposed to work
         container.type = Node::Type::Paragraph
-        # Patch the text to have the leading |s
-        container.text = container.text
         return
       end
 
