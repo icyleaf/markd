@@ -123,7 +123,7 @@ module Markd::Parser
         # this is a little performance optimization
         unless @indented
           first_char = @line[@next_nonspace]?
-          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number? || @line.match(/(?<!\\)\|/))
+          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number? || @line.match(Rule::TABLE_CELL_SEPARATOR))
             advance_next_nonspace
             break
           end
