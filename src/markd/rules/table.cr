@@ -30,7 +30,8 @@ module Markd::Rule
       lines = container.text.strip.split("\n")
 
       # FIXME: there is a corner case where a row ends with "\|"
-      # which is probably going to be counted wrong.
+      # which is probably going to be counted wrong. Same for other rstrip("|")
+      # in this function
       row_sizes = lines[...2].map do |l|
         l.strip.strip("|").split(TABLE_CELL_SEPARATOR).size
       end.uniq!
