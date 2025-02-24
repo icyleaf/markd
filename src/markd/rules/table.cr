@@ -29,11 +29,8 @@ module Markd::Rule
 
       lines = container.text.strip.split("\n")
 
-      # FIXME: there is a corner case where a row ends with "\|"
-      # which is probably going to be counted wrong. Same for other rstrip("|")
-      # in this function
       row_sizes = lines[...2].map do |l|
-        l.strip.strip("|").split(TABLE_CELL_SEPARATOR).size
+        strip_pipe(l.strip).split(TABLE_CELL_SEPARATOR).size
       end.uniq!
 
       # Do we have a real table?
@@ -56,7 +53,7 @@ module Markd::Rule
       has_body = lines.size > 2
       container.data["has_body"] = has_body
 
-      alignments = lines[1].strip.strip("|").split(TABLE_CELL_SEPARATOR).map do |cell|
+      alignments = strip_pipe(lines[1].strip).split(TABLE_CELL_SEPARATOR).map do |cell|
         if cell.strip.starts_with?(":") && cell.strip.ends_with?(":")
           "center"
         elsif cell.strip.starts_with?(":")
@@ -76,7 +73,7 @@ module Markd::Rule
         row.data["has_body"] = has_body
         container.append_child(row)
         # This splits on | but not on \| (escaped |)
-        cells = line.strip.strip("|").split(TABLE_CELL_SEPARATOR)[...max_row_size]
+        cells = strip_pipe(line.strip).split(TABLE_CELL_SEPARATOR)[...max_row_size]
 
         # Each row should have exactly the same size as the header.
         while cells.size < max_row_size
@@ -111,5 +108,14 @@ module Markd::Rule
     private def match_continuation?(parser : Parser)
       !parser.indented && (parser.line[0]? == '|' || parser.line.match(TABLE_HEADING_SEPARATOR) || parser.line.match(TABLE_CELL_SEPARATOR))
     end
+
+    private def strip_pipe(text : String) : String
+      if text.ends_with?("\\|")
+        text.lstrip("|")
+      else
+        text.strip("|")
+      end
+    end
+
   end
 end
