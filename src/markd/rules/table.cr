@@ -60,11 +60,12 @@ module Markd::Rule
       container.data["has_body"] = has_body
 
       alignments = strip_pipe(lines[1].strip).split(TABLE_CELL_SEPARATOR).map do |cell|
-        if cell.strip.starts_with?(":") && cell.strip.ends_with?(":")
+        cell = cell.strip
+        if cell.starts_with?(":") && cell.ends_with?(":")
           "center"
-        elsif cell.strip.starts_with?(":")
+        elsif cell.starts_with?(":")
           "left"
-        elsif cell.strip.ends_with?(":")
+        elsif cell.ends_with?(":")
           "right"
         else
           ""
