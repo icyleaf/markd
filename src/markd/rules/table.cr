@@ -2,6 +2,8 @@ module Markd::Rule
   struct Table
     include Rule
 
+    # Detects the first row of a table, if the parser is in gfm mode
+
     def match(parser : Parser, container : Node) : MatchValue
       # Looks like the 1st line of a table and we have gfm enabled
       if match?(parser) && parser.gfm
@@ -14,6 +16,8 @@ module Markd::Rule
       end
     end
 
+    # Decides if the table continues or if it ended before the current line
+
     def continue(parser : Parser, container : Node) : ContinueStatus
       # Only continue if line looks like a divider or a table row
       if match_continuation?(parser)
@@ -23,10 +27,14 @@ module Markd::Rule
       end
     end
 
-    def token(parser : Parser, container : Node) : Nil
-      # The table contents are in container.text
-      # So, let's parse it and shove it into the tree
+    # Because of `match` and `continue` the `container` has
+    # all the text of the table. We parse it here and
+    # insert all `TableRow` and `TableCell` nodes from parsing.
+    #
+    # First, it will perform a sanity check, and if the
+    # table is broken it will be converted into a `Paragraph`
 
+    def token(parser : Parser, container : Node) : Nil
       lines = container.text.strip.split("\n")
 
       row_sizes = lines[...2].map do |l|
@@ -91,13 +99,19 @@ module Markd::Rule
       end
     end
 
+    # Not really used because of how parsing is done
     def can_contain?(type : Node::Type) : Bool
       !type.container?
     end
 
+    # Tables are multi-line
     def accepts_lines? : Bool
       true
     end
+
+    # Match only lines that look like the first line of a table:
+    # * Start with a | or look like multiple cells separated by |
+    # * Is at least 3 characters long (smallest table starts are "|a|" or "a|b")
 
     private def match?(parser)
       !parser.indented && \
@@ -105,8 +119,12 @@ module Markd::Rule
           parser.line.size > 2
     end
 
+    # Match only lines that look like a table separator
+    # or start with a | or look like multiple cells separated by |
     private def match_continuation?(parser : Parser)
-      !parser.indented && (parser.line[0]? == '|' || parser.line.match(TABLE_HEADING_SEPARATOR) || parser.line.match(TABLE_CELL_SEPARATOR))
+      !parser.indented && (parser.line[0]? == '|' ||
+        parser.line.match(TABLE_HEADING_SEPARATOR) ||
+        parser.line.match(TABLE_CELL_SEPARATOR))
     end
 
     private def strip_pipe(text : String) : String
@@ -116,6 +134,5 @@ module Markd::Rule
         text.strip("|")
       end
     end
-
   end
 end
