@@ -27,9 +27,7 @@ module Markd::Rule
       # The table contents are in container.text (except the leading | in each line)
       # So, let's parse it and shove it into the tree
 
-      original_text = container.text.rstrip.split("\n").map do |l|
-        "#{l}"
-      end.join("\n")
+      original_text = container.text.rstrip.split("\n").join("\n")
       lines = container.text.strip.split("\n")
 
       row_sizes = lines[...2].map do |l|
