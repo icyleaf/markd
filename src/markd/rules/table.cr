@@ -55,7 +55,7 @@ module Markd::Rule
       has_body = lines.size > 2
       container.data["has_body"] = has_body
 
-      alignments = lines[1].strip.strip("|").split(/(?<!\\)\|/).map do |cell|
+      alignments = lines[1].strip.strip("|").split(TABLE_CELL_SEPARATOR).map do |cell|
         if cell.strip.starts_with?(":") && cell.strip.ends_with?(":")
           "center"
         elsif cell.strip.starts_with?(":")
