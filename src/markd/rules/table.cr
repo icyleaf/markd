@@ -2,9 +2,9 @@ module Markd::Rule
   struct Table
     include Rule
 
-
     def match(parser : Parser, container : Node) : MatchValue
-      if match?(parser) # Looks like the 1st line of a table
+      # Looks like the 1st line of a table and we have gfm enabled
+      if match?(parser) && parser.gfm
         parser.close_unmatched_blocks
         parser.add_child(Node::Type::Table, 0)
 
