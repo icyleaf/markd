@@ -10,7 +10,7 @@ license: '[CC-BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)'
 
 Here's a well-formed table, doing everything it should.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | abc | def |
 | --- | --- |
 | ghi | jkl |
@@ -40,7 +40,7 @@ We're going to mix up the table now; we'll demonstrate that inline formatting
 works fine, but block elements don't.  You can also have empty cells, and the
 textual alignment of the columns is shown to be irrelevant.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Hello!
 
 | _abc_ | セン |
@@ -74,7 +74,7 @@ Hi!
 
 Here we demonstrate some edge cases about what is and isn't a table.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | Not enough table | to be considered table |
 
 | Not enough table | to be considered table |
@@ -121,7 +121,7 @@ Here we demonstrate some edge cases about what is and isn't a table.
 
 A "simpler" table, GFM style:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 abc | def
 --- | ---
 xyz | ghi
@@ -145,7 +145,7 @@ xyz | ghi
 We are making the parser slighly more lax here. Here is a table with spaces at
 the end:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Hello!
 
 | _abc_ | セン |
@@ -179,7 +179,7 @@ Hi!
 
 Table alignment:
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 aaa | bbb | ccc | ddd | eee
 :-- | --- | :-: | --- | --:
 fff | ggg | hhh | iii | jjj
@@ -223,7 +223,7 @@ The header and delimiter row must match.
 But any of the body rows can be shorter. Rows longer
 than the header are truncated.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b | c |
 | --- | --- | ---
 | x
@@ -302,7 +302,7 @@ Tables with embedded pipes could be tricky.
 
 This shouldn't assert.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a |
 --- |
 .
@@ -375,7 +375,7 @@ This shouldn't assert.
 
 ### Embedded HTML
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a |
 | --- |
 | <strong>hello</strong> |
@@ -400,7 +400,7 @@ This shouldn't assert.
 
 ### Reference-style links
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Here's a link to [Freedom Planet 2][].
 
 | Here's a link to [Freedom Planet 2][] in a table header. |
@@ -426,7 +426,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Sequential cells
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b | c |
 | --- | --- | --- |
 | d || e |
@@ -451,7 +451,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### Interaction with emphasis
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 | a | b |
 | --- | --- |
 |***(a)***|
@@ -474,7 +474,7 @@ Here's a link to [Freedom Planet 2][].
 
 ### a table can be recognised when separated from a paragraph of text without an empty line
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 123
 456
 | a | b |

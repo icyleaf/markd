@@ -90,6 +90,12 @@ module Markd
             link(node, entering)
           when Node::Type::Image
             image(node, entering)
+          when Node::Type::Table
+            table(node, entering)
+          when Node::Type::TableRow
+            table_row(node, entering)
+          when Node::Type::TableCell
+            table_cell(node, entering)
           else
             text(node, entering)
           end

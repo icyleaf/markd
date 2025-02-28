@@ -63,6 +63,61 @@ module Markd
       newline
     end
 
+    def table(node : Node, entering : Bool)
+      has_body = node.data["has_body"]
+      newline
+      if entering
+        tag("table", attrs(node))
+      else
+        if has_body
+          tag("tbody", end_tag: true)
+          newline
+        end
+        tag("table", end_tag: true)
+      end
+      newline
+    end
+
+    def table_row(node : Node, entering : Bool)
+      newline
+      is_heading = node.data["heading"]
+      has_body = node.data["has_body"]
+      if entering
+        if is_heading
+          tag("thead")
+          newline
+        end
+        tag("tr", attrs(node))
+      else
+        tag("tr", end_tag: true)
+        newline
+        if is_heading
+          tag("thead", end_tag: true)
+          newline
+          if has_body
+            tag("tbody")
+            newline
+          end
+        end
+      end
+    end
+
+    def table_cell(node : Node, entering : Bool)
+      tag_name = node.data["heading"] ? "th" : "td"
+      if !node.data["align"].to_s.empty?
+        attrs = {"align" => node.data["align"]}
+      else
+        attrs = {} of String => String
+      end
+      if entering
+        newline
+        tag(tag_name, attrs)
+      else
+        tag(tag_name, end_tag: true)
+        newline
+      end
+    end
+
     def list(node : Node, entering : Bool)
       tag_name = node.data["type"] == "ordered" ? "ol" : "ul"
 

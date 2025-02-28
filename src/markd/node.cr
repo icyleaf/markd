@@ -24,6 +24,9 @@ module Markd
 
       CustomInLine
       CustomBlock
+      Table
+      TableCell
+      TableRow
 
       def container?
         CONTAINER_TYPES.includes?(self)
@@ -44,6 +47,9 @@ module Markd
       Type::BlockQuote,
       Type::CustomInLine,
       Type::CustomBlock,
+      Type::Table,
+      Type::TableRow,
+      Type::TableCell,
     }
 
     alias DataValue = String | Int32 | Bool

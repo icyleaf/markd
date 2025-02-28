@@ -16,6 +16,7 @@ module Markd::Parser
       Node::Type::List          => Rule::List.new,
       Node::Type::Item          => Rule::Item.new,
       Node::Type::Paragraph     => Rule::Paragraph.new,
+      Node::Type::Table         => Rule::Table.new,
     }
 
     property! tip : Node?
@@ -122,7 +123,7 @@ module Markd::Parser
         # this is a little performance optimization
         unless @indented
           first_char = @line[@next_nonspace]?
-          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number?)
+          unless first_char && (Rule::MAYBE_SPECIAL.includes?(first_char) || first_char.ascii_number? || @line.match(Rule::TABLE_CELL_SEPARATOR))
             advance_next_nonspace
             break
           end
@@ -196,7 +197,7 @@ module Markd::Parser
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
         node, entering = event
-        if !entering && (node.type.paragraph? || node.type.heading?)
+        if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell?)
           @inline_lexer.parse(node)
         end
       end
