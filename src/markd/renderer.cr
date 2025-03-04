@@ -67,6 +67,9 @@ module Markd
     abstract def link(node : Node, entering : Bool) : Nil
     abstract def image(node : Node, entering : Bool) : Nil
     abstract def text(node : Node, entering : Bool) : Nil
+    abstract def table(node : Node, entering : Bool) : Nil
+    abstract def table_row(node : Node, entering : Bool) : Nil
+    abstract def table_cell(node : Node, entering : Bool) : Nil
 
     def render(document : Node, formatter : T?) forall T
       Utils.timer("rendering", @options.time) do

@@ -63,7 +63,7 @@ module Markd
       newline
     end
 
-    def table(node : Node, entering : Bool)
+    def table(node : Node, entering : Bool) : Nil
       has_body = node.data["has_body"]
       newline
       if entering
@@ -78,7 +78,7 @@ module Markd
       newline
     end
 
-    def table_row(node : Node, entering : Bool)
+    def table_row(node : Node, entering : Bool) : Nil
       newline
       is_heading = node.data["heading"]
       has_body = node.data["has_body"]
@@ -102,7 +102,7 @@ module Markd
       end
     end
 
-    def table_cell(node : Node, entering : Bool)
+    def table_cell(node : Node, entering : Bool) : Nil
       tag_name = node.data["heading"] ? "th" : "td"
       if !node.data["align"].to_s.empty?
         attrs = {"align" => node.data["align"]}
@@ -118,7 +118,7 @@ module Markd
       end
     end
 
-    def list(node : Node, entering : Bool)
+    def list(node : Node, entering : Bool) : Nil
       tag_name = node.data["type"] == "ordered" ? "ol" : "ul"
 
       newline
