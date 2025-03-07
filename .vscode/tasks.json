@@ -1,0 +1,71 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		},
+		{
+			"label": "Run Crystal spec tests",
+			"type": "shell",
+			"command": "crystal spec",
+			"group": "test"
+		}
+	]
+}

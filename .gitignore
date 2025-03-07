@@ -10,4 +10,9 @@
 
 # vscode
 /.history/
-/.vscode/settings.json
+/.vscode/
+
+
+# claude
+CLAUDE.md
+/.claude/
