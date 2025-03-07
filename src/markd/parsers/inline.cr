@@ -164,9 +164,9 @@ module Markd::Parser
       true
     end
 
-    private def add_bracket(node : Node, index : Int32, image = false)
+    private def add_bracket(node : Node, index : Int32, image = false, footnote = false)
       brackets.bracket_after = true if brackets?
-      @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
+      @brackets = Bracket.new(node, @brackets, @delimiters, index, image: image, active: true, footnote: false)
     end
 
     private def remove_bracket
@@ -180,7 +180,11 @@ module Markd::Parser
       child = text("[")
       node.append_child(child)
 
-      add_bracket(child, start_pos, false)
+      if char_at(@pos) == '^'
+        add_bracket(child, start_pos, image: false, footnote: true)
+      else
+        add_bracket(child, start_pos, image: false)
+      end
 
       true
     end
@@ -210,6 +214,7 @@ module Markd::Parser
 
       # If we got here, open is a potential opener
       is_image = opener.image
+      is_footnote = opener.footnote
 
       # Check to see if we have a link/image
       save_pos = @pos
@@ -257,7 +262,13 @@ module Markd::Parser
       end
 
       if matched
-        child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
+        # TODO: handle footnotes
+        if is_image
+          child = Node.new(Node::Type::Image)
+        else
+          child = Node.new(Node::Type::Link)
+        end
+
         child.data["destination"] = dest.not_nil!
         child.data["title"] = title || ""
 
@@ -907,8 +918,9 @@ module Markd::Parser
       property image : Bool
       property active : Bool
       property bracket_after : Bool
+      property footnote : Bool
 
-      def initialize(@node, @previous, @previous_delimiter, @index, @image, @active = true)
+      def initialize(@node, @previous, @previous_delimiter, @index, *, @image = false, @active = true, @footnote = false)
         @bracket_after = false
       end
     end
