@@ -283,6 +283,27 @@ module Markd
       output(node.text)
     end
 
+    def footnote(node : Node, entering : Bool) : Nil
+      # Spec says `[^1]` should generate:
+      # <sup class=\"footnote-ref\"><a href=\"#fn-1\" id=\"fnref-1\" data-footnote-ref>1</a></sup>
+      if entering
+        tag("sup", {
+          "class" => "footnote-ref",
+        })
+        tag("a", {
+          "href"              => "#fn-#{node.data["title"]}",
+          "id"                => "fnref-#{node.data["title"]}",
+          "data-footnote-ref" => nil,
+        })
+        # We should not display the node text, just the footnote number
+        node.first_child.text = ""
+        output node.data["number"].to_s
+      else
+        tag("a", end_tag: true)
+        tag("sup", end_tag: true)
+      end
+    end
+
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
       return if @disable_tag > 0
 
@@ -290,7 +311,11 @@ module Markd
       @output_io << "/" if end_tag
       @output_io << name
       attrs.try &.each do |key, value|
-        @output_io << ' ' << key << '=' << '"' << value << '"'
+        if value.nil?
+          @output_io << ' ' << key
+        else
+          @output_io << ' ' << key << '=' << '"' << value << '"'
+        end
       end
 
       @output_io << " /" if self_closing

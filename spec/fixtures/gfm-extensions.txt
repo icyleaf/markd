@@ -701,7 +701,7 @@ Even with {"x":"y"} or 1 > 2 or whatever. Even **markdown**.
 
 ## Footnotes
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This is some text![^1]. Other text.[^footnote].
 
 Here's a thing[^other-note].
