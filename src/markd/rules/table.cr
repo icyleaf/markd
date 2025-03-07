@@ -90,7 +90,8 @@ module Markd::Rule
         # Create cells with text and metadata
         cells.each_with_index do |text, j|
           cell = Node.new(Node::Type::TableCell)
-          cell.text = text.strip
+          # Cell text should be stripped and escaped pipes unescaped
+          cell.text = text.strip.gsub("\\|", "|")
           cell.data["align"] = alignments[j]
           cell.data["heading"] = i == 0
           row.append_child(cell)
