@@ -149,14 +149,15 @@ module Markd::Parser
     end
 
     private def bang(node : Node)
+      # TODO: fix the case for "This is a footnote![^1]"
       start_pos = @pos
       @pos += 1
-      if char_at?(@pos) == '['
+      if char_at?(@pos) == '[' 
         @pos += 1
         child = text("![")
         node.append_child(child)
 
-        add_bracket(child, start_pos + 1, true)
+        add_bracket(child, start_pos + 1, image: true)
       else
         node.append_child(text("!"))
       end
@@ -164,9 +165,9 @@ module Markd::Parser
       true
     end
 
-    private def add_bracket(node : Node, index : Int32, image = false, footnote = false)
+    private def add_bracket(node : Node, index : Int32, *, image = false, footnote = false)
       brackets.bracket_after = true if brackets?
-      @brackets = Bracket.new(node, @brackets, @delimiters, index, image: image, active: true, footnote: false)
+      @brackets = Bracket.new(node, @brackets, @delimiters, index, image: image, active: true, footnote: footnote)
     end
 
     private def remove_bracket
@@ -181,9 +182,9 @@ module Markd::Parser
       node.append_child(child)
 
       if char_at(@pos) == '^'
-        add_bracket(child, start_pos, image: false, footnote: true)
+        add_bracket(child, start_pos, footnote: true)
       else
-        add_bracket(child, start_pos, image: false)
+        add_bracket(child, start_pos)
       end
 
       true
@@ -233,6 +234,14 @@ module Markd::Parser
         end
       end
 
+      # Is it a footnote?
+      if is_footnote
+        title = @text[opener.@index+2...@pos-1]
+        destination = "#fn-#{title}"
+        @pos += 1
+        matched = true
+      end
+
       ref_label = nil
       unless matched
         # Next, see if there's a link label
@@ -262,9 +271,11 @@ module Markd::Parser
       end
 
       if matched
-        # TODO: handle footnotes
         if is_image
           child = Node.new(Node::Type::Image)
+        elsif is_footnote
+          child = Node.new(Node::Type::Footnote)
+          child.text = title || ""
         else
           child = Node.new(Node::Type::Link)
         end
