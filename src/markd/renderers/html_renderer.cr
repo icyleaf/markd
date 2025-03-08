@@ -305,6 +305,7 @@ module Markd
 
     def footnote_definition(node : Node, entering : Bool) : Nil
       # TODO implement
+      pp! "rendering FD"
     end
 
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)

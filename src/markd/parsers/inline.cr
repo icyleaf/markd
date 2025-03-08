@@ -243,6 +243,14 @@ module Markd::Parser
 
       # Is it a footnote?
       if is_footnote
+        # If the 1st char after the closing bracket is a ":" then it's NOT
+        # a footnote, it's a footnote definition.
+        if char_at?(@pos) == ':'
+          @pos = start_pos
+          node.append_child(text("]"))
+          remove_bracket
+          return true
+        end
         title = @text[opener.@index + 2...@pos - 1]
         destination = "#fn-#{title}"
         @pos += 1
