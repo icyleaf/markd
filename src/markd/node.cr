@@ -10,6 +10,7 @@ module Markd
       Document
       Emphasis
       Footnote
+      FootnoteDefinition
       Heading
       HTMLBlock
       HTMLInline
@@ -34,23 +35,23 @@ module Markd
     end
 
     CONTAINER_TYPES = {
-      Type::Document,
-      Type::Paragraph,
-      Type::Strong,
-      Type::Emphasis,
-      Type::Strikethrough,
-      Type::Link,
-      Type::Image,
-      Type::Heading,
-      Type::List,
-      Type::Item,
       Type::BlockQuote,
-      Type::CustomInLine,
       Type::CustomBlock,
+      Type::CustomInLine,
+      Type::Document,
+      Type::Emphasis,
+      Type::FootnoteDefinition,
+      Type::Heading,
+      Type::Image,
+      Type::Item,
+      Type::Link,
+      Type::List,
+      Type::Paragraph,
+      Type::Strikethrough,
+      Type::Strong,
       Type::Table,
-      Type::TableRow,
       Type::TableCell,
-      Type::Footnote,
+      Type::TableRow,
     }
 
     alias DataValue = String | Int32 | Bool
