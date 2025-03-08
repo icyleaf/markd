@@ -14,7 +14,7 @@ module Markd::Rule
 
     # Footnote definitions continue as long as lines are indented
     def continue(parser : Parser, container : Node) : ContinueStatus
-      if parser.indented
+      if parser.line.starts_with?(" ")
         ContinueStatus::Continue
       else
         ContinueStatus::Stop
@@ -22,19 +22,10 @@ module Markd::Rule
     end
 
     def token(parser : Parser, container : Node) : Nil
-      has_reference_defs = false
-
-      while container.text[0]? == '[' &&
-            (pos = parser.inline_lexer.reference(container.text, parser.refmap)) && pos > 0
-        container.text = container.text.byte_slice(pos)
-        has_reference_defs = true
-      end
-
-      container.unlink if has_reference_defs && container.text.each_char.all? &.ascii_whitespace?
     end
 
     def can_contain?(type)
-      false
+      true
     end
 
     # Footnote definitions can be multiline
