@@ -286,18 +286,18 @@ module Markd
     def footnote(node : Node, entering : Bool) : Nil
       # Spec says `[^1]` should generate:
       # <sup class=\"footnote-ref\"><a href=\"#fn-1\" id=\"fnref-1\" data-footnote-ref>1</a></sup>
-      pp! node.data
       if entering
         tag("sup", {
-          "class"             => "footnote-ref",
-          "id"                => "fnref-#{node.data["title"]}",
-          "data-footnote-ref" => nil,
+          "class" => "footnote-ref",
         })
         tag("a", {
           "href"              => "#fn-#{node.data["title"]}",
           "id"                => "fnref-#{node.data["title"]}",
           "data-footnote-ref" => nil,
         })
+        # We should not display the node text, just the footnote number
+        node.first_child.text = ""
+        output node.data["number"].to_s
       else
         tag("a", end_tag: true)
         tag("sup", end_tag: true)

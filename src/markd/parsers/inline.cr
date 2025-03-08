@@ -13,6 +13,7 @@ module Markd::Parser
       @text = ""
       @pos = 0
       @refmap = {} of String => Hash(String, String) | String
+      @footnote_counter = 0
     end
 
     def parse(node : Node)
@@ -149,10 +150,16 @@ module Markd::Parser
     end
 
     private def bang(node : Node)
-      # TODO: fix the case for "This is a footnote![^1]"
       start_pos = @pos
       @pos += 1
-      if char_at?(@pos) == '[' 
+      # It's an image if the next character is a [
+      # And it's not a footnote OR we are not in GFM mode
+      #
+      # * This IS an image: `![...]`
+      # * This IS an image in non-GFM mode: `![^...]`
+      # * This IS NOT an image in GFM mode: `![^...]`
+
+      if char_at?(@pos) == '[' && (char_at?(@pos + 1) != '^' || !@options.gfm)
         @pos += 1
         child = text("![")
         node.append_child(child)
@@ -181,7 +188,7 @@ module Markd::Parser
       child = text("[")
       node.append_child(child)
 
-      if char_at(@pos) == '^'
+      if char_at(@pos) == '^' && @options.gfm
         add_bracket(child, start_pos, footnote: true)
       else
         add_bracket(child, start_pos)
@@ -236,7 +243,7 @@ module Markd::Parser
 
       # Is it a footnote?
       if is_footnote
-        title = @text[opener.@index+2...@pos-1]
+        title = @text[opener.@index + 2...@pos - 1]
         destination = "#fn-#{title}"
         @pos += 1
         matched = true
@@ -275,7 +282,7 @@ module Markd::Parser
           child = Node.new(Node::Type::Image)
         elsif is_footnote
           child = Node.new(Node::Type::Footnote)
-          child.text = title || ""
+          child.data["number"] = @footnote_counter += 1
         else
           child = Node.new(Node::Type::Link)
         end
