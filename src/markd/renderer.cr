@@ -54,6 +54,7 @@ module Markd
     abstract def code(node : Node, entering : Bool) : Nil
     abstract def emphasis(node : Node, entering : Bool) : Nil
     abstract def footnote(node : Node, entering : Bool) : Nil
+    abstract def footnote_definition(node : Node, entering : Bool) : Nil
     abstract def heading(node : Node, entering : Bool) : Nil
     abstract def html_block(node : Node, entering : Bool) : Nil
     abstract def html_inline(node : Node, entering : Bool) : Nil
@@ -121,6 +122,8 @@ module Markd
             table_cell(node, entering)
           when Node::Type::Footnote
             footnote(node, entering)
+          when Node::Type::FootnoteDefinition
+            footnote_definition(node, entering)
           else
             text(node, entering)
           end

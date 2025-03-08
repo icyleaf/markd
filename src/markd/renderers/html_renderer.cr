@@ -295,13 +295,16 @@ module Markd
           "id"                => "fnref-#{node.data["title"]}",
           "data-footnote-ref" => nil,
         })
-        # We should not display the node text, just the footnote number
-        node.first_child.text = ""
+        # GFM spec says to output the number of the footnote
         output node.data["number"].to_s
       else
         tag("a", end_tag: true)
         tag("sup", end_tag: true)
       end
+    end
+
+    def footnote_definition(node : Node, entering : Bool) : Nil
+      # TODO implement
     end
 
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
