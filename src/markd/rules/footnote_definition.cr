@@ -14,14 +14,32 @@ module Markd::Rule
 
     # Footnote definitions continue as long as lines are indented
     def continue(parser : Parser, container : Node) : ContinueStatus
-      if parser.line.starts_with?(" ")
+      if parser.line.starts_with?("    ")
         ContinueStatus::Continue
       else
         ContinueStatus::Stop
       end
     end
 
+    # Footnote definitions are not part of the normal document flow.
+    # They are deferred to the end of the document, and the definitions
+    # that don't match any reference are discarded.
     def token(parser : Parser, container : Node) : Nil
+      lines = container.text.split "\n"
+      lines.each_with_index do |line, i|
+        if i == 0
+          # First line has the footnote definition label removed and
+          # leading spaces removed.
+          lines[i] = line.split("]:", 2)[1].lstrip
+        elsif line == ""
+          # Empty lines go as-is
+          lines[i] = ""
+        else
+          # Subsequent lines have the leading 4 spaces removed
+          lines[i] = line[4..-1]
+        end
+      end
+      container.text = lines.join("\n")
     end
 
     def can_contain?(type)

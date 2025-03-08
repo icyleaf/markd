@@ -305,8 +305,9 @@ module Markd
 
     def footnote_definition(node : Node, entering : Bool) : Nil
       if entering
+        newline
         tag("li", {
-          id: "fn=foobar",
+          id: "fn-foobar",
         })
       else
         tag("li", end_tag: true)
