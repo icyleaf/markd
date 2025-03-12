@@ -103,7 +103,12 @@ module Markd::Rule
         while line[pos]?.try &.ascii_number?
           pos += 1
         end
-        number = pos >= 1 ? line[0..pos - 1].to_i : -1
+
+        number = pos >= 1 ? line[0..pos - 1].to_i? : -1
+        if number.nil?
+          return empty_data
+        end
+
         if pos >= 1 && pos <= 9 && ORDERED_LIST_MARKERS.includes?(line[pos]?) &&
            (!container.type.paragraph? || number == 1)
           data["type"] = "ordered"
