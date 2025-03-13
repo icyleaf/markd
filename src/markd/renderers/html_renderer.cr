@@ -297,7 +297,6 @@ module Markd
         })
         # GFM spec says to output the number of the footnote
         output node.data["number"].to_s
-      else
         tag("a", end_tag: true)
         tag("sup", end_tag: true)
       end
@@ -317,7 +316,6 @@ module Markd
           tag("ol")
         end
         newline
-        pp! node.data
         tag("li", {
           id: "fn-foobar",
         })
