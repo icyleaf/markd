@@ -106,7 +106,7 @@ module Markd::Parser
         end
 
         # Footnote definitionss are moved to the end of the document
-        footnotes.each_with_index do |(title, _), _|
+        footnotes.each do |(title, _)|
           node = footnote_definitions[title]
           node.unlink
           @document.append_child(node)

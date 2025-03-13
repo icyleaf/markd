@@ -304,13 +304,40 @@ module Markd
     end
 
     def footnote_definition(node : Node, entering : Bool) : Nil
+      # A footnote definition by spec should render something like:
+      # <li id="fn-1">
+      # <p>The actual content of the footnote
+      # <a href="#fnref-1" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+      # </li>
       if entering
+        if !node.prev.type.footnote_definition?
+          newline
+          tag("section", {"class" => "footnotes", "data-footnotes" => nil})
+          newline
+          tag("ol")
+        end
         newline
+        pp! node.data
         tag("li", {
           id: "fn-foobar",
         })
       else
+        tag("a", {
+          "href"                      => "#fnref-#{node.data["title"]}",
+          "class"                     => "footnote-backref",
+          "data_footnote_backref"     => nil,
+          "data_footnote_backref_idx" => node.data["number"],
+          "aria_label"                => "Back to reference #{node.data["number"]}",
+        })
+        literal "↩"
+        tag("a", end_tag: true)
         tag("li", end_tag: true)
+        if node == node.parent.last_child
+          newline
+          tag("ol", end_tag: true)
+          newline
+          tag("section", end_tag: true)
+        end
       end
     end
 
