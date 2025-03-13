@@ -70,6 +70,7 @@ module Markd
     property fence_offset = 0
     property? last_line_blank = false
     property? last_line_checked = false
+    property footnote_definitions = {} of String => Node
 
     property! parent : Node?
     property! first_child : Node?

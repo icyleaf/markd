@@ -56,7 +56,7 @@ module Markd
       @prettyprint = false,
       @emoji = false,
       @tagfilter = false,
-      @base_url = nil,
+      @base_url = nil
     )
     end
   end

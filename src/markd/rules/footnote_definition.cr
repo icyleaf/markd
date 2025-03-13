@@ -21,15 +21,13 @@ module Markd::Rule
       end
     end
 
-    # Footnote definitions are not part of the normal document flow.
-    # They are deferred to the end of the document, and the definitions
-    # that don't match any reference are discarded.
     def token(parser : Parser, container : Node) : Nil
       lines = container.text.split "\n"
       lines.each_with_index do |line, i|
         if i == 0
           # First line has the footnote definition label removed and
           # leading spaces removed.
+          container.data["title"] = line.split("]:")[0].lstrip("[^")
           lines[i] = line.split("]:", 2)[1].lstrip
         elsif line == ""
           # Empty lines go as-is

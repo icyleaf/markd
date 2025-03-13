@@ -13,7 +13,7 @@ module Markd
       source : String,
       options = Options.new,
       *,
-      formatter : Tartrazine::Formatter | String = "catppuccin-macchiato",
+      formatter : Tartrazine::Formatter | String = "catppuccin-macchiato"
     )
       return "" if source.empty?
 
@@ -33,7 +33,7 @@ module Markd
     def self.to_html(
       source : String,
       options = Options.new,
-      formatter = nil,
+      formatter = nil
     )
       return "" if source.empty?
 

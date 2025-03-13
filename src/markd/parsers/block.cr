@@ -63,6 +63,55 @@ module Markd::Parser
         process_inlines
       end
 
+      if @options.gfm
+        # Extract all footnotes and footnote definitions
+        walker = @document.walker
+        footnotes = {} of String => Node
+        footnote_definitions = {} of String => Node
+        while (event = walker.next)
+          node, entering = event
+          if node.type.footnote?
+            footnotes[node.data["title"].to_s] = node
+          elsif !entering && node.type.footnote_definition?
+            footnote_definitions[node.data["title"].to_s] = node
+          end
+        end
+
+        # footnotes without definitions are converted to text
+        # and removed from our hash
+        footnotes.each do |title, node|
+          if !footnote_definitions.keys.includes? title
+            node.type = Node::Type::Text
+            node.text = "[^#{title}]"
+            footnotes.delete title
+          end
+        end
+        # definitions without footnotes are removed
+        # and popped from our hash
+        footnote_definitions.each do |title, node|
+          if !footnotes.keys.includes? title
+            node.unlink
+            footnote_definitions.delete title
+          end
+        end
+        # Footnote numbers are normalized to 1...n
+        # Footnotes are always ordered because the important thing is
+        # appearing in the right order in the document, but now there
+        # may be holes in the numbering.
+        # Also, definitions get the matching number in their own
+        # metadata.
+        footnotes.each_with_index do |(title, node), index|
+          node.data["number"] = index + 1
+          footnote_definitions[title].data["number"] = index + 1
+        end
+
+        # Footnote definitionss are moved to the end of the document
+        footnotes.each_with_index do |(title, _), _|
+          node = footnote_definitions[title]
+          node.unlink
+          @document.append_child(node)
+        end
+      end
       @document
     end
 
