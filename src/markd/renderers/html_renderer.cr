@@ -291,8 +291,8 @@ module Markd
           "class" => "footnote-ref",
         })
         tag("a", {
-          "href"              => "#fn-#{node.data["title"]}",
-          "id"                => "fnref-#{node.data["title"]}",
+          "href"              => "#fn-#{URI.encode_path(node.data["title"].to_s)}",
+          "id"                => "fnref-#{URI.encode_path(node.data["title"].to_s)}",
           "data-footnote-ref" => nil,
         })
         # GFM spec says to output the number of the footnote
@@ -317,11 +317,12 @@ module Markd
         end
         newline
         tag("li", {
-          id: "fn-foobar",
+          id: "fn-#{URI.encode_path(node.data["title"].to_s)}",
         })
+        newline
       else
         tag("a", {
-          "href"                      => "#fnref-#{node.data["title"]}",
+          "href"                      => "#fnref-#{URI.encode_path(node.data["title"].to_s)}",
           "class"                     => "footnote-backref",
           "data_footnote_backref"     => nil,
           "data_footnote_backref_idx" => node.data["number"],
