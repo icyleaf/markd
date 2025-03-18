@@ -252,7 +252,6 @@ module Markd::Parser
           return true
         end
         title = @text[opener.@index + 2...@pos - 1]
-        destination = "#fn-#{title}"
         @pos += 1
         matched = true
       end

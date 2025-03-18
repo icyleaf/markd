@@ -79,18 +79,18 @@ module Markd::Parser
 
         # footnotes without definitions are converted to text
         # and removed from our hash
-        footnotes.each do |title, node|
+        footnotes.each do |title, _node|
           if !footnote_definitions.keys.includes? title
-            node.type = Node::Type::Text
-            node.text = "[^#{title}]"
+            _node.type = Node::Type::Text
+            _node.text = "[^#{title}]"
             footnotes.delete title
           end
         end
         # definitions without footnotes are removed
         # and popped from our hash
-        footnote_definitions.each do |title, node|
+        footnote_definitions.each do |title, _node|
           if !footnotes.keys.includes? title
-            node.unlink
+            _node.unlink
             footnote_definitions.delete title
           end
         end
