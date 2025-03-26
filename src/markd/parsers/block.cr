@@ -7,16 +7,17 @@ module Markd::Parser
     end
 
     RULES = {
-      Node::Type::Document      => Rule::Document.new,
-      Node::Type::BlockQuote    => Rule::BlockQuote.new,
-      Node::Type::Heading       => Rule::Heading.new,
-      Node::Type::CodeBlock     => Rule::CodeBlock.new,
-      Node::Type::HTMLBlock     => Rule::HTMLBlock.new,
-      Node::Type::ThematicBreak => Rule::ThematicBreak.new,
-      Node::Type::List          => Rule::List.new,
-      Node::Type::Item          => Rule::Item.new,
-      Node::Type::Paragraph     => Rule::Paragraph.new,
-      Node::Type::Table         => Rule::Table.new,
+      Node::Type::Document           => Rule::Document.new,
+      Node::Type::BlockQuote         => Rule::BlockQuote.new,
+      Node::Type::Heading            => Rule::Heading.new,
+      Node::Type::CodeBlock          => Rule::CodeBlock.new,
+      Node::Type::HTMLBlock          => Rule::HTMLBlock.new,
+      Node::Type::ThematicBreak      => Rule::ThematicBreak.new,
+      Node::Type::List               => Rule::List.new,
+      Node::Type::Item               => Rule::Item.new,
+      Node::Type::Paragraph          => Rule::Paragraph.new,
+      Node::Type::Table              => Rule::Table.new,
+      Node::Type::FootnoteDefinition => Rule::FootnoteDefinition.new,
     }
 
     property! tip : Node?
@@ -62,6 +63,55 @@ module Markd::Parser
         process_inlines
       end
 
+      if @options.gfm
+        # Extract all footnotes and footnote definitions
+        walker = @document.walker
+        footnotes = {} of String => Node
+        footnote_definitions = {} of String => Node
+        while (event = walker.next)
+          node, entering = event
+          if node.type.footnote?
+            footnotes[node.data["title"].to_s] = node
+          elsif !entering && node.type.footnote_definition?
+            footnote_definitions[node.data["title"].to_s] = node
+          end
+        end
+
+        # footnotes without definitions are converted to text
+        # and removed from our hash
+        footnotes.each do |title, _node|
+          if !footnote_definitions.keys.includes? title
+            _node.type = Node::Type::Text
+            _node.text = "[^#{title}]"
+            footnotes.delete title
+          end
+        end
+        # definitions without footnotes are removed
+        # and popped from our hash
+        footnote_definitions.each do |title, _node|
+          if !footnotes.keys.includes? title
+            _node.unlink
+            footnote_definitions.delete title
+          end
+        end
+        # Footnote numbers are normalized to 1...n
+        # Footnotes are always ordered because the important thing is
+        # appearing in the right order in the document, but now there
+        # may be holes in the numbering.
+        # Also, definitions get the matching number in their own
+        # metadata.
+        footnotes.each_with_index do |(title, node), index|
+          node.data["number"] = index + 1
+          footnote_definitions[title].data["number"] = index + 1
+        end
+
+        # Footnote definitionss are moved to the end of the document
+        footnotes.each do |(title, _)|
+          node = footnote_definitions[title]
+          node.unlink
+          @document.append_child(node)
+        end
+      end
       @document
     end
 
@@ -197,7 +247,7 @@ module Markd::Parser
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
         node, entering = event
-        if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell?)
+        if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell? || node.type.footnote_definition?)
           @inline_lexer.parse(node)
         end
       end
