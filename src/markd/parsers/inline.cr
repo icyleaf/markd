@@ -30,7 +30,6 @@ module Markd::Parser
 
     private def process_line(node : Node)
       char = char_at?(@pos)
-
       return false unless char && char != Char::ZERO
 
       res = case char
@@ -846,7 +845,7 @@ module Markd::Parser
 
     private def main_char?(char)
       case char
-      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"', ':'
+      when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"', ':', 'w'
         false
       when '~'
         !@options.gfm
