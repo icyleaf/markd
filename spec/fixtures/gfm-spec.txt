@@ -9285,7 +9285,7 @@ www.google.com/search?q=commonmark&hl;
 
 `<` immediately ends an autolink.
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 www.commonmark.org/he<lp
 .
 <p><a href="http://www.commonmark.org/he">www.commonmark.org/he</a>&lt;lp</p>
