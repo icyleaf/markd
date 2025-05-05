@@ -9210,7 +9210,7 @@ and no underscores may be present in the last two segments of the domain.
 
 The scheme `http` will be inserted automatically:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 www.commonmark.org
 .
 <p><a href="http://www.commonmark.org">www.commonmark.org</a></p>
@@ -9218,7 +9218,7 @@ www.commonmark.org
 
 After a [valid domain], zero or more non-space non-`<` characters may follow:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 Visit www.commonmark.org/help for more information.
 .
 <p>Visit <a href="http://www.commonmark.org/help">www.commonmark.org/help</a> for more information.</p>
@@ -9230,7 +9230,7 @@ Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
 will not be considered part of the autolink, though they may be included in the
 interior of the link:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 Visit www.commonmark.org.
 
 Visit www.commonmark.org/a.b.
@@ -9263,7 +9263,7 @@ This check is only done when the link ends in a closing parentheses `)`, so if
 the only parentheses are in the interior of the autolink, no special rules are
 applied:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 www.google.com/search?q=(business))+ok
 .
 <p><a href="http://www.google.com/search?q=(business))+ok">www.google.com/search?q=(business))+ok</a></p>
@@ -9285,7 +9285,7 @@ www.google.com/search?q=commonmark&hl;
 
 `<` immediately ends an autolink.
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 www.commonmark.org/he<lp
 .
 <p><a href="http://www.commonmark.org/he">www.commonmark.org/he</a>&lt;lp</p>
