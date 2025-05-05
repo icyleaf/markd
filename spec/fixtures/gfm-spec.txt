@@ -9210,7 +9210,7 @@ and no underscores may be present in the last two segments of the domain.
 
 The scheme `http` will be inserted automatically:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 www.commonmark.org
 .
 <p><a href="http://www.commonmark.org">www.commonmark.org</a></p>

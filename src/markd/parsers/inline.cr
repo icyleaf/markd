@@ -58,6 +58,8 @@ module Markd::Parser
               close_bracket(node)
             when '<'
               auto_link(node) || html_tag(node)
+            when 'w'
+              auto_link(node)
             when '&'
               entity(node)
             when ':'
@@ -433,6 +435,9 @@ module Markd::Parser
       elsif text = match(Rule::AUTO_LINK)
         node.append_child(link(text, false))
         return true
+      elsif text = match(Rule::WWW_AUTO_LINK)
+        node.append_child(link(text, false, true))
+        return true
       end
 
       false
@@ -550,9 +555,12 @@ module Markd::Parser
       end
     end
 
-    private def link(match : String, email = false) : Node
-      dest = match[1..-2]
+    private def link(match : String, email = false, add_proto = false) : Node
+      dest = match.lstrip("<").rstrip(">")
       destination = email ? "mailto:#{dest}" : dest
+      if add_proto
+        destination = "http://#{destination}"
+      end
 
       node = Node.new(Node::Type::Link)
       node.data["title"] = ""
