@@ -9230,7 +9230,7 @@ Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
 will not be considered part of the autolink, though they may be included in the
 interior of the link:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 Visit www.commonmark.org.
 
 Visit www.commonmark.org/a.b.
