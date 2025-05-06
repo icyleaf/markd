@@ -9322,7 +9322,7 @@ the following rules:
 
 The scheme `mailto:` will automatically be added to the generated link:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 foo@bar.baz
 .
 <p><a href="mailto:foo@bar.baz">foo@bar.baz</a></p>
@@ -9330,7 +9330,7 @@ foo@bar.baz
 
 `+` can occur before the `@`, but not after.
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 .
 <p>hello@mail+xyz.example isn't valid, but <a href="mailto:hello+xyz@mail.example">hello+xyz@mail.example</a> is.</p>
@@ -9340,7 +9340,7 @@ hello@mail+xyz.example isn't valid, but hello+xyz@mail.example is.
 the end of the email address, in which case it will not be considered part of
 the address:
 
-```````````````````````````````` example autolink pending
+```````````````````````````````` example autolink
 a.b-c_d@a.b
 
 a.b-c_d@a.b.

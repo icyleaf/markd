@@ -86,7 +86,12 @@ module Markd::Parser
             when ':'
               emoji(node)
             else
-              string(node)
+              if @options.gfm && node.text.includes? '@'
+                # Catch email autolinks for GFM
+                auto_link(node)
+              else
+                string(node)
+              end
             end
 
       unless res
@@ -456,17 +461,32 @@ module Markd::Parser
       elsif matched_text = match(Rule::AUTO_LINK)
         node.append_child(link(matched_text, false))
         return true
-      elsif (matched_text = match(Rule::WWW_AUTO_LINK)) && @options.gfm
+      elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
         link = link(clean_text, false, true)
         node.append_child(link)
         node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
         return true
-      elsif (matched_text = match(Rule::PROTOCOL_AUTO_LINK)) && @options.gfm
+      elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
         link = link(clean_text, false, false)
         node.append_child(link)
         node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
+        return true
+      elsif @options.gfm && (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
+        # Emails that end in - or _ are declared not to be links by the spec:
+        #
+        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+        # the end of the email address, in which case it will not be considered part of
+        # the address:
+
+        # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
+
+        if "-_".includes?(matched_text[-1])
+          node.append_child(text(matched_text))
+        else
+          node.append_child(link(matched_text, true, false))
+        end
         return true
       end
 
@@ -920,6 +940,25 @@ module Markd::Parser
 
         m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
         m.size
+      elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
+        # All such recognized autolinks can only come at the beginning of
+        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
+        # and `(`.
+        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
+          return 0
+        end
+
+        # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
+        matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s
+
+        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+        # the end of the email address, in which case it will not be considered part of
+        # the address:
+
+        if "-_".includes? char_at(pos + matched_text.size + 1)
+          return 0
+        end
+        matched_text.size
       else
         0
       end
