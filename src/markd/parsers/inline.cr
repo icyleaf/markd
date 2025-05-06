@@ -71,7 +71,7 @@ module Markd::Parser
               if @options.gfm && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
-                string(node)
+                false
               end
             when 'f'
               # Catch ftp:// autolinks for GFM
