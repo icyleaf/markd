@@ -3422,7 +3422,7 @@ block-level structure:
 </blockquote>
 ````````````````````````````````
 
-```````````````````````````````` example table pending
+```````````````````````````````` example table
 | abc | def |
 | --- | --- |
 | bar | baz |
