@@ -82,6 +82,13 @@ module Markd::Parser
               else
                 false
               end
+            when 'x'
+              # Catch xmpp: autolinks for GFM
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+                auto_link(node)
+              else
+                false
+              end
             when '&'
               entity(node)
             when ':'
@@ -464,17 +471,21 @@ module Markd::Parser
         return true
       elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
-        if !clean_text.empty?
-          link = link(clean_text, false, true)
-          node.append_child(link)
-        end
-        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
+        _, post = @text.split(clean_text, 2)
+        node.append_child(link(clean_text, false, true))
+        node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
         return true
       elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
 
         # The matched text may not be at the beginning of the string
         # it happens for the case `'http://google.com'`
+        _, post = @text.split(clean_text, 2)
+        node.append_child(link(clean_text, false, false))
+        node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
+        return true
+      elsif @options.gfm && (matched_text = match(Rule::XMPP_AUTO_LINK))
+        clean_text = autolink_cleanup(matched_text)
         _, post = @text.split(clean_text, 2)
         node.append_child(link(clean_text, false, false))
         node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
