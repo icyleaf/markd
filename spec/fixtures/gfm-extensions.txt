@@ -800,7 +800,7 @@ Hello[^"><script>alert(1)</script>]
 
 Autolink and strikethrough.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 ~~www.google.com~~
 
 ~~http://google.com~~
@@ -811,7 +811,7 @@ Autolink and strikethrough.
 
 Autolink and tables.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 | a | b |
 | --- | --- |
 | https://github.com www.github.com | http://pokemon.com |
