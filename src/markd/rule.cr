@@ -4,6 +4,7 @@ module Markd
     ESCAPED_CHAR_STRING = %Q(\\\\) + ESCAPABLE_STRING
 
     NUMERIC_HTML_ENTITY = /^&#(?:[Xx][0-9a-fA-F]{1,6}|[0-9]{1,7});/
+    HTML_ENTITY         = /^&[a-zA-Z0-9]+;/
 
     TAG_NAME_STRING             = %Q([A-Za-z][A-Za-z0-9-]*)
     ATTRIBUTE_NAME_STRING       = %Q([a-zA-Z_:][a-zA-Z0-9:._-]*)
@@ -62,9 +63,11 @@ module Markd
 
     LINK_DESTINATION_BRACES = Regex.new("^(?:[<](?:[^<>\\t\\n\\\\\\x00]|" + ESCAPED_CHAR_STRING + ")*[>])")
 
-    EMAIL_AUTO_LINK = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
-    AUTO_LINK       = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
-    WWW_AUTO_LINK   = /^www(\.[a-zA-Z0-9\-]{1,})+(\/[^\s<]*[^\s<.,])?/
+    EMAIL_AUTO_LINK          = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
+    EXTENDED_EMAIL_AUTO_LINK = /^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)[-_]*/
+    AUTO_LINK                = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
+    WWW_AUTO_LINK            = /^www(\.[a-zA-Z0-9\-]{1,})+(\/[^\s<]*[^\s<?!.,:*_~])?/
+    PROTOCOL_AUTO_LINK       = /^(?:http|https|ftp):\/\/([a-zA-Z0-9\-_.]{2,})+(\/[^\s<]*[^\s?!.,:*_~])?/
 
     WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
     WHITESPACE      = /[ \t\n\x0b\x0c\x0d]+/

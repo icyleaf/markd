@@ -46,6 +46,8 @@ module Markd
 
     property tagfilter : Bool
 
+    property autolink : Bool
+
     def initialize(
       @time = false,
       @gfm = false,
@@ -56,6 +58,7 @@ module Markd
       @prettyprint = false,
       @emoji = false,
       @tagfilter = false,
+      @autolink = false,
       @base_url = nil,
     )
     end

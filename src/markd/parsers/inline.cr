@@ -58,13 +58,40 @@ module Markd::Parser
             when '<'
               auto_link(node) || html_tag(node)
             when 'w'
-              auto_link(node)
+              # Catch www. autolinks for GFM
+              # Do not match if it's http://www
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '/')
+                auto_link(node)
+              else
+                false
+              end
+            when 'h'
+              # Catch http:// and https:// autolinks for GFM
+              # Do not match if it's <http:// ... because that was matched by '<'
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+                auto_link(node)
+              else
+                false
+              end
+            when 'f'
+              # Catch ftp:// autolinks for GFM
+              # Do not match if it's <ftp:// ... because that was matched by '<'
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+                auto_link(node)
+              else
+                false
+              end
             when '&'
               entity(node)
             when ':'
               emoji(node)
             else
-              string(node)
+              if @options.gfm && @options.autolink && node.text.includes? '@'
+                # Catch email autolinks for GFM
+                auto_link(node)
+              else
+                string(node)
+              end
             end
 
       unless res
@@ -428,14 +455,38 @@ module Markd::Parser
     end
 
     private def auto_link(node : Node)
-      if text = match(Rule::EMAIL_AUTO_LINK)
-        node.append_child(link(text, true))
+      if matched_text = match(Rule::EMAIL_AUTO_LINK)
+        node.append_child(link(matched_text, true))
         return true
-      elsif text = match(Rule::AUTO_LINK)
-        node.append_child(link(text, false))
+      elsif matched_text = match(Rule::AUTO_LINK)
+        node.append_child(link(matched_text, false))
         return true
-      elsif text = match(Rule::WWW_AUTO_LINK)
-        node.append_child(link(text, false, true))
+      elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
+        clean_text = autolink_cleanup(matched_text)
+        link = link(clean_text, false, true)
+        node.append_child(link)
+        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
+        return true
+      elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
+        clean_text = autolink_cleanup(matched_text)
+        link = link(clean_text, false, false)
+        node.append_child(link)
+        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
+        return true
+      elsif @options.gfm && (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
+        # Emails that end in - or _ are declared not to be links by the spec:
+        #
+        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+        # the end of the email address, in which case it will not be considered part of
+        # the address:
+
+        # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
+
+        if "-_".includes?(matched_text[-1])
+          node.append_child(text(matched_text))
+        else
+          node.append_child(link(matched_text, true, false))
+        end
         return true
       end
 
@@ -829,10 +880,34 @@ module Markd::Parser
       end
     end
 
+    # This function advances @pos as far as possible until it finds a
+    # "special" character, such as '<', ']', or a special string (like a URL).
+    #
+    # Then it returns the chunk before it found that match, or in the case
+    # of special strings, the chunk matched.
+
     private def match_main : String?
-      # This is the same as match(/^[^\n`\[\]\\!<&*_'":]+/m) but done manually (faster)
       start_pos = @pos
-      while (char = char_at?(@pos)) && main_char?(char)
+      while char = char_at?(@pos)
+        # If we detected a special string (like a URL), and it's
+        # not the beggining of the string, we need to break right away.
+        #
+        # If we are at the beginning of the string, then we return
+        # the chunk matched
+        if @options.gfm && @options.autolink
+          advance = special_string?(@text, @pos)
+          if advance > 0
+            if @pos > start_pos
+              break
+            else
+              @pos += advance
+              break
+            end
+          end
+        end
+
+        # If we detect a special character, we need to break
+        break if !main_char?(char)
         @pos += 1
       end
 
@@ -843,6 +918,86 @@ module Markd::Parser
       end
     end
 
+    # Identify "special" strings by matching against
+    # regular expressions. It returns the number of characters
+    # that were matched.
+
+    private def special_string?(full_text : String, pos : Int) : Int
+      text = full_text.byte_slice(pos)
+      if text.starts_with?("http://") || text.starts_with?("https://") || text.starts_with?("ftp://")
+        # All such recognized autolinks can only come at the beginning of
+        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
+        # and `(`.
+        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
+          return 0
+        end
+
+        # This should not be an autolink:
+        # < ftp://example.com >
+        if full_text[...pos].includes?("<") && full_text[...pos].matches?(/<\s*$/)
+          return 0
+        end
+
+        m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
+        m.size
+      elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
+        # All such recognized autolinks can only come at the beginning of
+        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
+        # and `(`.
+        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
+          return 0
+        end
+
+        # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
+        matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s
+
+        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+        # the end of the email address, in which case it will not be considered part of
+        # the address:
+
+        if "-_".includes? char_at(pos + matched_text.size + 1)
+          return 0
+        end
+        matched_text.size
+      else
+        0
+      end
+    end
+
+    # These cleanups are defined in the spec
+
+    private def autolink_cleanup(text : String) : String
+      # When an autolink ends in `)`, we scan the entire autolink for the total number
+      # of parentheses.  If there is a greater number of closing parentheses than
+      # opening ones, we don't consider the unmatched trailing parentheses part of the
+      # autolink, in order to facilitate including an autolink inside a parenthesis:
+      while text.ends_with?(")") && text.count(")") != text.count("(")
+        text = text[0..-2]
+      end
+
+      # Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
+      # will not be considered part of the autolink, though they may be included in the
+      # interior of the link
+      while "?!.,:*~_".includes?(text[-1])
+        text = text[0..-2]
+      end
+
+      # If an autolink ends in a semicolon (`;`), we check to see if it appears to
+      # resemble an [entity reference][entity references]; if the preceding text is `&`
+      # followed by one or more alphanumeric characters.  If so, it is excluded from
+      # the autolink:
+
+      if text.ends_with?(";") && text.includes?("&")
+        parts = text.split("&")
+        if "&#{parts[-1]}".matches?(Rule::HTML_ENTITY)
+          text = parts[0..-2].join("&")
+        end
+      end
+
+      text
+    end
+
+    # This is the same as match(/^[^\n`\[\]\\!<&*_'":]+/m) but done manually (faster)
     private def main_char?(char)
       case char
       when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"', ':', 'w'
