@@ -637,10 +637,10 @@ http://🍄.ga/ http://x🍄.ga/
 <p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>
 ````````````````````````````````
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This shouldn't crash everything: (_A_@_.A
 .
-<IGNORE>
+<p>This shouldn't crash everything: (<em>A</em>@_.A</p>
 ````````````````````````````````
 
 ```````````````````````````````` example
@@ -800,7 +800,7 @@ Hello[^"><script>alert(1)</script>]
 
 Autolink and strikethrough.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 ~~www.google.com~~
 
 ~~http://google.com~~
@@ -811,7 +811,7 @@ Autolink and strikethrough.
 
 Autolink and tables.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 | a | b |
 | --- | --- |
 | https://github.com www.github.com | http://pokemon.com |
