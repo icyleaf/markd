@@ -69,7 +69,13 @@ module Markd::Parser
             when 'h'
               # Catch http:// and https:// autolinks for GFM
               # Do not match if it's <http:// ... because that was matched by '<'
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.gfm && @options.autolink && (
+                   @pos == 0 ||
+                   # Do not match if it's <http:// ... because that was matched by '<'
+                   char_at?(@pos - 1) != '<'
+                   # Do not match ![http:// ... because that was matched by '!']
+                   char_at?(@pos - 1) != '['
+                 )
                 auto_link(node)
               else
                 false
@@ -471,9 +477,13 @@ module Markd::Parser
         return true
       elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
-        _, post = @text.split(clean_text, 2)
-        node.append_child(link(clean_text, false, true))
-        node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
+        if clean_text.empty?
+          node.append_child(text(matched_text))
+        else
+          _, post = @text.split(clean_text, 2)
+          node.append_child(link(clean_text, false, true))
+          node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
+        end
         return true
       elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
