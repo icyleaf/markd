@@ -967,6 +967,7 @@ module Markd::Parser
     # These cleanups are defined in the spec
 
     private def autolink_cleanup(text : String) : String
+      return text if text.empty?
       # When an autolink ends in `)`, we scan the entire autolink for the total number
       # of parentheses.  If there is a greater number of closing parentheses than
       # opening ones, we don't consider the unmatched trailing parentheses part of the
