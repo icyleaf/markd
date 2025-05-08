@@ -472,9 +472,12 @@ module Markd::Parser
         return true
       elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
-        link = link(clean_text, false, false)
-        node.append_child(link)
-        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
+
+        # The matched text may not be at the beginning of the string
+        # it happens for the case `'http://google.com'`
+        _, post = @text.split(clean_text, 2)
+        node.append_child(link(clean_text, false, false))
+        node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
         return true
       elsif @options.gfm && (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
         # Emails that end in - or _ are declared not to be links by the spec:
@@ -994,7 +997,7 @@ module Markd::Parser
       # Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
       # will not be considered part of the autolink, though they may be included in the
       # interior of the link
-      while "?!.,:*~_".includes?(text[-1])
+      while "\"'?!.,:*~_".includes?(text[-1])
         text = text[0..-2]
       end
 
