@@ -1,4 +1,5 @@
 require "html"
+require "uri"
 
 module Markd::Parser
   class Inline
@@ -463,8 +464,10 @@ module Markd::Parser
         return true
       elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
         clean_text = autolink_cleanup(matched_text)
-        link = link(clean_text, false, true)
-        node.append_child(link)
+        if !clean_text.empty?
+          link = link(clean_text, false, true)
+          node.append_child(link)
+        end
         node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
         return true
       elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
@@ -941,6 +944,17 @@ module Markd::Parser
         matched_text = text.match(Rule::PROTOCOL_AUTO_LINK).to_s
         m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
         m.size
+      elsif text.starts_with?("www.") && text.matches?(Rule::WWW_AUTO_LINK)
+        # All such recognized autolinks can only come at the beginning of
+        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
+        # and `(`.
+        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
+          return 0
+        end
+
+        matched_text = text.match(Rule::WWW_AUTO_LINK).to_s
+        m = autolink_cleanup(text.match(Rule::WWW_AUTO_LINK).to_s)
+        m.size
       elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
         # All such recognized autolinks can only come at the beginning of
         # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
@@ -994,6 +1008,17 @@ module Markd::Parser
         if "&#{parts[-1]}".matches?(Rule::HTML_ENTITY)
           text = parts[0..-2].join("&")
         end
+      end
+
+      # If the autolink has a domain and the last component has a `_` then
+      # it's invalid.
+      if text.starts_with?("www.")
+        uri = URI.parse("http://#{text}")
+      else
+        uri = URI.parse(text)
+      end
+      if uri.host && !uri.host.to_s.match(Rule::VALID_DOMAIN_NAME)
+        text = ""
       end
 
       text
