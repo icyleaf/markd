@@ -67,7 +67,7 @@ module Markd
     EXTENDED_EMAIL_AUTO_LINK = /^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)[-_]*/
     AUTO_LINK                = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
     WWW_AUTO_LINK            = /^www(\.[a-zA-Z0-9\-]{1,})+(\/[^\s<]*[^\s<?!.,:*_~])?/
-    PROTOCOL_AUTO_LINK       = /^(?:http|https|ftp):\/\/([a-zA-Z0-9\-_.]{2,})+(\/[^\s<]*[^\s?!.,:*_~])?/
+    PROTOCOL_AUTO_LINK       = /^(?:http|https|ftp):\/\/([a-zA-Z0-9\-_.\p{Emoji_Presentation}]{2,})+(\/[^\s<]*[^\s?!.,:*_~])?/
 
     WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
     WHITESPACE      = /[ \t\n\x0b\x0c\x0d]+/
