@@ -938,6 +938,7 @@ module Markd::Parser
           return 0
         end
 
+        matched_text = text.match(Rule::PROTOCOL_AUTO_LINK).to_s
         m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
         m.size
       elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)

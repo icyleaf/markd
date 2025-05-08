@@ -70,18 +70,23 @@ module Markd
     # underscores may be present in the last two segments of the domain.
     #
     # Alphanumeric characters in this context include emojis.
-    NEXT_TO_LAST_DOMAIN_SEGMENT = /(?:[a-zA-Z0-9\-\p{Emoji_Presentation}\-]+\.)/
     LAST_DOMAIN_SEGMENT = /(?:[a-zA-Z0-9\-\p{Emoji_Presentation}\-]+)/
-    OTHER_DOMAIN_SEGMENTS = /(?:[a-zA-Z0-9\p{Emoji_Presentation}\-_]+\.)/
-    DOMAIN_NAME = /#{OTHER_DOMAIN_SEGMENTS}*#{NEXT_TO_LAST_DOMAIN_SEGMENT}*#{LAST_DOMAIN_SEGMENT}/
+    OTHER_DOMAIN_SEGMENTS = /(?:[a-zA-Z0-9\p{Emoji_Presentation}\-_]+)/
+    # The spec wants to capture greedily, even invalid domain names and then
+    # reject the invalid ones later.
+    # For example: www.xxx.yyy._zzz is never linked because of the 
+    # _ in the last segment.
+    DOMAIN_NAME = /(?:#{OTHER_DOMAIN_SEGMENTS}\.)*#{OTHER_DOMAIN_SEGMENTS}/
+    VALID_DOMAIN_NAME = /(?:#{OTHER_DOMAIN_SEGMENTS}\.)*(?:#{LAST_DOMAIN_SEGMENT}\.)*#{LAST_DOMAIN_SEGMENT}/
+    VALID_URL_PATH = /(?:\/[^\s<]*)?/
 
     AUTOLINK_PROTOCOLS = /^((?:http|https|ftp):\/\/)|xmpp:/
 
     EMAIL_AUTO_LINK          = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
     EXTENDED_EMAIL_AUTO_LINK = /^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)[-_]*/
     AUTO_LINK                = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
-    WWW_AUTO_LINK            = /^www(\.[a-zA-Z0-9\-]{1,})+(\/[^\s<]*[^\s<?!.,:*_~])?/
-    PROTOCOL_AUTO_LINK = /#{AUTOLINK_PROTOCOLS}#{DOMAIN_NAME}+(?<!_)\.[a-zA-Z0-9-]+(?<!_)\/?[^\s<]*[^\s?!.,:*_~]/
+    WWW_AUTO_LINK            = /^www\.#{VALID_DOMAIN_NAME}#{VALID_URL_PATH}/
+    PROTOCOL_AUTO_LINK = /#{AUTOLINK_PROTOCOLS}#{DOMAIN_NAME}#{VALID_URL_PATH}[^\s?!.,:*_~]/
 
     WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
     WHITESPACE      = /[ \t\n\x0b\x0c\x0d]+/
