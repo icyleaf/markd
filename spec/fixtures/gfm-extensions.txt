@@ -538,7 +538,7 @@ size (100) for parsing delimiters in inlines.c
 
 ## Autolinks
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink pending
 : http://google.com https://google.com
 
 <http://google.com/å> http://google.com/å
