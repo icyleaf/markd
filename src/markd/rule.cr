@@ -87,7 +87,7 @@ module Markd
     AUTO_LINK                = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
     WWW_AUTO_LINK            = /^www\.#{DOMAIN_NAME}#{VALID_URL_PATH}/
     XMPP_AUTO_LINK           = /^xmpp:[A-Za-z0-9]+@#{DOMAIN_NAME}#{VALID_URL_PATH}/
-    MAILTO_AUTO_LINK           = /^mailto:[A-Za-z0-9]+@#{DOMAIN_NAME}/
+    MAILTO_AUTO_LINK         = /^mailto:[A-Za-z0-9]+@#{DOMAIN_NAME}/
     PROTOCOL_AUTO_LINK       = /#{AUTOLINK_PROTOCOLS}#{DOMAIN_NAME}#{VALID_URL_PATH}[^\s?!.,:*_~]/
 
     WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
