@@ -60,7 +60,7 @@ module Markd::Parser
             when 'w'
               # Catch www. autolinks for GFM
               # Do not match if it's http://www
-              if @options.gfm && (@pos == 0 || char_at?(@pos - 1) != '/')
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '/')
                 auto_link(node)
               else
                 false
@@ -68,7 +68,7 @@ module Markd::Parser
             when 'h'
               # Catch http:// and https:// autolinks for GFM
               # Do not match if it's <http:// ... because that was matched by '<'
-              if @options.gfm && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
                 false
@@ -76,7 +76,7 @@ module Markd::Parser
             when 'f'
               # Catch ftp:// autolinks for GFM
               # Do not match if it's <ftp:// ... because that was matched by '<'
-              if @options.gfm && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
                 false
@@ -86,7 +86,7 @@ module Markd::Parser
             when ':'
               emoji(node)
             else
-              if @options.gfm && node.text.includes? '@'
+              if @options.gfm && @options.autolink && node.text.includes? '@'
                 # Catch email autolinks for GFM
                 auto_link(node)
               else
@@ -894,7 +894,7 @@ module Markd::Parser
         #
         # If we are at the beginning of the string, then we return
         # the chunk matched
-        if @options.gfm
+        if @options.gfm && @options.autolink
           advance = special_string?(@text, @pos)
           if advance > 0
             if @pos > start_pos
