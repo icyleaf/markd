@@ -978,7 +978,7 @@ module Markd::Parser
       # Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
       # will not be considered part of the autolink, though they may be included in the
       # interior of the link
-      while "?!.,:*~_".includes?(text[-1])
+      while (char = text[-1]?) && "?!.,:*~_".includes?(char)
         text = text[0..-2]
       end
 
