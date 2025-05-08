@@ -124,12 +124,10 @@ module Markd::Rule
     private def match_continuation?(parser : Parser)
       !parser.indented && (parser.line[0]? == '|' ||
         parser.line.match(TABLE_HEADING_SEPARATOR) ||
-        parser.line.match(TABLE_CELL_SEPARATOR)) || !( # Lines that are not empty and are not the start of a
-      # block-level structure are ALSO continuations (see gfm-spec.txt:3397)
-
-parser.line.strip.empty? ||
-        parser.line.matches? /^(?:>|\#{1,6}|`{3}|\t{1}|\s{4}|(?:[*-+]\s)+|[0-9]+\.)+/
-        )
+        parser.line.match(TABLE_CELL_SEPARATOR)) ||
+        # Lines that are not empty and are not the start of a
+        # block-level structure are ALSO continuations (see gfm-spec.txt:3397)
+        !(parser.line.strip.empty? || parser.line.matches?(/^(?:>|\#{1,6}|`{3}|\t{1}|\s{4}|(?:[*-+]\s)+|[0-9]+\.)+/))
     end
 
     private def strip_pipe(text : String) : String
