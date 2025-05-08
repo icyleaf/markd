@@ -63,11 +63,25 @@ module Markd
 
     LINK_DESTINATION_BRACES = Regex.new("^(?:[<](?:[^<>\\t\\n\\\\\\x00]|" + ESCAPED_CHAR_STRING + ")*[>])")
 
+    # A valid domain name is:
+    #
+    # segments of alphanumeric characters, underscores (_) and hyphens (-) 
+    # separated by periods (.). There must be at least one period, and no 
+    # underscores may be present in the last two segments of the domain.
+    #
+    # Alphanumeric characters in this context include emojis.
+    NEXT_TO_LAST_DOMAIN_SEGMENT = /(?:[a-zA-Z0-9\-\p{Emoji_Presentation}\-]+\.)/
+    LAST_DOMAIN_SEGMENT = /(?:[a-zA-Z0-9\-\p{Emoji_Presentation}\-]+)/
+    OTHER_DOMAIN_SEGMENTS = /(?:[a-zA-Z0-9\p{Emoji_Presentation}\-_]+\.)/
+    DOMAIN_NAME = /#{OTHER_DOMAIN_SEGMENTS}*#{NEXT_TO_LAST_DOMAIN_SEGMENT}*#{LAST_DOMAIN_SEGMENT}/
+
+    AUTOLINK_PROTOCOLS = /^((?:http|https|ftp):\/\/)|xmpp:/
+
     EMAIL_AUTO_LINK          = /^<([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*)>/
     EXTENDED_EMAIL_AUTO_LINK = /^([a-zA-Z0-9.!#$%&'*+\/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+)[-_]*/
     AUTO_LINK                = /^<[A-Za-z][A-Za-z0-9.+-]{1,31}:[^<>\x00-\x20]*>/i
     WWW_AUTO_LINK            = /^www(\.[a-zA-Z0-9\-]{1,})+(\/[^\s<]*[^\s<?!.,:*_~])?/
-    PROTOCOL_AUTO_LINK       = /^(?:http|https|ftp):\/\/([a-zA-Z0-9\-_.\p{Emoji_Presentation}]{2,})+(\/[^\s<]*[^\s?!.,:*_~])?/
+    PROTOCOL_AUTO_LINK = /#{AUTOLINK_PROTOCOLS}#{DOMAIN_NAME}+(?<!_)\.[a-zA-Z0-9-]+(?<!_)\/?[^\s<]*[^\s?!.,:*_~]/
 
     WHITESPACE_CHAR = /^[ \t\n\x0b\x0c\x0d]/
     WHITESPACE      = /[ \t\n\x0b\x0c\x0d]+/
