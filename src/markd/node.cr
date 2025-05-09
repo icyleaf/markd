@@ -14,6 +14,7 @@ module Markd
       List
       Item
       BlockQuote
+      Alert
       ThematicBreak
       Code
       CodeBlock
@@ -45,6 +46,7 @@ module Markd
       Type::List,
       Type::Item,
       Type::BlockQuote,
+      Type::Alert,
       Type::CustomInLine,
       Type::CustomBlock,
       Type::Table,

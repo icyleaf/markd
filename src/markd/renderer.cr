@@ -53,6 +53,7 @@ module Markd
     abstract def list(node : Node, entering : Bool) : Nil
     abstract def item(node : Node, entering : Bool) : Nil
     abstract def block_quote(node : Node, entering : Bool) : Nil
+    abstract def alert(node : Node, entering : Bool) : Nil
     abstract def thematic_break(node : Node, entering : Bool) : Nil
     abstract def code_block(node : Node, entering : Bool, formatter : T?) : Nil forall T
     abstract def code(node : Node, entering : Bool) : Nil
@@ -86,6 +87,8 @@ module Markd
             item(node, entering)
           when Node::Type::BlockQuote
             block_quote(node, entering)
+          when Node::Type::Alert
+            alert(node, entering)
           when Node::Type::ThematicBreak
             thematic_break(node, entering)
           when Node::Type::CodeBlock
