@@ -63,7 +63,7 @@ def assert_example(file, section, index, example, smart, gfm = false)
     it "- #{index}\n#{show_space(markdown)}", file, line do
       output = Markd.to_html(markdown, options)
       next if html == "<IGNORE>\n"
-      
+
       output.should eq(html), file: file, line: line
     end
   end
