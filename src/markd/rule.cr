@@ -15,7 +15,7 @@ module Markd
     ATTRIBUTE_VALUE_SPEC_STRING = "(?:" + "\\s*=" + "\\s*" + ATTRIBUTE_VALUE_STRING + ")"
     ATTRIBUTE                   = "(?:" + "\\s+" + ATTRIBUTE_NAME_STRING + ATTRIBUTE_VALUE_SPEC_STRING + "?)"
 
-    MAYBE_SPECIAL  = {'#', '`', '~', '*', '+', '_', '=', '<', '>', '-', '|'}
+    MAYBE_SPECIAL  = {'#', '`', '~', '*', '+', '_', '=', '<', '>', '-', '|', '['}
     THEMATIC_BREAK = /^(?:(?:\*[ \t]*){3,}|(?:_[ \t]*){3,}|(?:-[ \t]*){3,})[ \t]*$/
 
     ESCAPABLE = /^#{ESCAPABLE_STRING}/
@@ -104,6 +104,8 @@ module Markd
 
     TABLE_HEADING_SEPARATOR = /^(\|?\s*:{0,1}-:{0,1}+\s*)+(\||\s*)$/
     TABLE_CELL_SEPARATOR    = /(?<!\\)\|/
+
+    FOOTNOTE_DEFINITION_START = /\[\^[^\]]+\]:(\s|$)/
 
     # Match Value
     #

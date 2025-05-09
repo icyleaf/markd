@@ -14,6 +14,7 @@ module Markd::Parser
       @text = ""
       @pos = 0
       @refmap = {} of String => Hash(String, String) | String
+      @footnote_counter = 0
     end
 
     def parse(node : Node)
@@ -200,12 +201,19 @@ module Markd::Parser
     private def bang(node : Node)
       start_pos = @pos
       @pos += 1
-      if char_at?(@pos) == '['
+      # It's an image if the next character is a [
+      # And it's not a footnote OR we are not in GFM mode
+      #
+      # * This IS an image: `![...]`
+      # * This IS an image in non-GFM mode: `![^...]`
+      # * This IS NOT an image in GFM mode: `![^...]`
+
+      if char_at?(@pos) == '[' && (char_at?(@pos + 1) != '^' || !@options.gfm)
         @pos += 1
         child = text("![")
         node.append_child(child)
 
-        add_bracket(child, start_pos + 1, true)
+        add_bracket(child, start_pos + 1, image: true)
       else
         node.append_child(text("!"))
       end
@@ -213,9 +221,9 @@ module Markd::Parser
       true
     end
 
-    private def add_bracket(node : Node, index : Int32, image = false)
+    private def add_bracket(node : Node, index : Int32, *, image = false, footnote = false)
       brackets.bracket_after = true if brackets?
-      @brackets = Bracket.new(node, @brackets, @delimiters, index, image, true)
+      @brackets = Bracket.new(node, @brackets, @delimiters, index, image: image, active: true, footnote: footnote)
     end
 
     private def remove_bracket
@@ -229,7 +237,11 @@ module Markd::Parser
       child = text("[")
       node.append_child(child)
 
-      add_bracket(child, start_pos, false)
+      if char_at(@pos) == '^' && @options.gfm
+        add_bracket(child, start_pos, footnote: true)
+      else
+        add_bracket(child, start_pos)
+      end
 
       true
     end
@@ -259,6 +271,7 @@ module Markd::Parser
 
       # If we got here, open is a potential opener
       is_image = opener.image
+      is_footnote = opener.footnote
 
       # Check to see if we have a link/image
       save_pos = @pos
@@ -275,6 +288,21 @@ module Markd::Parser
         else
           @pos = save_pos
         end
+      end
+
+      # Is it a footnote?
+      if is_footnote
+        # If the 1st char after the closing bracket is a ":" then it's NOT
+        # a footnote, it's a footnote definition.
+        if char_at?(@pos) == ':'
+          @pos = start_pos
+          node.append_child(text("]"))
+          remove_bracket
+          return true
+        end
+        title = @text[opener.@index + 2...@pos - 1]
+        @pos += 1
+        matched = true
       end
 
       ref_label = nil
@@ -306,7 +334,15 @@ module Markd::Parser
       end
 
       if matched
-        child = Node.new(is_image ? Node::Type::Image : Node::Type::Link)
+        if is_image
+          child = Node.new(Node::Type::Image)
+        elsif is_footnote
+          child = Node.new(Node::Type::Footnote)
+          child.data["number"] = @footnote_counter += 1
+        else
+          child = Node.new(Node::Type::Link)
+        end
+
         child.data["destination"] = dest.not_nil!
         child.data["title"] = title || ""
 
@@ -1113,8 +1149,9 @@ module Markd::Parser
       property image : Bool
       property active : Bool
       property bracket_after : Bool
+      property footnote : Bool
 
-      def initialize(@node, @previous, @previous_delimiter, @index, @image, @active = true)
+      def initialize(@node, @previous, @previous_delimiter, @index, *, @image = false, @active = true, @footnote = false)
         @bracket_after = false
       end
     end
