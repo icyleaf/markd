@@ -57,6 +57,13 @@ module Markd
       newline
       if entering
         tag("blockquote", attrs(node))
+        if node.data.fetch("alert", nil)
+          tag("div", {"class" => "alert alert-#{node.data["alert"].to_s.downcase}"}) do
+            tag("p", {"class" => "alert-title"}) do
+              output(node.data["title"].as(String))
+            end
+          end
+        end
       else
         tag("blockquote", end_tag: true)
       end
