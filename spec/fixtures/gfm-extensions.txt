@@ -538,7 +538,7 @@ size (100) for parsing delimiters in inlines.c
 
 ## Autolinks
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 : http://google.com https://google.com
 
 <http://google.com/å> http://google.com/å
@@ -558,8 +558,6 @@ mailto:scyther@pokemon.com
 This is a mailto:scyther@pokemon.com
 
 mailto:scyther@pokemon.com.
-
-mmmmailto:scyther@pokemon.com
 
 mailto:scyther@pokemon.com/
 
@@ -587,7 +585,7 @@ Underscores not allowed in host name www.xxx._yyy.zzz
 
 Underscores allowed in domain name www._xxx.yyy.zzz
 
-**Autolink and http://inlines**
+**Autolink and http://inlines.com**
 
 ![http://inline.com/image](http://inline.com/image)
 
@@ -613,7 +611,6 @@ http://🍄.ga/ http://x🍄.ga/
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
 <p>This is a <a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>.</p>
-<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/</p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/message</p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/<a href="mailto:beedrill@pokemon.com">mailto:beedrill@pokemon.com</a></p>
@@ -627,7 +624,7 @@ http://🍄.ga/ http://x🍄.ga/
 <p>Underscores not allowed in host name www.xxx.yyy._zzz</p>
 <p>Underscores not allowed in host name www.xxx._yyy.zzz</p>
 <p>Underscores allowed in domain name <a href="http://www._xxx.yyy.zzz">www._xxx.yyy.zzz</a></p>
-<p><strong>Autolink and <a href="http://inlines">http://inlines</a></strong></p>
+<p><strong>Autolink and <a href="http://inlines.com">http://inlines.com</a></strong></p>
 <p><img src="http://inline.com/image" alt="http://inline.com/image" /></p>
 <p><a href="mailto:a.w@b.c">a.w@b.c</a></p>
 <p>Full stop outside parens shouldn't be included <a href="http://google.com/ok">http://google.com/ok</a>.</p>
@@ -638,6 +635,12 @@ http://🍄.ga/ http://x🍄.ga/
 ````````````````````````````````
 
 ```````````````````````````````` example pending
+mmmmailto:scyther@pokemon.com
+.
+<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
+````````````````````````````````
+
+```````````````````````````````` example
 This shouldn't crash everything: (_A_@_.A
 .
 <IGNORE>
@@ -800,7 +803,7 @@ Hello[^"><script>alert(1)</script>]
 
 Autolink and strikethrough.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 ~~www.google.com~~
 
 ~~http://google.com~~
@@ -811,7 +814,7 @@ Autolink and strikethrough.
 
 Autolink and tables.
 
-```````````````````````````````` example pending
+```````````````````````````````` example autolink
 | a | b |
 | --- | --- |
 | https://github.com www.github.com | http://pokemon.com |

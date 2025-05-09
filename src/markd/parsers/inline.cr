@@ -1,4 +1,5 @@
 require "html"
+require "uri"
 
 module Markd::Parser
   class Inline
@@ -68,7 +69,13 @@ module Markd::Parser
             when 'h'
               # Catch http:// and https:// autolinks for GFM
               # Do not match if it's <http:// ... because that was matched by '<'
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.gfm && @options.autolink && (
+                   @pos == 0 ||
+                   # Do not match if it's <http:// ... because that was matched by '<'
+                   char_at?(@pos - 1) != '<'
+                   # Do not match ![http:// ... because that was matched by '!']
+                   char_at?(@pos - 1) != '['
+                 )
                 auto_link(node)
               else
                 false
@@ -76,6 +83,20 @@ module Markd::Parser
             when 'f'
               # Catch ftp:// autolinks for GFM
               # Do not match if it's <ftp:// ... because that was matched by '<'
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+                auto_link(node)
+              else
+                false
+              end
+            when 'x'
+              # Catch xmpp: autolinks for GFM
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+                auto_link(node)
+              else
+                false
+              end
+            when 'm'
+              # Catch mailto: autolinks for GFM
               if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
@@ -461,33 +482,50 @@ module Markd::Parser
       elsif matched_text = match(Rule::AUTO_LINK)
         node.append_child(link(matched_text, false))
         return true
-      elsif @options.gfm && (matched_text = match(Rule::WWW_AUTO_LINK))
-        clean_text = autolink_cleanup(matched_text)
-        link = link(clean_text, false, true)
-        node.append_child(link)
-        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
-        return true
-      elsif @options.gfm && (matched_text = match(Rule::PROTOCOL_AUTO_LINK))
-        clean_text = autolink_cleanup(matched_text)
-        link = link(clean_text, false, false)
-        node.append_child(link)
-        node.append_child(text(matched_text[clean_text.size..])) if clean_text != matched_text
-        return true
-      elsif @options.gfm && (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
-        # Emails that end in - or _ are declared not to be links by the spec:
-        #
-        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
-        # the end of the email address, in which case it will not be considered part of
-        # the address:
+      elsif @options.gfm && @options.autolink
+        # These are all the extended autolinks from the
+        # autolink extension
 
-        # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
+        if matched_text = match(Rule::WWW_AUTO_LINK)
+          clean_text = autolink_cleanup(matched_text)
+          if clean_text.empty?
+            node.append_child(text(matched_text))
+          else
+            _, post = @text.split(clean_text, 2)
+            node.append_child(link(clean_text, false, true))
+            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
+          end
+          return true
+        elsif matched_text = (
+                match(Rule::PROTOCOL_AUTO_LINK) ||
+                match(Rule::XMPP_AUTO_LINK) ||
+                match(Rule::MAILTO_AUTO_LINK)
+              )
+          clean_text = autolink_cleanup(matched_text)
+          if clean_text.empty?
+            node.append_child(text(matched_text))
+          else
+            _, post = @text.split(clean_text, 2)
+            node.append_child(link(clean_text, false, false))
+            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
+          end
+          return true
+        elsif matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK)
+          # Emails that end in - or _ are declared not to be links by the spec:
+          #
+          # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
+          # the end of the email address, in which case it will not be considered part of
+          # the address:
 
-        if "-_".includes?(matched_text[-1])
-          node.append_child(text(matched_text))
-        else
-          node.append_child(link(matched_text, true, false))
+          # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
+
+          if "-_".includes?(matched_text[-1])
+            node.append_child(text(matched_text))
+          else
+            node.append_child(link(matched_text, true, false))
+          end
+          return true
         end
-        return true
       end
 
       false
@@ -924,14 +962,12 @@ module Markd::Parser
 
     private def special_string?(full_text : String, pos : Int) : Int
       text = full_text.byte_slice(pos)
-      if text.starts_with?("http://") || text.starts_with?("https://") || text.starts_with?("ftp://")
-        # All such recognized autolinks can only come at the beginning of
-        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
-        # and `(`.
-        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
-          return 0
-        end
-
+      # All such recognized autolinks can only come at the beginning of
+      # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
+      # and `(`.
+      if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
+        0
+      elsif text.starts_with?("http://") || text.starts_with?("https://") || text.starts_with?("ftp://")
         # This should not be an autolink:
         # < ftp://example.com >
         if full_text[...pos].includes?("<") && full_text[...pos].matches?(/<\s*$/)
@@ -940,14 +976,10 @@ module Markd::Parser
 
         m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
         m.size
+      elsif text.starts_with?("www.") && text.matches?(Rule::WWW_AUTO_LINK)
+        m = autolink_cleanup(text.match(Rule::WWW_AUTO_LINK).to_s)
+        m.size
       elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
-        # All such recognized autolinks can only come at the beginning of
-        # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
-        # and `(`.
-        if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
-          return 0
-        end
-
         # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
         matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s
 
@@ -967,6 +999,7 @@ module Markd::Parser
     # These cleanups are defined in the spec
 
     private def autolink_cleanup(text : String) : String
+      return text if text.empty?
       # When an autolink ends in `)`, we scan the entire autolink for the total number
       # of parentheses.  If there is a greater number of closing parentheses than
       # opening ones, we don't consider the unmatched trailing parentheses part of the
@@ -978,7 +1011,7 @@ module Markd::Parser
       # Trailing punctuation (specifically, `?`, `!`, `.`, `,`, `:`, `*`, `_`, and `~`)
       # will not be considered part of the autolink, though they may be included in the
       # interior of the link
-      while "?!.,:*~_".includes?(text[-1])
+      while "\"'?!.,:*~_".includes?(text[-1])
         text = text[0..-2]
       end
 
@@ -992,6 +1025,17 @@ module Markd::Parser
         if "&#{parts[-1]}".matches?(Rule::HTML_ENTITY)
           text = parts[0..-2].join("&")
         end
+      end
+
+      # If the autolink has a domain and the last component has a `_` then
+      # it's invalid.
+      if text.starts_with?("www.")
+        uri = URI.parse("http://#{text}")
+      else
+        uri = URI.parse(text)
+      end
+      if uri.host && !uri.host.to_s.match(Rule::VALID_DOMAIN_NAME)
+        text = ""
       end
 
       text
