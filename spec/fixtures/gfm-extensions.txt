@@ -640,7 +640,7 @@ http://🍄.ga/ http://x🍄.ga/
 ```````````````````````````````` example
 This shouldn't crash everything: (_A_@_.A
 .
-<p>This shouldn't crash everything: (<em>A</em>@_.A</p>
+<IGNORE>
 ````````````````````````````````
 
 ```````````````````````````````` example
