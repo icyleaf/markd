@@ -6,7 +6,13 @@ module Markd::Rule
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
-        parser.add_child(Node::Type::BlockQuote, parser.next_nonspace)
+        node = parser.add_child(Node::Type::BlockQuote, parser.next_nonspace)
+        if parser.gfm && (match = parser.line.match(/^> \[!(\w+)] (.*)$/))  # FIXME move to rule.cr
+          # This is an alert
+          node.data["alert"] = match[1]
+          node.data["title"] = match[2].empty? ? match[1] : match[2].strip
+          parser.advance_offset(parser.line.size, false)
+        end
 
         MatchValue::Container
       else

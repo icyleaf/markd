@@ -53,12 +53,25 @@ module Markd
       newline
     end
 
+    # This renders block quotes, and also alerts.
+    # FIXME: separate nodes?
     def block_quote(node : Node, entering : Bool) : Nil
       newline
       if entering
-        tag("blockquote", attrs(node))
+        if node.data.fetch("alert", nil)
+          tag("div", {"class" => "alert alert-#{node.data["alert"].to_s.downcase}"})
+          tag("p", {"class" => "alert-title"}) do
+            output(node.data["title"].as(String))
+          end
+        else
+          tag("blockquote", attrs(node))
+        end
       else
-        tag("blockquote", end_tag: true)
+        if node.data.fetch("alert", nil)
+          tag("div", end_tag: true)
+        else
+          tag("blockquote", end_tag: true)
+        end
       end
       newline
     end
