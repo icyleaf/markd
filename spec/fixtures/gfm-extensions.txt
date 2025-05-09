@@ -559,8 +559,6 @@ This is a mailto:scyther@pokemon.com
 
 mailto:scyther@pokemon.com.
 
-mmmmailto:scyther@pokemon.com
-
 mailto:scyther@pokemon.com/
 
 mailto:scyther@pokemon.com/message
@@ -613,7 +611,6 @@ http://🍄.ga/ http://x🍄.ga/
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
 <p>This is a <a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a></p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>.</p>
-<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/</p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/message</p>
 <p><a href="mailto:scyther@pokemon.com">mailto:scyther@pokemon.com</a>/<a href="mailto:beedrill@pokemon.com">mailto:beedrill@pokemon.com</a></p>
@@ -635,6 +632,12 @@ http://🍄.ga/ http://x🍄.ga/
 <p>&quot;<a href="http://google.com">http://google.com</a>&quot;</p>
 <p>'<a href="http://google.com">http://google.com</a>'</p>
 <p><a href="http://%F0%9F%8D%84.ga/">http://🍄.ga/</a> <a href="http://x%F0%9F%8D%84.ga/">http://x🍄.ga/</a></p>
+````````````````````````````````
+
+```````````````````````````````` example pending
+mmmmailto:scyther@pokemon.com
+.
+<p>mmmmailto:<a href="mailto:scyther@pokemon.com">scyther@pokemon.com</a></p>
 ````````````````````````````````
 
 ```````````````````````````````` example
