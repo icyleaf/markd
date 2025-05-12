@@ -63,6 +63,19 @@ module Markd
       newline
     end
 
+    def alert(node : Node, entering : Bool) : Nil
+      newline
+      if entering
+        tag("div", {"class" => "alert alert-#{node.data["alert"].to_s.downcase}"})
+        tag("p", {"class" => "alert-title"}) do
+          output(node.data["title"].as(String))
+        end
+      else
+        tag("div", end_tag: true)
+      end
+      newline
+    end
+
     def table(node : Node, entering : Bool) : Nil
       has_body = node.data["has_body"]
       newline

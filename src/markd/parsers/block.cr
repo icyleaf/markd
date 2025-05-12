@@ -9,6 +9,7 @@ module Markd::Parser
     RULES = {
       Node::Type::Document      => Rule::Document.new,
       Node::Type::BlockQuote    => Rule::BlockQuote.new,
+      Node::Type::Alert         => Rule::BlockQuote.new, # Alerts and BlockQuotes are the same
       Node::Type::Heading       => Rule::Heading.new,
       Node::Type::CodeBlock     => Rule::CodeBlock.new,
       Node::Type::HTMLBlock     => Rule::HTMLBlock.new,

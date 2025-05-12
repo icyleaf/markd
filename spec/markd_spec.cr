@@ -17,6 +17,9 @@ describe_spec("fixtures/gfm-extensions.txt", gfm: true)
 
 describe_spec("fixtures/gfm-regression.txt", gfm: true)
 
+# Alert spec examples
+describe_spec("fixtures/alert.txt", gfm: true)
+
 describe Markd do
   # Thanks Ryan Westlund <rlwestlund@gmail.com> feedback via email.
   it "should escape unsafe html" do
