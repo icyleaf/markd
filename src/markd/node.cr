@@ -2,31 +2,32 @@ module Markd
   class Node
     # Node Type
     enum Type
-      Document
-      Paragraph
-      Text
-      Strong
-      Emphasis
-      Strikethrough
-      Link
-      Image
-      Heading
-      List
-      Item
       BlockQuote
-      ThematicBreak
       Code
       CodeBlock
+      CustomBlock
+      CustomInLine
+      Document
+      Emphasis
+      Footnote
+      FootnoteDefinition
+      Heading
       HTMLBlock
       HTMLInline
+      Image
+      Item
       LineBreak
+      Link
+      List
+      Paragraph
       SoftBreak
-
-      CustomInLine
-      CustomBlock
+      Strikethrough
+      Strong
       Table
       TableCell
       TableRow
+      Text
+      ThematicBreak
 
       def container?
         CONTAINER_TYPES.includes?(self)
@@ -34,22 +35,23 @@ module Markd
     end
 
     CONTAINER_TYPES = {
-      Type::Document,
-      Type::Paragraph,
-      Type::Strong,
-      Type::Emphasis,
-      Type::Strikethrough,
-      Type::Link,
-      Type::Image,
-      Type::Heading,
-      Type::List,
-      Type::Item,
       Type::BlockQuote,
-      Type::CustomInLine,
       Type::CustomBlock,
+      Type::CustomInLine,
+      Type::Document,
+      Type::Emphasis,
+      Type::FootnoteDefinition,
+      Type::Heading,
+      Type::Image,
+      Type::Item,
+      Type::Link,
+      Type::List,
+      Type::Paragraph,
+      Type::Strikethrough,
+      Type::Strong,
       Type::Table,
-      Type::TableRow,
       Type::TableCell,
+      Type::TableRow,
     }
 
     alias DataValue = String | Int32 | Bool

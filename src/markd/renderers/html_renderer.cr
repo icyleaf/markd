@@ -283,6 +283,63 @@ module Markd
       output(node.text)
     end
 
+    def footnote(node : Node, entering : Bool) : Nil
+      # Spec says `[^1]` should generate:
+      # <sup class=\"footnote-ref\"><a href=\"#fn-1\" id=\"fnref-1\" data-footnote-ref>1</a></sup>
+      if entering
+        tag("sup", {
+          "class" => "footnote-ref",
+        })
+        tag("a", {
+          "href"              => "#fn-#{URI.encode_path(node.data["title"].to_s)}",
+          "id"                => "fnref-#{URI.encode_path(node.data["title"].to_s)}",
+          "data-footnote-ref" => nil,
+        })
+        # GFM spec says to output the number of the footnote
+        output node.data["number"].to_s
+        tag("a", end_tag: true)
+        tag("sup", end_tag: true)
+      end
+    end
+
+    def footnote_definition(node : Node, entering : Bool) : Nil
+      # A footnote definition by spec should render something like:
+      # <li id="fn-1">
+      # <p>The actual content of the footnote
+      # <a href="#fnref-1" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+      # </li>
+      if entering
+        if !node.prev.type.footnote_definition?
+          newline
+          tag("section", {"class" => "footnotes", "data-footnotes" => nil})
+          newline
+          tag("ol")
+        end
+        newline
+        tag("li", {
+          id: "fn-#{URI.encode_path(node.data["title"].to_s)}",
+        })
+        newline
+      else
+        tag("a", {
+          "href"                      => "#fnref-#{URI.encode_path(node.data["title"].to_s)}",
+          "class"                     => "footnote-backref",
+          "data_footnote_backref"     => nil,
+          "data_footnote_backref_idx" => node.data["number"],
+          "aria_label"                => "Back to reference #{node.data["number"]}",
+        })
+        literal "↩"
+        tag("a", end_tag: true)
+        tag("li", end_tag: true)
+        if node == node.parent.last_child
+          newline
+          tag("ol", end_tag: true)
+          newline
+          tag("section", end_tag: true)
+        end
+      end
+    end
+
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
       return if @disable_tag > 0
 
@@ -290,7 +347,11 @@ module Markd
       @output_io << "/" if end_tag
       @output_io << name
       attrs.try &.each do |key, value|
-        @output_io << ' ' << key << '=' << '"' << value << '"'
+        if value.nil?
+          @output_io << ' ' << key
+        else
+          @output_io << ' ' << key << '=' << '"' << value << '"'
+        end
       end
 
       @output_io << " /" if self_closing
