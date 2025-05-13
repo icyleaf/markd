@@ -15,7 +15,7 @@ Naming/BlockParameterName:
   Enabled: false
 
 Style/ParenthesesAroundCondition:
-  Enabled: false
+  Enabled: true
   AllowSafeAssignment: true
 
 Lint/NotNil:

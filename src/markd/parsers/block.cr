@@ -76,7 +76,7 @@ module Markd::Parser
       # ignore last blank line created by final newline
       lines_size -= 1 if source.ends_with?('\n')
 
-      while tip = tip?
+      while (tip = tip?)
         token(tip, lines_size)
       end
     end
@@ -196,7 +196,7 @@ module Markd::Parser
     private def process_inlines
       walker = @document.walker
       @inline_lexer.refmap = @refmap
-      while event = walker.next
+      while (event = walker.next)
         node, entering = event
         if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell?)
           @inline_lexer.parse(node)
@@ -269,7 +269,7 @@ module Markd::Parser
       if @line.empty?
         @blank = true
       else
-        while char = @line[offset]?
+        while (char = @line[offset]?)
           case char
           when ' '
             offset += 1
@@ -330,7 +330,7 @@ module Markd::Parser
     end
 
     private def match_html_block?(container : Node)
-      if block_type = container.data["html_block_type"]
+      if (block_type = container.data["html_block_type"])
         block_type = block_type.as(Int32)
         block_type >= 0 && block_type <= 4 && Rule::HTML_BLOCK_CLOSE[block_type].match(@line[@offset..-1])
       else

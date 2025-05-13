@@ -75,7 +75,7 @@ module Markd
     def render(document : Node, formatter : T?) forall T
       Utils.timer("rendering", @options.time) do
         walker = document.walker
-        while event = walker.next
+        while (event = walker.next)
           node, entering = event
 
           case node.type
