@@ -11,6 +11,13 @@ Metrics/CyclomaticComplexity:
 Naming/QueryBoolMethods:
   Enabled: false
 
+Naming/BlockParameterName:
+  Enabled: false
+
+Style/ParenthesesAroundCondition:
+  Enabled: false
+  AllowSafeAssignment: true
+
 Lint/NotNil:
   Excluded:
     - src/markd/parsers/inline.cr
