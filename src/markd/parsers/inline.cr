@@ -387,9 +387,7 @@ module Markd::Parser
           case closer_char
           when '*', '_', '~'
             if closer_char != '~' || (closer_char == '~' && @options.gfm)
-              unless opener
-                closer = closer.next?
-              else
+              if opener
                 # calculate actual number of delimiters used from closer
                 use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
 
@@ -444,6 +442,8 @@ module Markd::Parser
                   remove_delimiter(closer)
                   closer = tmp_stack
                 end
+              else
+                closer = closer.next?
               end
             end
           when '\''
@@ -600,7 +600,7 @@ module Markd::Parser
         end
 
         text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
-        if (emoji = EmojiEntities::EMOJI_MAPPINGS[text]?)
+        if emoji = EmojiEntities::EMOJI_MAPPINGS[text]?
           @pos = pos
           node.append_child(text(emoji))
 

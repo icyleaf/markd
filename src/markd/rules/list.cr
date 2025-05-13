@@ -6,9 +6,9 @@ module Markd::Rule
     ORDERED_LIST_MARKERS = {'.', ')'}
 
     def match(parser : Parser, container : Node) : MatchValue
-      if (!parser.indented || container.type.list?)
+      if !parser.indented || container.type.list?
         data = parse_list_marker(parser, container)
-        return MatchValue::None unless data && !data.empty?
+        return MatchValue::None if !data || data.empty?
 
         parser.close_unmatched_blocks
         if !parser.tip.type.list? || !list_match?(container.data, data)
@@ -167,7 +167,7 @@ module Markd::Rule
       while container
         return true if container.last_line_blank?
 
-        break unless !container.last_line_checked? && container.type.in?(Node::Type::List, Node::Type::Item)
+        break if container.last_line_checked? || !container.type.in?(Node::Type::List, Node::Type::Item)
         container.last_line_checked = true
         container = container.last_child?
       end

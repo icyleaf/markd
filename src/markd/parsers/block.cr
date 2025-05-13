@@ -177,7 +177,7 @@ module Markd::Parser
           add_line
 
           # if HtmlBlock, check for end condition
-          if (container_type.html_block? && match_html_block?(container))
+          if container_type.html_block? && match_html_block?(container)
             token(container, @current_line)
           end
         elsif @offset < line.size && !@blank
@@ -196,7 +196,7 @@ module Markd::Parser
     private def process_inlines
       walker = @document.walker
       @inline_lexer.refmap = @refmap
-      while (event = walker.next)
+      while event = walker.next
         node, entering = event
         if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell?)
           @inline_lexer.parse(node)

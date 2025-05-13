@@ -37,8 +37,8 @@ module Markd::Rule
     def token(parser : Parser, container : Node) : Nil
       lines = container.text.strip.split("\n")
 
-      row_sizes = lines[...2].map do |l|
-        strip_pipe(l.strip).split(TABLE_CELL_SEPARATOR).size
+      row_sizes = lines[...2].map do |line|
+        strip_pipe(line.strip).split(TABLE_CELL_SEPARATOR).size
       end.uniq!
 
       # Do we have a real table?

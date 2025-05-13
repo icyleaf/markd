@@ -283,7 +283,7 @@ module Markd
     def strong(node : Node, entering : Bool) : Nil
       @strong_stack -= 1 if @options.gfm && !entering
 
-      tag("strong", end_tag: !entering) if (@strong_stack == 0)
+      tag("strong", end_tag: !entering) if @strong_stack == 0
 
       @strong_stack += 1 if @options.gfm && entering
     end
