@@ -7,9 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+### Added
+
+- Tables #[72](https://github.com/icyleaf/markd/pull/72)
+- Alerts #[92](https://github.com/icyleaf/markd/pull/92)
+- Extended Autolinks #[86](https://github.com/icyleaf/markd/pull/86)
+- Tartrazine code block syntax highlighting #[67](https://github.com/icyleaf/markd/pull/81) thanks @[zw963](https://github.com/zw963).
+- Tagfilter option for GFM #[64](https://github.com/icyleaf/markd/pull/64) thanks @[nobodywasishere](https://github.com/nobodywasishere).
+- Task list / checkbox support for GFM #[63](https://github.com/icyleaf/markd/pull/63) thanks @[nobodywasishere](https://github.com/nobodywasishere).
+- Strikethrough support for GFM #[62](https://github.com/icyleaf/markd/pull/62) thanks @[nobodywasishere](https://github.com/nobodywasishere).
+- Emoji support for GFM #[61](https://github.com/icyleaf/markd/pull/61) thanks @[nobodywasishere](https://github.com/nobodywasishere).
+
+### Fixed
+
+- Large numbers failing to be parsed as starts of lists #[81](https://github.com/icyleaf/markd/pull/81)
+
 ### TODO
 
-- GFM support
+- Full GFM support
 
 ## [0.5.0] (2022-06-14)
 
