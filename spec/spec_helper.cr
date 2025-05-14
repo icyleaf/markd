@@ -78,11 +78,11 @@ def extract_spec_tests(file)
   result_start = false
 
   begin
-    File.open(file) do |f|
+    File.open(file) do |input|
       line_number = 0
       test_tags = ""
 
-      while line = f.read_line
+      while (line = input.read_line)
         line_number += 1
         line = line.gsub(/\r\n?/, "\n")
         break if line.includes?("<!-- END TESTS -->")

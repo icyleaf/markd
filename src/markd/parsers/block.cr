@@ -76,7 +76,7 @@ module Markd::Parser
       # ignore last blank line created by final newline
       lines_size -= 1 if source.ends_with?('\n')
 
-      while tip = tip?
+      while (tip = tip?)
         token(tip, lines_size)
       end
     end
@@ -177,7 +177,7 @@ module Markd::Parser
           add_line
 
           # if HtmlBlock, check for end condition
-          if (container_type.html_block? && match_html_block?(container))
+          if container_type.html_block? && match_html_block?(container)
             token(container, @current_line)
           end
         elsif @offset < line.size && !@blank
@@ -269,7 +269,7 @@ module Markd::Parser
       if @line.empty?
         @blank = true
       else
-        while char = @line[offset]?
+        while (char = @line[offset]?)
           case char
           when ' '
             offset += 1
@@ -330,7 +330,7 @@ module Markd::Parser
     end
 
     private def match_html_block?(container : Node)
-      if block_type = container.data["html_block_type"]
+      if (block_type = container.data["html_block_type"])
         block_type = block_type.as(Int32)
         block_type >= 0 && block_type <= 4 && Rule::HTML_BLOCK_CLOSE[block_type].match(@line[@offset..-1])
       else

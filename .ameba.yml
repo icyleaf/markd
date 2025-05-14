@@ -14,14 +14,9 @@ Naming/QueryBoolMethods:
 Naming/BlockParameterName:
   Enabled: false
 
-Style/UnlessElse:
-  Enabled: false
-
 Style/ParenthesesAroundCondition:
-  Enabled: false
-
-Style/NegatedConditionsInUnless:
-  Enabled: false
+  Enabled: true
+  AllowSafeAssignment: true
 
 Lint/NotNil:
   Excluded:
