@@ -73,7 +73,7 @@ module Markd
     abstract def table_cell(node : Node, entering : Bool) : Nil
 
     def render(document : Node, formatter : T?) forall T
-      Utils.timer("rendering", @options.time) do
+      Utils.timer("rendering", @options.time?) do
         walker = document.walker
         while (event = walker.next)
           node, entering = event

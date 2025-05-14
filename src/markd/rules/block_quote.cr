@@ -6,7 +6,7 @@ module Markd::Rule
       if match?(parser)
         seek(parser)
         parser.close_unmatched_blocks
-        if parser.gfm && (match = parser.line.match(Rule::ADMONITION_START))
+        if parser.gfm? && (match = parser.line.match(Rule::ADMONITION_START))
           node = parser.add_child(Node::Type::Alert, parser.next_nonspace)
           # This is an alert
           node.data["alert"] = match[1]
