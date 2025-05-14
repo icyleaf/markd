@@ -68,14 +68,8 @@ module Markd::Parser
               end
             when 'h'
               # Catch http:// and https:// autolinks for GFM
-              # Do not match if it's <http:// ... because that was matched by '<'
-              if @options.gfm && @options.autolink && (
-                   @pos == 0 ||
-                   # Do not match if it's <http:// ... because that was matched by '<'
-                   char_at?(@pos - 1) != '<'
-                   # Do not match ![http:// ... because that was matched by '!']
-                   char_at?(@pos - 1) != '['
-                 )
+              # Do not match ![http:// ... because that was matched by '!']
+              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '[')
                 auto_link(node)
               else
                 false
