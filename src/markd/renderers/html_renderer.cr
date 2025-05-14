@@ -7,7 +7,7 @@ module Markd
 
     @strong_stack = 0
 
-    HEADINGS = %w(h1 h2 h3 h4 h5 h6)
+    HEADINGS = %w[h1 h2 h3 h4 h5 h6]
 
     def heading(node : Node, entering : Bool) : Nil
       tag_name = HEADINGS[node.data["level"].as(Int32) - 1]
