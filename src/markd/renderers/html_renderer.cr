@@ -11,10 +11,17 @@ module Markd
 
     def heading(node : Node, entering : Bool) : Nil
       tag_name = HEADINGS[node.data["level"].as(Int32) - 1]
+      toc = @options.toc
+
       if entering
         newline
         tag(tag_name, attrs(node))
-        toc(node) if @options.toc
+        case toc
+        when String
+          toc(node, toc)
+        when true
+          toc(node)
+        end
       else
         tag(tag_name, end_tag: true)
         newline
@@ -321,16 +328,16 @@ module Markd
       url.match(Rule::UNSAFE_PROTOCOL) && !url.match(Rule::UNSAFE_DATA_PROTOCOL)
     end
 
-    private def toc(node : Node)
+    private def toc(node : Node, anchor_text = "§")
       return unless node.type.heading?
 
-      {% if compare_versions(Crystal::VERSION, "1.2.0") < 0 %}
-        title = URI.encode(node.first_child.text)
-        @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#anchor-) << title << %("></a>)
-      {% else %}
-        title = URI.encode_path(node.first_child.text)
-        @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#anchor-) << title << %("></a>)
-      {% end %}
+      title = {% if compare_versions(Crystal::VERSION, "1.2.0") < 0 %}
+                URI.encode(node.first_child.text)
+              {% else %}
+                URI.encode_path(node.first_child.text)
+              {% end %}
+
+      @output_io << %(<a id="anchor-) << title << %(" class="anchor" href="#anchor-) << title << %(">) << anchor_text << %( </a>)
       @last_output = ">"
     end
 

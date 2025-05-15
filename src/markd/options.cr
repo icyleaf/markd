@@ -3,7 +3,11 @@ require "uri"
 module Markd
   # Markdown rendering options.
   class Options
-    property time, gfm, toc
+    property time, gfm
+
+    # if `true', show a anchor text to the beginning of the head tag
+    # You can specify a String as the anchor text to this option too.
+    property toc : String | Bool
 
     # If `true`:
     # - straight quotes will be made curly
