@@ -26,7 +26,7 @@ module Markd::Parser
     getter line, current_line, blank, inline_lexer,
       indent, indented, next_nonspace, refmap
 
-    delegate gfm, tagfilter, to: @options
+    delegate gfm?, tagfilter?, to: @options
 
     def initialize(@options : Options)
       @inline_lexer = Inline.new(@options)
@@ -55,11 +55,11 @@ module Markd::Parser
     end
 
     def parse(source : String)
-      Utils.timer("block parsing", @options.time) do
+      Utils.timer("block parsing", @options.time?) do
         parse_blocks(source)
       end
 
-      Utils.timer("inline parsing", @options.time) do
+      Utils.timer("inline parsing", @options.time?) do
         process_inlines
       end
 

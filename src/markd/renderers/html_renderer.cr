@@ -7,14 +7,14 @@ module Markd
 
     @strong_stack = 0
 
-    HEADINGS = %w(h1 h2 h3 h4 h5 h6)
+    HEADINGS = %w[h1 h2 h3 h4 h5 h6]
 
     def heading(node : Node, entering : Bool) : Nil
       tag_name = HEADINGS[node.data["level"].as(Int32) - 1]
       if entering
         newline
         tag(tag_name, attrs(node))
-        toc(node) if @options.toc
+        toc(node) if @options.toc?
       else
         tag(tag_name, end_tag: true)
         newline
@@ -281,11 +281,11 @@ module Markd
     end
 
     def strong(node : Node, entering : Bool) : Nil
-      @strong_stack -= 1 if @options.gfm && !entering
+      @strong_stack -= 1 if @options.gfm? && !entering
 
       tag("strong", end_tag: !entering) if @strong_stack == 0
 
-      @strong_stack += 1 if @options.gfm && entering
+      @strong_stack += 1 if @options.gfm? && entering
     end
 
     def strikethrough(node : Node, entering : Bool) : Nil
@@ -337,8 +337,6 @@ module Markd
     private def attrs(node : Node)
       if @options.source_pos? && (pos = node.source_pos)
         {"data-source-pos" => "#{pos[0][0]}:#{pos[0][1]}-#{pos[1][0]}:#{pos[1][1]}"}
-      else
-        nil
       end
     end
 
@@ -356,8 +354,6 @@ module Markd
         code_tag_attrs = attrs(node)
         pre_tag_attrs = if @options.prettyprint?
                           {"class" => "prettyprint"}
-                        else
-                          nil
                         end
 
         tag("pre", pre_tag_attrs) do
@@ -375,8 +371,6 @@ module Markd
       code_tag_attrs = attrs(node)
       pre_tag_attrs = if @options.prettyprint?
                         {"class" => "prettyprint"}
-                      else
-                        nil
                       end
 
       lang = code_block_language(languages)

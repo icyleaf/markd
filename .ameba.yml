@@ -8,9 +8,6 @@ Metrics/CyclomaticComplexity:
     - src/markd/parsers/block.cr
     - src/markd/renderer.cr
 
-Naming/QueryBoolMethods:
-  Enabled: false
-
 Naming/BlockParameterName:
   Enabled: false
 

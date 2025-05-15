@@ -6,7 +6,7 @@ module Markd::Rule
 
     def match(parser : Parser, container : Node) : MatchValue
       # Looks like the 1st line of a table and we have gfm enabled
-      if match?(parser) && parser.gfm
+      if parser.gfm? && match?(parser)
         parser.close_unmatched_blocks
         parser.add_child(Node::Type::Table, 0)
 

@@ -43,7 +43,7 @@ module Markd::Parser
             when '*', '_'
               handle_delim(char, node)
             when '~'
-              if @options.gfm
+              if @options.gfm?
                 handle_delim(char, node)
               else
                 string(node)
@@ -61,21 +61,15 @@ module Markd::Parser
             when 'w'
               # Catch www. autolinks for GFM
               # Do not match if it's http://www
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '/')
+              if @options.autolink? && (@pos == 0 || char_at?(@pos - 1) != '/')
                 auto_link(node)
               else
                 false
               end
             when 'h'
               # Catch http:// and https:// autolinks for GFM
-              # Do not match if it's <http:// ... because that was matched by '<'
-              if @options.gfm && @options.autolink && (
-                   @pos == 0 ||
-                   # Do not match if it's <http:// ... because that was matched by '<'
-                   char_at?(@pos - 1) != '<'
-                   # Do not match ![http:// ... because that was matched by '!']
-                   char_at?(@pos - 1) != '['
-                 )
+              # Do not match ![http:// ... because that was matched by '!']
+              if @options.autolink? && (@pos == 0 || char_at?(@pos - 1) != '[')
                 auto_link(node)
               else
                 false
@@ -83,21 +77,21 @@ module Markd::Parser
             when 'f'
               # Catch ftp:// autolinks for GFM
               # Do not match if it's <ftp:// ... because that was matched by '<'
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.autolink? && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
                 false
               end
             when 'x'
               # Catch xmpp: autolinks for GFM
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.autolink? && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
                 false
               end
             when 'm'
               # Catch mailto: autolinks for GFM
-              if @options.gfm && @options.autolink && (@pos == 0 || char_at?(@pos - 1) != '<')
+              if @options.autolink? && (@pos == 0 || char_at?(@pos - 1) != '<')
                 auto_link(node)
               else
                 false
@@ -107,7 +101,7 @@ module Markd::Parser
             when ':'
               emoji(node)
             else
-              if @options.gfm && @options.autolink && node.text.includes? '@'
+              if @options.autolink? && node.text.includes? '@'
                 # Catch email autolinks for GFM
                 auto_link(node)
               else
@@ -249,7 +243,7 @@ module Markd::Parser
         return true
       end
 
-      unless opener.active
+      unless opener.active?
         # no matched opener, just return a literal
         node.append_child(text("]"))
         # take opener off brackets stack
@@ -258,7 +252,7 @@ module Markd::Parser
       end
 
       # If we got here, open is a potential opener
-      is_image = opener.image
+      is_image = opener.image?
 
       # Check to see if we have a link/image
       save_pos = @pos
@@ -284,7 +278,7 @@ module Markd::Parser
         label_size = link_label
         if label_size > 2
           ref_label = normalize_reference(@text.byte_slice(before_label, label_size + 1))
-        elsif !opener.bracket_after
+        elsif !opener.bracket_after?
           # Empty or missing second label means to use the first label as the reference.
           # The reference must not contain a bracket. If we know there's a bracket, we don't even bother checking it.
           byte_count = start_pos - opener.index
@@ -326,7 +320,7 @@ module Markd::Parser
         unless is_image
           opener = @brackets
           while opener
-            opener.active = false unless opener.image
+            opener.active = false unless opener.image?
             opener = opener.previous?
           end
         end
@@ -356,13 +350,13 @@ module Markd::Parser
           '"'  => delimiter,
         } of Char => Delimiter?
 
-        openers_bottom['~'] = delimiter if @options.gfm
+        openers_bottom['~'] = delimiter if @options.gfm?
 
         # move forward, looking for closers, and handling each
         while closer
           closer_char = closer.char
 
-          unless closer.can_close
+          unless closer.can_close?
             closer = closer.next?
             next
           end
@@ -371,10 +365,10 @@ module Markd::Parser
           opener = closer.previous?
           opener_found = false
           while opener && opener != delimiter && opener != openers_bottom[closer_char]
-            odd_match = (closer.can_open || opener.can_close) &&
+            odd_match = (closer.can_open? || opener.can_close?) &&
                         closer.orig_delims % 3 != 0 &&
                         (opener.orig_delims + closer.orig_delims) % 3 == 0
-            if opener.char == closer.char && opener.can_open && !odd_match
+            if opener.char == closer.char && opener.can_open? && !odd_match
               opener_found = true
               break
             end
@@ -386,7 +380,7 @@ module Markd::Parser
 
           case closer_char
           when '*', '_', '~'
-            if closer_char != '~' || (closer_char == '~' && @options.gfm)
+            if closer_char != '~' || (closer_char == '~' && @options.gfm?)
               if opener
                 # calculate actual number of delimiters used from closer
                 use_delims = (closer.num_delims >= 2 && opener.num_delims >= 2) ? 2 : 1
@@ -458,13 +452,11 @@ module Markd::Parser
               opener.node.text = "\u{201C}"
             end
             closer = closer.next?
-          else
-            nil
           end
 
           if !opener && !odd_match
             openers_bottom[closer_char] = old_closer.previous?
-            remove_delimiter(old_closer) if !old_closer.can_open
+            remove_delimiter(old_closer) if !old_closer.can_open?
           end
         end
       end
@@ -482,7 +474,7 @@ module Markd::Parser
       elsif (matched_text = match(Rule::AUTO_LINK))
         node.append_child(link(matched_text, false))
         return true
-      elsif @options.gfm && @options.autolink
+      elsif @options.autolink?
         # These are all the extended autolinks from the
         # autolink extension
 
@@ -535,7 +527,7 @@ module Markd::Parser
       if (text = match(Rule::HTML_TAG))
         child = Node.new(Node::Type::HTMLInline)
 
-        if @options.gfm && @options.tagfilter
+        if @options.tagfilter?
           text = Rule::HTMLBlock.escape_disallowed_html(text)
         end
 
@@ -562,8 +554,6 @@ module Markd::Parser
               break
             when Char::ZERO, nil
               return false
-            else
-              nil
             end
           end
           text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
@@ -579,7 +569,7 @@ module Markd::Parser
     end
 
     private def emoji(node : Node)
-      return false unless @options.emoji
+      return false unless @options.emoji?
 
       if char_at?(@pos) == ':'
         pos = @pos + 1
@@ -932,7 +922,7 @@ module Markd::Parser
         #
         # If we are at the beginning of the string, then we return
         # the chunk matched
-        if @options.gfm && @options.autolink
+        if @options.autolink?
           advance = special_string?(@text, @pos)
           if advance > 0
             if @pos > start_pos
@@ -1047,7 +1037,7 @@ module Markd::Parser
       when '\n', '`', '[', ']', '\\', '!', '<', '&', '*', '_', '\'', '"', ':', 'w'
         false
       when '~'
-        !@options.gfm
+        !@options.gfm?
       else
         true
       end
@@ -1076,8 +1066,6 @@ module Markd::Parser
       if byte_index < @text.bytesize
         reader = Char::Reader.new(@text, byte_index)
         reader.current_char
-      else
-        nil
       end
     end
 
@@ -1110,9 +1098,9 @@ module Markd::Parser
       property! previous : Bracket?
       property previous_delimiter : Delimiter?
       property index : Int32
-      property image : Bool
-      property active : Bool
-      property bracket_after : Bool
+      property? image : Bool
+      property? active : Bool
+      property? bracket_after : Bool
 
       def initialize(@node, @previous, @previous_delimiter, @index, @image, @active = true)
         @bracket_after = false
@@ -1126,8 +1114,8 @@ module Markd::Parser
       property node : Node
       property! previous : Delimiter?
       property! next : Delimiter?
-      property can_open : Bool
-      property can_close : Bool
+      property? can_open : Bool
+      property? can_close : Bool
 
       def initialize(@char, @num_delims, @orig_delims, @node,
                      @previous, @next, @can_open, @can_close)
