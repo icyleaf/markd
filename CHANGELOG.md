@@ -9,9 +9,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-- Tables #[72](https://github.com/icyleaf/markd/pull/72)
-- Alerts #[92](https://github.com/icyleaf/markd/pull/92)
-- Extended Autolinks #[86](https://github.com/icyleaf/markd/pull/86)
+- Tables #[72](https://github.com/icyleaf/markd/pull/72) thanks @[ralsina](https://github.com/ralsina)
+- Alerts #[92](https://github.com/icyleaf/markd/pull/92) thanks @[ralsina](https://github.com/ralsina)
+- Extended Autolinks #[86](https://github.com/icyleaf/markd/pull/86) thanks @[ralsina](https://github.com/ralsina)
 - Tartrazine code block syntax highlighting #[67](https://github.com/icyleaf/markd/pull/81) thanks @[zw963](https://github.com/zw963).
 - Tagfilter option for GFM #[64](https://github.com/icyleaf/markd/pull/64) thanks @[nobodywasishere](https://github.com/nobodywasishere).
 - Task list / checkbox support for GFM #[63](https://github.com/icyleaf/markd/pull/63) thanks @[nobodywasishere](https://github.com/nobodywasishere).
