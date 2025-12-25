@@ -6,7 +6,7 @@ module Markd::Rule
 
     def match(parser : Parser, container : Node) : MatchValue
       # Looks like the 1st line of a table and we have gfm enabled
-      if match?(parser) && parser.gfm
+      if parser.gfm? && match?(parser)
         parser.close_unmatched_blocks
         parser.add_child(Node::Type::Table, 0)
 
@@ -37,8 +37,8 @@ module Markd::Rule
     def token(parser : Parser, container : Node) : Nil
       lines = container.text.strip.split("\n")
 
-      row_sizes = lines[...2].map do |l|
-        strip_pipe(l.strip).split(TABLE_CELL_SEPARATOR).size
+      row_sizes = lines[...2].map do |line|
+        strip_pipe(line.strip).split(TABLE_CELL_SEPARATOR).size
       end.uniq!
 
       # Do we have a real table?
@@ -90,7 +90,8 @@ module Markd::Rule
         # Create cells with text and metadata
         cells.each_with_index do |text, j|
           cell = Node.new(Node::Type::TableCell)
-          cell.text = text.strip
+          # Cell text should be stripped and escaped pipes unescaped
+          cell.text = text.strip.gsub("\\|", "|")
           cell.data["align"] = alignments[j]
           cell.data["heading"] = i == 0
           row.append_child(cell)
@@ -123,7 +124,10 @@ module Markd::Rule
     private def match_continuation?(parser : Parser)
       !parser.indented && (parser.line[0]? == '|' ||
         parser.line.match(TABLE_HEADING_SEPARATOR) ||
-        parser.line.match(TABLE_CELL_SEPARATOR))
+        parser.line.match(TABLE_CELL_SEPARATOR)) ||
+        # Lines that are not empty and are not the start of a
+        # block-level structure are ALSO continuations (see gfm-spec.txt:3397)
+        !(parser.line.strip.empty? || parser.line.matches?(/^(?:>|\#{1,6}|`{3}|\t{1}|\s{4}|(?:[*-+]\s)+|[0-9]+\.)+/))
     end
 
     private def strip_pipe(text : String) : String

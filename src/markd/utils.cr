@@ -2,8 +2,8 @@ require "json"
 
 module Markd
   module Utils
-    def self.timer(label : String, measure_time? : Bool, &)
-      return yield unless measure_time?
+    def self.timer(label : String, measure_time : Bool, &)
+      return yield unless measure_time
 
       start_time = Time.utc
       yield

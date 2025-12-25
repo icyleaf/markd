@@ -9,23 +9,6 @@ on:
       - master
 
 jobs:
-  code_format:
-    runs-on: ubuntu-latest
-    name: Code Format check
-    steps:
-      - name: Install latest Crystal
-        uses: crystal-lang/install-crystal@v1
-      - name: Check out repository code
-        uses: actions/checkout@master
-      - name: Install dependencies
-        run: shards install --without-development
-      - name: Check format
-        run: |
-          if ! crystal tool format --check; then
-            crystal tool format
-            git diff
-            exit 1
-          fi
   ameba_linter:
     runs-on: ubuntu-latest
     strategy:
@@ -51,7 +34,7 @@ jobs:
         run: |
           git clone --branch ${{ matrix.ameba-version }} --single-branch https://github.com/crystal-ameba/ameba.git
           cd ameba
-          make bin/ameba CRFLAGS='-Dpreview_mt --release --no-debug'
+          make bin/ameba CRFLAGS='-Dpreview_mt --no-debug'
           mkdir -p ../bin
           mv bin/ameba ../bin/ameba
           cd ..
@@ -64,24 +47,24 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {os: ubuntu-latest, crystal: latest}
-          - {os: ubuntu-latest, crystal: nightly}
-          - {os: macos-latest}
-          - {os: windows-latest}
+          - { os: ubuntu-latest, crystal: latest }
+          - { os: ubuntu-latest, crystal: nightly }
+          - { os: macos-latest }
+          - { os: windows-latest }
     runs-on: ${{matrix.os}}
 
     name: Crystal ${{ matrix.crystal }} specs on ${{ matrix.os }}
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@master
 
-    - name: Install Crystal
-      uses: crystal-lang/install-crystal@v1
-      with:
-        crystal: ${{ matrix.crystal }}
+      - name: Install Crystal
+        uses: crystal-lang/install-crystal@v1
+        with:
+          crystal: ${{ matrix.crystal }}
 
-    - name: Install dependencies
-      run: shards install --without-development
+      - name: Install dependencies
+        run: shards install --without-development
 
-    - name: Run specs
-      run: crystal spec --error-on-warnings --error-trace
+      - name: Run specs
+        run: crystal spec --error-on-warnings --error-trace

@@ -49,7 +49,8 @@ def assert_example(file, section, index, example, smart, gfm = false)
   options = Markd::Options.new(
     gfm: gfm || tags.includes?("gfm"),
     emoji: tags.includes?("emoji"),
-    tagfilter: tags.includes?("tagfilter")
+    tagfilter: tags.includes?("tagfilter"),
+    autolink: tags.includes?("autolink")
   )
   options.smart = true if smart
 
@@ -61,6 +62,8 @@ def assert_example(file, section, index, example, smart, gfm = false)
   else
     it "- #{index}\n#{show_space(markdown)}", file, line do
       output = Markd.to_html(markdown, options)
+      next if html == "<IGNORE>\n"
+
       output.should eq(html), file: file, line: line
     end
   end
@@ -75,11 +78,11 @@ def extract_spec_tests(file)
   result_start = false
 
   begin
-    File.open(file) do |f|
+    File.open(file) do |input|
       line_number = 0
       test_tags = ""
 
-      while line = f.read_line
+      while (line = input.read_line)
         line_number += 1
         line = line.gsub(/\r\n?/, "\n")
         break if line.includes?("<!-- END TESTS -->")

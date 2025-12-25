@@ -14,6 +14,7 @@ module Markd
       List
       Item
       BlockQuote
+      Alert
       ThematicBreak
       Code
       CodeBlock
@@ -45,6 +46,7 @@ module Markd
       Type::List,
       Type::Item,
       Type::BlockQuote,
+      Type::Alert,
       Type::CustomInLine,
       Type::CustomBlock,
       Type::Table,
@@ -82,7 +84,7 @@ module Markd
       child.unlink
       child.parent = self
 
-      if last = last_child?
+      if (last = last_child?)
         last.next = child
         child.prev = last
         @last_child = child
@@ -95,9 +97,9 @@ module Markd
     def insert_after(sibling : Node)
       sibling.unlink
 
-      if nxt = next?
+      if (nxt = next?)
         nxt.prev = sibling
-      elsif parent = parent?
+      elsif (parent = parent?)
         parent.last_child = sibling
       end
       sibling.next = nxt
@@ -108,15 +110,15 @@ module Markd
     end
 
     def unlink
-      if prev = prev?
+      if (prev = prev?)
         prev.next = next?
-      elsif parent = parent?
+      elsif (parent = parent?)
         parent.first_child = next?
       end
 
-      if nxt = next?
+      if (nxt = next?)
         nxt.prev = prev?
-      elsif parent = parent?
+      elsif (parent = parent?)
         parent.last_child = prev?
       end
 
@@ -156,7 +158,7 @@ module Markd
         entering = @entering
 
         if entering && current.type.container?
-          if first_child = current.first_child?
+          if (first_child = current.first_child?)
             @current = first_child
             @entering = true
           else
