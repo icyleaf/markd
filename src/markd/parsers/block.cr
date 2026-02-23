@@ -70,118 +70,126 @@ module Markd::Parser
       end
 
       if @options.gfm?
-        # Extract all footnotes and footnote definitions
-        walker = @document.walker
-        footnotes = {} of String => Array(Node)
-        footnote_definitions = {} of String => Node
-        while (event = walker.next)
-          node, entering = event
-          if node.type.footnote?
-            title = node.data["title"].to_s
-            footnotes[title] ||= [] of Node
-            footnotes[title] << node
-          elsif !entering && node.type.footnote_definition?
-            footnote_definitions[node.data["title"].to_s] = node
-          end
-        end
+        process_footnotes
+      end
 
-        # Recursively resolve nested footnotes in definitions before numbering
-        loop do
-          new_nodes = 0
-          footnotes.each do |footnote_title, nodes|
-            if !footnote_definitions.has_key?(footnote_title)
-              nodes.each do |fn_node|
-                fn_node.type = Node::Type::Text
-                fn_node.text = "[^#{footnote_title}]"
-              end
-              footnotes.delete footnote_title
-            else
-              def_node = footnote_definitions[footnote_title]
-              walker = def_node.walker
-              while (event = walker.next)
-                n, entering = event
-                if entering && n.type.text?
-                  replaced = false
-                  n.text = n.text.gsub(/\[\^([\w\-]+)\]/) do |m|
-                    nested_label = $1
-                    if footnote_definitions[nested_label]?
-                      fn = Node.new(Node::Type::Footnote)
-                      fn.data["title"] = nested_label
-                      n.insert_after(fn)
-                      footnotes[nested_label] ||= [] of Node
-                      footnotes[nested_label] << fn
-                      replaced = true
-                      new_nodes += 1
-                      ""
-                    else
-                      m
-                    end
-                  end
-                  if replaced && n.parent?
-                    @inline_lexer.parse(n.parent)
-                  end
-                  n.unlink if n.text.empty?
-                end
-              end
-            end
-          end
-          break if new_nodes == 0
-        end
+      @document
+    end
 
-        # Ensure all Footnote nodes are present in the footnotes hash
-        walker = @document.walker
-        while (event = walker.next)
-          node, entering = event
-          if node.type.footnote?
-            title = node.data["title"].to_s
-            footnotes[title] ||= [] of Node
-            unless footnotes[title].includes?(node)
-              footnotes[title] << node
-            end
-          end
+    # Process footnotes: extract, resolve nested references, number them, and move definitions to end
+    private def process_footnotes
+      # Extract all footnotes and footnote definitions
+      walker = @document.walker
+      footnotes = {} of String => Array(Node)
+      footnote_definitions = {} of String => Node
+      while (event = walker.next)
+        node, entering = event
+        if node.type.footnote?
+          title = node.data["title"].to_s
+          footnotes[title] ||= [] of Node
+          footnotes[title] << node
+        elsif !entering && node.type.footnote_definition?
+          footnote_definitions[node.data["title"].to_s] = node
         end
+      end
 
-        # Remove definitions without footnotes
-        footnote_definitions.each do |footnote_title, def_node|
-          unless footnotes.has_key?(footnote_title)
-            def_node.unlink
-            footnote_definitions.delete footnote_title
-          end
-        end
-
-        # Footnote numbers are normalized to 1...n
-        # Each reference gets a ref_index (1, 2, 3...) and the definition gets a ref_count
-        footnote_number = 0
+      # Recursively resolve nested footnotes in definitions before numbering
+      loop do
+        new_nodes = 0
         footnotes.each do |footnote_title, nodes|
-          footnote_number += 1
-          nodes.each_with_index do |fn_node, index|
-            fn_node.data["number"] = footnote_number
-            fn_node.data["ref_index"] = index + 1
-          end
-          footnote_definitions[footnote_title].data["number"] = footnote_number
-          footnote_definitions[footnote_title].data["ref_count"] = nodes.size
-        end
-
-        # Footnote definitions are moved to the end of the document
-        footnotes.each do |footnote_title, _|
-          def_node = footnote_definitions[footnote_title]
-          def_node.unlink
-          @document.append_child(def_node)
-        end
-
-        # After all footnote definitions are attached, re-run inline parsing on their children
-        footnote_definitions.each_value do |def_node|
-          child = def_node.first_child?
-          while child
-            next_child = child.next?
-            if child.type.paragraph? || child.type.heading? || child.type.table_cell?
-              @inline_lexer.parse(child)
+          if !footnote_definitions.has_key?(footnote_title)
+            nodes.each do |fn_node|
+              fn_node.type = Node::Type::Text
+              fn_node.text = "[^#{footnote_title}]"
             end
-            child = next_child
+            footnotes.delete footnote_title
+          else
+            def_node = footnote_definitions[footnote_title]
+            walker = def_node.walker
+            while (event = walker.next)
+              n, entering = event
+              if entering && n.type.text?
+                replaced = false
+                n.text = n.text.gsub(/\[\^([\w\-]+)\]/) do |m|
+                  nested_label = $1
+                  if footnote_definitions[nested_label]?
+                    fn = Node.new(Node::Type::Footnote)
+                    fn.data["title"] = nested_label
+                    n.insert_after(fn)
+                    footnotes[nested_label] ||= [] of Node
+                    footnotes[nested_label] << fn
+                    replaced = true
+                    new_nodes += 1
+                    ""
+                  else
+                    m
+                  end
+                end
+                if replaced && n.parent?
+                  @inline_lexer.parse(n.parent)
+                end
+                n.unlink if n.text.empty?
+              end
+            end
+          end
+        end
+        break if new_nodes == 0
+      end
+
+      # Ensure all Footnote nodes are present in the footnotes hash
+      walker = @document.walker
+      while (event = walker.next)
+        node, entering = event
+        if node.type.footnote?
+          title = node.data["title"].to_s
+          footnotes[title] ||= [] of Node
+          unless footnotes[title].includes?(node)
+            footnotes[title] << node
           end
         end
       end
-      @document
+
+      # Remove definitions without footnotes
+      footnote_definitions.each do |footnote_title, def_node|
+        unless footnotes.has_key?(footnote_title)
+          def_node.unlink
+          footnote_definitions.delete footnote_title
+        end
+      end
+
+      # Footnote numbers are normalized to 1...n
+      # Each reference gets a ref_index (1, 2, 3...) and the definition gets a ref_count
+      footnote_number = 0
+      footnotes.each do |footnote_title, nodes|
+        footnote_number += 1
+        nodes.each_with_index do |fn_node, index|
+          fn_node.data["number"] = footnote_number
+          fn_node.data["ref_index"] = index + 1
+        end
+        footnote_definitions[footnote_title].data["number"] = footnote_number
+        footnote_definitions[footnote_title].data["ref_count"] = nodes.size
+      end
+
+      # Footnote definitions are moved to the end of the document
+      footnotes.each do |footnote_title, _|
+        def_node = footnote_definitions[footnote_title]
+        def_node.unlink
+        @document.append_child(def_node)
+      end
+
+      # After all footnote definitions are attached, re-run inline parsing on their children
+      footnote_definitions.each_value do |def_node|
+        child = def_node.first_child?
+        while child
+          next_child = child.next?
+          if child.type.paragraph? || child.type.heading? || child.type.table_cell?
+            @inline_lexer.parse(child)
+          end
+          child = next_child
+        end
+      end
+
+      nil
     end
 
     private def parse_blocks(source)
