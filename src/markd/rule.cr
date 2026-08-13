@@ -107,7 +107,7 @@ module Markd
 
     ADMONITION_START = /^> \[!((?:NOTE|TIP|IMPORTANT|CAUTION|WARNING)+)](\s*.*)?$/
 
-    FOOTNOTE_DEFINITION_START = /\[\^[^\]]+\]:(\s|$)/
+    FOOTNOTE_DEFINITION_START = /^\[\^[^\]]+\]:(\s|$)/
 
     # Match Value
     #

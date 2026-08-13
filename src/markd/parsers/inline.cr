@@ -271,7 +271,9 @@ module Markd::Parser
       save_pos = @pos
 
       # Inline link?
-      if char_at?(@pos) == '('
+      # Footnote openers ([^...]) are not links, so don't try to parse a
+      # `(destination)` after the closing bracket for them.
+      if !is_footnote && char_at?(@pos) == '('
         @pos += 1
         if spnl && (dest = link_destination) &&
            spnl && (char_at?(@pos - 1).try(&.whitespace?) &&

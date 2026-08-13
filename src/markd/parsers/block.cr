@@ -96,7 +96,9 @@ module Markd::Parser
       # Recursively resolve nested footnotes in definitions before numbering
       loop do
         new_nodes = 0
-        footnotes.each do |footnote_title, nodes|
+        footnotes.keys.each do |footnote_title|
+          nodes = footnotes[footnote_title]?
+          next unless nodes
           if !footnote_definitions.has_key?(footnote_title)
             nodes.each do |fn_node|
               fn_node.type = Node::Type::Text
@@ -110,7 +112,7 @@ module Markd::Parser
               n, entering = event
               if entering && n.type.text?
                 replaced = false
-                n.text = n.text.gsub(/\[\^([\w\-]+)\]/) do |m|
+                n.text = n.text.gsub(/\[\^([^\]]+)\]/) do |m|
                   nested_label = $1
                   if footnote_definitions[nested_label]?
                     fn = Node.new(Node::Type::Footnote)
@@ -150,7 +152,9 @@ module Markd::Parser
       end
 
       # Remove definitions without footnotes
-      footnote_definitions.each do |footnote_title, def_node|
+      footnote_definitions.keys.each do |footnote_title|
+        def_node = footnote_definitions[footnote_title]?
+        next unless def_node
         unless footnotes.has_key?(footnote_title)
           def_node.unlink
           footnote_definitions.delete footnote_title
