@@ -31,8 +31,8 @@ module Markd
       output(node.text)
     end
 
-    def code_block(node : Node, entering : Bool, formatter : T?) : Nil forall T
-      {% if @top_level.has_constant?("Tartrazine") %}
+    def code_block(node : Node, entering : Bool, formatter : T? = nil) : Nil forall T
+      {% if @top_level.has_constant?("Tartrazine") && !formatter.nil? %}
         render_code_block_use_tartrazine(node, formatter)
       {% else %}
         render_code_block_use_code_tag(node)
@@ -340,7 +340,7 @@ module Markd
       end
     end
 
-    private def render_code_block_use_tartrazine(node : Node, formatter : Tartrazine::Formatter?)
+    private def render_code_block_use_tartrazine(node : Node, formatter : Tartrazine::Formatter)
       languages = node.fence_language ? node.fence_language.split : nil
       lang = code_block_language(languages)
 
