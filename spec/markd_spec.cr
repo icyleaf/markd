@@ -28,4 +28,8 @@ describe Markd do
 
     Markd.to_html(raw).should eq(html)
   end
+
+  it "should no error when require tartrazine" do
+    {{ run("./fixtures/tartrazine.cr") }}
+  end
 end
