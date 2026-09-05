@@ -376,3 +376,52 @@ Issue #424 - emphasis before links
 .
 <p><em>text</em> <a href="#section">link</a></p>
 ````````````````````````````````
+
+A footnote reference followed by (parentheses) is not parsed as a link
+
+```````````````````````````````` example footnotes
+Text with a footnote[^a], and [^a](url) with a link-ish suffix.
+
+[^a]: note one
+.
+<p>Text with a footnote<sup class="footnote-ref"><a href="#fn-a" id="fnref-a" data-footnote-ref>1</a></sup>, and <sup class="footnote-ref"><a href="#fn-a" id="fnref-a-2" data-footnote-ref>1</a></sup>(url) with a link-ish suffix.</p>
+<section class="footnotes" data-footnotes>
+<ol>
+<li id="fn-a">
+<p>note one <a href="#fnref-a" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a> <a href="#fnref-a-2" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1-2" aria-label="Back to reference 1-2">↩<sup class="footnote-ref">2</sup></a></p>
+</li>
+</ol>
+</section>
+````````````````````````````````
+
+Footnote definitions must start at the beginning of the line
+
+```````````````````````````````` example footnotes
+foo [^b]: this is mid-line, so not a definition
+
+[^b]: real note
+.
+<p>foo [^b]: this is mid-line, so not a definition</p>
+````````````````````````````````
+
+Nested footnote references may contain arbitrary characters
+
+```````````````````````````````` example footnotes
+See[^one].
+
+[^one]: outer [^"><script>x</script>]
+
+[^"><script>x</script>]: inner note
+.
+<p>See<sup class="footnote-ref"><a href="#fn-one" id="fnref-one" data-footnote-ref>1</a></sup>.</p>
+<section class="footnotes" data-footnotes>
+<ol>
+<li id="fn-one">
+<p>outer <sup class="footnote-ref"><a href="#fn-%22%3E%3Cscript%3Ex%3C/script%3E" id="fnref-%22%3E%3Cscript%3Ex%3C/script%3E" data-footnote-ref>2</a></sup> <a href="#fnref-one" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+</li>
+<li id="fn-%22%3E%3Cscript%3Ex%3C/script%3E">
+<p>inner note <a href="#fnref-%22%3E%3Cscript%3Ex%3C/script%3E" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="2" aria-label="Back to reference 2">↩</a></p>
+</li>
+</ol>
+</section>
+````````````````````````````````
