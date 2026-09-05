@@ -257,8 +257,73 @@ module Markd
         newline
         tag("p", attrs(node))
       else
+        # If this is the last paragraph in a footnote definition, append backrefs
+        if last_paragraph_in_footnote?(node)
+          append_footnote_backrefs(node.parent)
+        end
         tag("p", end_tag: true)
         newline
+      end
+    end
+
+    # Check if this paragraph is the last paragraph child of a footnote definition
+    private def last_paragraph_in_footnote?(node : Node) : Bool
+      parent = node.parent?
+      return false unless parent && parent.type.footnote_definition?
+
+      # Check if this is the last paragraph (there might be no more paragraphs after this)
+      # but there could be non-paragraph nodes after, so we check if there's no next sibling
+      # that is a paragraph
+      sibling = node.next?
+      while sibling
+        return false if sibling.type.paragraph?
+        sibling = sibling.next?
+      end
+      true
+    end
+
+    # Encode a string for use in HTML id attributes
+    # This matches the old URI.encode behavior for footnote IDs
+    private def encode_id_component(string : String) : String
+      String.build do |io|
+        URI.encode(string, io) do |byte|
+          # Allow unreserved chars plus some additional chars that are safe in HTML IDs
+          URI.unreserved?(byte) || ['/', '(', ')', '*', '!', '$', '\'', ',', ';', ':', '@', '&', '=', '+'].includes?(byte.chr)
+        end
+      end
+    end
+
+    # Append footnote back-reference links
+    # @param in_paragraph If true, adds a space before the backrefs
+    private def append_footnote_backrefs(footnote_def : Node, in_paragraph : Bool = true) : Nil
+      encoded_title = encode_id_component(footnote_def.data["title"].to_s)
+      footnote_number = footnote_def.data["number"].as(Int32)
+      ref_count = footnote_def.data["ref_count"].as(Int32)
+
+      # Add a space before the backrefs if we're inside a paragraph
+      literal " " if in_paragraph
+
+      # Generate backref(s) - multiple if referenced multiple times
+      (1..ref_count).each do |ref_index|
+        backref_id = ref_index == 1 ? "fnref-#{encoded_title}" : "fnref-#{encoded_title}-#{ref_index}"
+        backref_idx = ref_index == 1 ? footnote_number.to_s : "#{footnote_number}-#{ref_index}"
+
+        tag("a", {
+          "href"                      => "##{backref_id}",
+          "class"                     => "footnote-backref",
+          "data-footnote-backref"     => nil,
+          "data-footnote-backref-idx" => backref_idx,
+          "aria-label"                => "Back to reference #{backref_idx}",
+        })
+        literal "↩"
+        # For 2nd and later backrefs, add a superscript with the index
+        if ref_index > 1
+          tag("sup", {"class" => "footnote-ref"})
+          literal ref_index.to_s
+          tag("sup", end_tag: true)
+        end
+        tag("a", end_tag: true)
+        literal " " if ref_index < ref_count
       end
     end
 
@@ -300,6 +365,79 @@ module Markd
       output(node.text)
     end
 
+    def footnote(node : Node, entering : Bool) : Nil
+      # Spec says `[^1]` should generate:
+      # <sup class=\"footnote-ref\"><a href=\"#fn-1\" id=\"fnref-1\" data-footnote-ref>1</a></sup>
+      # For multiple references to the same footnote:
+      # First: id="fnref-label", Second: id="fnref-label-2", etc.
+      if entering
+        tag("sup", {
+          "class" => "footnote-ref",
+        })
+        ref_index = node.data["ref_index"].as(Int32)
+        encoded_title = encode_id_component(node.data["title"].to_s)
+        id = ref_index == 1 ? "fnref-#{encoded_title}" : "fnref-#{encoded_title}-#{ref_index}"
+        tag("a", {
+          "href"              => "#fn-#{encoded_title}",
+          "id"                => id,
+          "data-footnote-ref" => nil,
+        })
+        # GFM spec says to output the number of the footnote
+        output node.data["number"].to_s
+        tag("a", end_tag: true)
+        tag("sup", end_tag: true)
+      end
+    end
+
+    def footnote_definition(node : Node, entering : Bool) : Nil
+      # A footnote definition by spec should render something like:
+      # <li id="fn-1">
+      # <p>The actual content of the footnote
+      # <a href="#fnref-1" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+      # </li>
+      # For multiple references, multiple backref links are generated:
+      # <a href="#fnref-label" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a>
+      # <a href="#fnref-label-2" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1-2" aria-label="Back to reference 1-2">↩<sup class="footnote-ref">2</sup></a>
+      if entering
+        if !node.prev.type.footnote_definition?
+          newline
+          tag("section", {"class" => "footnotes", "data-footnotes" => nil})
+          newline
+          tag("ol")
+        end
+        newline
+        tag("li", {
+          "id" => "fn-#{encode_id_component(node.data["title"].to_s)}",
+        })
+        newline
+      else
+        # If there's no paragraph child, output backrefs here
+        # (e.g., for footnote definitions that only contain code blocks)
+        unless has_paragraph_child?(node)
+          append_footnote_backrefs(node, in_paragraph: false)
+          newline
+        end
+        tag("li", end_tag: true)
+        if node == node.parent.last_child
+          newline
+          tag("ol", end_tag: true)
+          newline
+          tag("section", end_tag: true)
+          newline
+        end
+      end
+    end
+
+    # Check if a node has a paragraph child
+    private def has_paragraph_child?(node : Node) : Bool
+      child = node.first_child?
+      while child
+        return true if child.type.paragraph?
+        child = child.next?
+      end
+      false
+    end
+
     private def tag(name : String, attrs = nil, self_closing = false, end_tag = false)
       return if @disable_tag > 0
 
@@ -307,7 +445,11 @@ module Markd
       @output_io << "/" if end_tag
       @output_io << name
       attrs.try &.each do |key, value|
-        @output_io << ' ' << key << '=' << '"' << value << '"'
+        if value.nil?
+          @output_io << ' ' << key
+        else
+          @output_io << ' ' << key << '=' << '"' << value << '"'
+        end
       end
 
       @output_io << " /" if self_closing

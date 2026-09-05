@@ -704,7 +704,7 @@ Even with {"x":"y"} or 1 > 2 or whatever. Even **markdown**.
 
 ## Footnotes
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This is some text![^1]. Other text.[^footnote].
 
 Here's a thing[^other-note].
@@ -764,7 +764,7 @@ Hi!
 
 ## When a footnote is used multiple times, we insert multiple backrefs.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This is some text. It has a footnote[^a-footnote].
 
 This footnote is referenced[^a-footnote] multiple times, in lots of different places.[^a-footnote]
@@ -784,7 +784,7 @@ This footnote is referenced[^a-footnote] multiple times, in lots of different pl
 
 ## Footnote reference labels are href escaped
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Hello[^"><script>alert(1)</script>]
 
 [^"><script>alert(1)</script>]: pwned
