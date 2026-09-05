@@ -134,7 +134,7 @@ module Markd
     end
 
     def to_s(io : IO)
-      io << "#<" << {{@type.name.id.stringify}} << ":0x"
+      io << "#<" << {{ @type.name.id.stringify }} << ":0x"
       object_id.to_s(16, io)
       io << " @type=" << @type
       io << " @parent=" << @parent if @parent

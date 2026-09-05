@@ -941,7 +941,7 @@ module Markd::Parser
       text = @text.byte_slice(@pos)
       if (match = text.match(regex))
         @pos += match.byte_end.not_nil!
-        return match[0]
+        match[0]
       end
     end
 
