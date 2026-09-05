@@ -60,24 +60,24 @@ module Markd::Parser
         parse_blocks(source)
       end
 
-      # Process footnote definitions - parse their content as blocks
-      if @options.gfm?
-        process_footnote_definitions
-      end
+      # Footnote definitions parse as blocks before inlines run; the
+      # footnote pass itself runs afterwards. Both are GFM-only no-ops
+      # otherwise.
+      process_footnote_definitions
 
       Utils.timer("inline parsing", @options.time?) do
         process_inlines
       end
 
-      if @options.gfm?
-        process_footnotes
-      end
+      process_footnotes
 
       @document
     end
 
     # Process footnotes: extract, resolve nested references, number them, and move definitions to end
     private def process_footnotes
+      return unless @options.gfm?
+
       # Extract all footnotes and footnote definitions
       walker = @document.walker
       footnotes = {} of String => Array(Node)
@@ -340,6 +340,8 @@ module Markd::Parser
 
     # Parse footnote definition contents as block-level content
     private def process_footnote_definitions
+      return unless @options.gfm?
+
       walker = @document.walker
       while (event = walker.next)
         node, entering = event
