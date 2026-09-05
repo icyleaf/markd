@@ -32,8 +32,12 @@ module Markd
     end
 
     def code_block(node : Node, entering : Bool, formatter : T? = nil) : Nil forall T
-      {% if @top_level.has_constant?("Tartrazine") && !formatter.nil? %}
-        render_code_block_use_tartrazine(node, formatter)
+      {% if @top_level.has_constant?("Tartrazine") %}
+        if formatter
+          render_code_block_use_tartrazine(node, formatter)
+        else
+          render_code_block_use_code_tag(node)
+        end
       {% else %}
         render_code_block_use_code_tag(node)
       {% end %}

@@ -1,6 +1,10 @@
 name: markd
 version: 0.6.0
 
+development_dependencies:
+  tartrazine :
+    github: ralsina/tartrazine
+
 authors:
   - icyleaf <icyleaf.cn@gmail.com>
   - nobodywasishere <margret@eowyn.net>
