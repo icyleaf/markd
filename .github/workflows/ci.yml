@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        ameba-version: [v1.6.4]
+        ameba-version: [v1.7.0]
     name: Ameba ${{ matrix.ameba-version }} linter check
     steps:
       - name: Install latest Crystal
@@ -64,7 +64,7 @@ jobs:
           crystal: ${{ matrix.crystal }}
 
       - name: Install dependencies
-        run: shards install --without-development
+        run: shards install
 
       - name: Run specs
         run: crystal spec --error-on-warnings --error-trace
