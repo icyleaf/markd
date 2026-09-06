@@ -704,7 +704,7 @@ Even with {"x":"y"} or 1 > 2 or whatever. Even **markdown**.
 
 ## Footnotes
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This is some text![^1]. Other text.[^footnote].
 
 Here's a thing[^other-note].
@@ -762,9 +762,54 @@ Hi!
 </section>
 ````````````````````````````````
 
+Multibyte characters before a reference must not shift its label:
+the parser tracks byte offsets but the label used to be cut with
+character-based slicing.
+
+```````````````````````````````` example
+Emoji ✅[^emoji] and accented é[^accent].
+
+| Tables | Cells |
+| ------ | ----- |
+| emoji  | ✅[^t-emoji] |
+
+[^emoji]: emoji note
+[^accent]: accent note
+[^t-emoji]: table note
+.
+<p>Emoji ✅<sup class="footnote-ref"><a href="#fn-emoji" id="fnref-emoji" data-footnote-ref>1</a></sup> and accented é<sup class="footnote-ref"><a href="#fn-accent" id="fnref-accent" data-footnote-ref>2</a></sup>.</p>
+<table>
+<thead>
+<tr>
+<th>Tables</th>
+<th>Cells</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>emoji</td>
+<td>✅<sup class="footnote-ref"><a href="#fn-t-emoji" id="fnref-t-emoji" data-footnote-ref>3</a></sup></td>
+</tr>
+</tbody>
+</table>
+<section class="footnotes" data-footnotes>
+<ol>
+<li id="fn-emoji">
+<p>emoji note <a href="#fnref-emoji" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a></p>
+</li>
+<li id="fn-accent">
+<p>accent note <a href="#fnref-accent" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="2" aria-label="Back to reference 2">↩</a></p>
+</li>
+<li id="fn-t-emoji">
+<p>table note <a href="#fnref-t-emoji" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="3" aria-label="Back to reference 3">↩</a></p>
+</li>
+</ol>
+</section>
+````````````````````````````````
+
 ## When a footnote is used multiple times, we insert multiple backrefs.
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 This is some text. It has a footnote[^a-footnote].
 
 This footnote is referenced[^a-footnote] multiple times, in lots of different places.[^a-footnote]
@@ -784,7 +829,7 @@ This footnote is referenced[^a-footnote] multiple times, in lots of different pl
 
 ## Footnote reference labels are href escaped
 
-```````````````````````````````` example pending
+```````````````````````````````` example
 Hello[^"><script>alert(1)</script>]
 
 [^"><script>alert(1)</script>]: pwned
