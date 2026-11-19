@@ -4,10 +4,18 @@
 /.shards/
 /src/main.cr
 
+# Compiled spec binary
+/markd_spec
+
 # Libraries don't need dependency lock
 # Dependencies will be locked in application that uses them
 /shard.lock
 
 # vscode
 /.history/
-/.vscode/settings.json
+/.vscode/
+
+
+# claude
+CLAUDE.md
+/.claude/

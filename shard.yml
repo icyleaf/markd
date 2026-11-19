@@ -2,7 +2,7 @@ name: markd
 version: 0.6.0
 
 development_dependencies:
-  tartrazine :
+  tartrazine:
     github: ralsina/tartrazine
 
 authors:

@@ -7,17 +7,18 @@ module Markd::Parser
     end
 
     RULES = {
-      Node::Type::Document      => Rule::Document.new,
-      Node::Type::BlockQuote    => Rule::BlockQuote.new,
-      Node::Type::Alert         => Rule::BlockQuote.new, # Alerts and BlockQuotes are the same
-      Node::Type::Heading       => Rule::Heading.new,
-      Node::Type::CodeBlock     => Rule::CodeBlock.new,
-      Node::Type::HTMLBlock     => Rule::HTMLBlock.new,
-      Node::Type::ThematicBreak => Rule::ThematicBreak.new,
-      Node::Type::List          => Rule::List.new,
-      Node::Type::Item          => Rule::Item.new,
-      Node::Type::Paragraph     => Rule::Paragraph.new,
-      Node::Type::Table         => Rule::Table.new,
+      Node::Type::Document           => Rule::Document.new,
+      Node::Type::BlockQuote         => Rule::BlockQuote.new,
+      Node::Type::Alert              => Rule::BlockQuote.new, # Alerts and BlockQuotes are the same
+      Node::Type::Heading            => Rule::Heading.new,
+      Node::Type::CodeBlock          => Rule::CodeBlock.new,
+      Node::Type::HTMLBlock          => Rule::HTMLBlock.new,
+      Node::Type::ThematicBreak      => Rule::ThematicBreak.new,
+      Node::Type::List               => Rule::List.new,
+      Node::Type::Item               => Rule::Item.new,
+      Node::Type::Paragraph          => Rule::Paragraph.new,
+      Node::Type::Table              => Rule::Table.new,
+      Node::Type::FootnoteDefinition => Rule::FootnoteDefinition.new,
     }
 
     property! tip : Node?
@@ -59,11 +60,181 @@ module Markd::Parser
         parse_blocks(source)
       end
 
+      # Process footnote definitions - parse their content as blocks
+      if @options.gfm?
+        process_footnote_definitions
+      end
+
       Utils.timer("inline parsing", @options.time?) do
         process_inlines
       end
 
+      if @options.gfm?
+        process_footnotes
+      end
+
       @document
+    end
+
+    # Process footnotes: extract, resolve nested references, number them, and move definitions to end
+    private def process_footnotes
+      # Extract all footnotes and footnote definitions
+      walker = @document.walker
+      footnotes = {} of String => Array(Node)
+      footnote_definitions = {} of String => Node
+      while (event = walker.next)
+        node, entering = event
+        if node.type.footnote?
+          title = node.data["title"].to_s
+          footnotes[title] ||= [] of Node
+          footnotes[title] << node
+        elsif !entering && node.type.footnote_definition?
+          title = node.data["title"].to_s
+          # Duplicate definitions: only the last one per title is kept, so
+          # discard earlier ones (they would otherwise render without
+          # numbering data and crash backref generation).
+          if (existing = footnote_definitions[title]?)
+            existing.unlink
+          end
+          footnote_definitions[title] = node
+        end
+      end
+
+      # Recursively resolve nested footnotes in definitions before numbering
+      loop do
+        new_nodes = 0
+        footnotes.keys.each do |footnote_title|
+          nodes = footnotes[footnote_title]?
+          next unless nodes
+          if !footnote_definitions.has_key?(footnote_title)
+            nodes.each do |fn_node|
+              fn_node.type = Node::Type::Text
+              fn_node.text = "[^#{footnote_title}]"
+            end
+            footnotes.delete footnote_title
+          else
+            def_node = footnote_definitions[footnote_title]
+            walker = def_node.walker
+            while (event = walker.next)
+              n, entering = event
+              if entering && n.type.text?
+                replaced = false
+                # Collect the nested references first, then split the text
+                # node around each marker so the reference node lands at
+                # the marker's position (in order), not after the whole
+                # text node.
+                insertions = [] of {Int32, Int32, Node}
+                n.text.scan(/\[\^([^\]]+)\]/) do |match_data|
+                  byte_start = match_data.begin(0)
+                  byte_end = match_data.end(0)
+                  nested_label = match_data[1]
+                  next unless byte_start && byte_end
+                  next unless footnote_definitions[nested_label]?
+                  fn = Node.new(Node::Type::Footnote)
+                  fn.data["title"] = nested_label
+                  insertions << {byte_start, byte_end, fn}
+                end
+
+                unless insertions.empty?
+                  replaced = true
+                  original_text = n.text
+                  cursor = n
+                  last_byte = 0
+                  insertions.each do |(byte_start, byte_end, fn)|
+                    gap = original_text.byte_slice(last_byte, byte_start - last_byte)
+                    if cursor == n
+                      n.text = gap
+                    else
+                      gap_node = Node.new(Node::Type::Text)
+                      gap_node.text = gap
+                      cursor.insert_after(gap_node)
+                      cursor = gap_node
+                    end
+                    cursor.insert_after(fn)
+                    cursor = fn
+                    title = fn.data["title"].to_s
+                    footnotes[title] ||= [] of Node
+                    footnotes[title] << fn
+                    new_nodes += 1
+                    last_byte = byte_end
+                  end
+                  rest = original_text.byte_slice(last_byte)
+                  unless rest.empty?
+                    rest_node = Node.new(Node::Type::Text)
+                    rest_node.text = rest
+                    cursor.insert_after(rest_node)
+                  end
+                end
+
+                if replaced && n.parent?
+                  @inline_lexer.parse(n.parent)
+                end
+                # Note: don't unlink an emptied text node here — the walker
+                # is positioned on it, and unlinking mid-walk would stop
+                # the walk early.
+              end
+            end
+          end
+        end
+        break if new_nodes == 0
+      end
+
+      # Ensure all Footnote nodes are present in the footnotes hash
+      walker = @document.walker
+      while (event = walker.next)
+        node, entering = event
+        if node.type.footnote?
+          title = node.data["title"].to_s
+          footnotes[title] ||= [] of Node
+          unless footnotes[title].includes?(node)
+            footnotes[title] << node
+          end
+        end
+      end
+
+      # Remove definitions without footnotes
+      footnote_definitions.keys.each do |footnote_title|
+        def_node = footnote_definitions[footnote_title]?
+        next unless def_node
+        unless footnotes.has_key?(footnote_title)
+          def_node.unlink
+          footnote_definitions.delete footnote_title
+        end
+      end
+
+      # Footnote numbers are normalized to 1...n
+      # Each reference gets a ref_index (1, 2, 3...) and the definition gets a ref_count
+      footnote_number = 0
+      footnotes.each do |footnote_title, nodes|
+        footnote_number += 1
+        nodes.each_with_index do |fn_node, index|
+          fn_node.data["number"] = footnote_number
+          fn_node.data["ref_index"] = index + 1
+        end
+        footnote_definitions[footnote_title].data["number"] = footnote_number
+        footnote_definitions[footnote_title].data["ref_count"] = nodes.size
+      end
+
+      # Footnote definitions are moved to the end of the document
+      footnotes.each do |footnote_title, _|
+        def_node = footnote_definitions[footnote_title]
+        def_node.unlink
+        @document.append_child(def_node)
+      end
+
+      # After all footnote definitions are attached, re-run inline parsing on their children
+      footnote_definitions.each_value do |def_node|
+        child = def_node.first_child?
+        while child
+          next_child = child.next?
+          if child.type.paragraph? || child.type.heading? || child.type.table_cell?
+            @inline_lexer.parse(child)
+          end
+          child = next_child
+        end
+      end
+
+      nil
     end
 
     private def parse_blocks(source)
@@ -198,8 +369,38 @@ module Markd::Parser
       @inline_lexer.refmap = @refmap
       while (event = walker.next)
         node, entering = event
+        # Note: footnote_definition is not parsed here because its content
+        # has already been parsed as blocks in process_footnote_definitions
         if !entering && (node.type.paragraph? || node.type.heading? || node.type.table_cell?)
           @inline_lexer.parse(node)
+        end
+      end
+
+      nil
+    end
+
+    # Parse footnote definition contents as block-level content
+    private def process_footnote_definitions
+      walker = @document.walker
+      while (event = walker.next)
+        node, entering = event
+        if entering && node.type.footnote_definition? && !node.text.empty?
+          # Parse the footnote definition content as blocks
+          content = node.text
+          node.text = ""
+
+          # Create a temporary sub-parser for the footnote content
+          sub_parser = Block.new(@options)
+          sub_doc = sub_parser.parse(content)
+
+          # Move all children from the sub-document to the footnote definition
+          child = sub_doc.first_child?
+          while child
+            next_child = child.next?
+            child.unlink
+            node.append_child(child)
+            child = next_child
+          end
         end
       end
 
