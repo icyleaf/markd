@@ -29,7 +29,12 @@ describe Markd do
     Markd.to_html(raw).should eq(html)
   end
 
-  it "should no error when require tartrazine" do
-    {{ run("./fixtures/tartrazine.cr") }}
+  it "preserves the original fence label in plain HTML classes" do
+    Markd.to_html("```language-r\nx\n```").should eq(%(<pre><code class="language-language-r">x\n</code></pre>\n))
+    Markd.to_html("```language-\nx\n```").should eq(%(<pre><code class="language-language-">x\n</code></pre>\n))
+  end
+
+  it "highlights R fences with Tartrazine using either language label" do
+    {{ run("./support/tartrazine_languages.cr") }}
   end
 end
