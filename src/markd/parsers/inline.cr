@@ -471,58 +471,42 @@ module Markd::Parser
 
     private def auto_link(node : Node)
       if (matched_text = match(Rule::EMAIL_AUTO_LINK))
-        node.append_child(link(matched_text, true))
-        return true
+        node.append_child(link(matched_text, email: true))
       elsif (matched_text = match(Rule::AUTO_LINK))
-        node.append_child(link(matched_text, false))
-        return true
-      elsif @options.autolink?
-        # These are all the extended autolinks from the
-        # autolink extension
-
-        if (matched_text = match(Rule::WWW_AUTO_LINK))
-          clean_text = autolink_cleanup(matched_text)
-          if clean_text.empty?
-            node.append_child(text(matched_text))
-          else
-            _, post = @text.split(clean_text, 2)
-            node.append_child(link(clean_text, false, true))
-            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
-          end
-          return true
-        elsif (matched_text = (
-                match(Rule::PROTOCOL_AUTO_LINK) ||
-                match(Rule::XMPP_AUTO_LINK) ||
-                match(Rule::MAILTO_AUTO_LINK)
-              ))
-          clean_text = autolink_cleanup(matched_text)
-          if clean_text.empty?
-            node.append_child(text(matched_text))
-          else
-            _, post = @text.split(clean_text, 2)
-            node.append_child(link(clean_text, false, false))
-            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
-          end
-          return true
-        elsif (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
-          # Emails that end in - or _ are declared not to be links by the spec:
-          #
-          # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
-          # the end of the email address, in which case it will not be considered part of
-          # the address:
-
-          # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
-
-          if "-_".includes?(matched_text[-1])
-            node.append_child(text(matched_text))
-          else
-            node.append_child(link(matched_text, true, false))
-          end
-          return true
-        end
+        node.append_child(link(matched_text))
+      else
+        return extended_autolink(node)
       end
 
-      false
+      true
+    end
+
+    private def extended_autolink(node : Node)
+      return false if !@options.autolink?
+
+      www = match(Rule::WWW_AUTO_LINK)
+      if (matched_text = www || match(Rule::PROTOCOL_AUTO_LINK) ||
+                         match(Rule::XMPP_AUTO_LINK) ||
+                         match(Rule::MAILTO_AUTO_LINK))
+        clean_text = autolink_cleanup(matched_text)
+        if clean_text.empty?
+          node.append_child(text(matched_text))
+        else
+          # Leave any trailing punctuation for the inline parser.
+          @pos -= matched_text.bytesize - clean_text.bytesize
+          node.append_child(link(clean_text, add_proto: !www.nil?))
+        end
+      elsif (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
+        if "-_".includes?(matched_text[-1])
+          node.append_child(text(matched_text))
+        else
+          node.append_child(link(matched_text, email: true))
+        end
+      else
+        return false
+      end
+
+      true
     end
 
     private def html_tag(node : Node)
@@ -887,82 +871,25 @@ module Markd::Parser
       end
     end
 
-    # This function advances @pos as far as possible until it finds a
-    # "special" character, such as '<', ']', or a special string (like a URL).
-    #
-    # Then it returns the chunk before it found that match, or in the case
-    # of special strings, the chunk matched.
-
     private def match_main : String?
       start_pos = @pos
-      while (char = char_at?(@pos))
-        # If we detected a special string (like a URL), and it's
-        # not the beggining of the string, we need to break right away.
-        #
-        # If we are at the beginning of the string, then we return
-        # the chunk matched
-        if @options.autolink?
-          advance = special_string?(@text, @pos)
-          if advance > 0
-            if @pos > start_pos
-              break
-            else
-              @pos += advance
-              break
-            end
-          end
+      while (char = char_at?(@pos)) && main_char?(char)
+        if @pos > start_pos && char.in?('h', 'f') && @options.autolink? &&
+           starts_extended_protocol?(@pos)
+          break
         end
-
-        # If we detect a special character, we need to break
-        break if !main_char?(char)
         @pos += char.ascii? ? 1 : unicode_char_at?(@pos).not_nil!.bytesize
       end
 
-      if start_pos == @pos
-        nil
-      else
-        @text.byte_slice(start_pos, @pos - start_pos)
-      end
+      @text.byte_slice(start_pos, @pos - start_pos) if @pos > start_pos
     end
 
-    # Identify "special" strings by matching against
-    # regular expressions. It returns the number of characters
-    # that were matched.
+    private def starts_extended_protocol?(pos : Int32) : Bool
+      return false unless "*_~( \n\t".includes?(char_at(pos - 1))
+      return false unless Rule::AUTOLINK_PROTOCOLS.matches?(@text.byte_slice(pos))
 
-    private def special_string?(full_text : String, pos : Int) : Int
-      text = full_text.byte_slice(pos)
-      # All such recognized autolinks can only come at the beginning of
-      # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
-      # and `(`.
-      if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
-        0
-      elsif text.starts_with?("http://") || text.starts_with?("https://") || text.starts_with?("ftp://")
-        # This should not be an autolink:
-        # < ftp://example.com >
-        if full_text[...pos].includes?("<") && full_text[...pos].matches?(/<\s*$/)
-          return 0
-        end
-
-        m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
-        m.bytesize
-      elsif text.starts_with?("www.") && text.matches?(Rule::WWW_AUTO_LINK)
-        m = autolink_cleanup(text.match(Rule::WWW_AUTO_LINK).to_s)
-        m.bytesize
-      elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
-        # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
-        matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s
-
-        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
-        # the end of the email address, in which case it will not be considered part of
-        # the address:
-
-        if "-_".includes? char_at(pos + matched_text.size + 1)
-          return 0
-        end
-        matched_text.size
-      else
-        0
-      end
+      # Do not link the URL in text such as < ftp://example.com >.
+      !@text.byte_slice(0, pos).matches?(/<\s*$/)
     end
 
     # These cleanups are defined in the spec

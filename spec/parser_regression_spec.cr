@@ -65,4 +65,14 @@ describe "Markdown parser regressions" do
     options = Markd::Options.new(autolink: true)
     Markd.to_html("ä @foo", options).should eq("<p>ä @foo</p>\n")
   end
+
+  it "emits punctuation and following text once after autolinks" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("www.example.com/...? tail", options).should eq(
+      %(<p><a href="http://www.example.com/">www.example.com/</a>...? tail</p>\n)
+    )
+    Markd.to_html("(http://www.example.com/path.) end", options).should eq(
+      %(<p>(<a href="http://www.example.com/path">http://www.example.com/path</a>.) end</p>\n)
+    )
+  end
 end
