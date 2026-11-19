@@ -80,6 +80,8 @@ html = renderer.render(document)
 
 Added and require [tartrazine](https://github.com/ralsina/tartrazine) before markd will use it to render code block.
 
+Use either `r` or `language-r` after the opening fence to highlight a code block as R.
+
 By default, it use formatter like following:
 
 ```crystal

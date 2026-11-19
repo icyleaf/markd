@@ -344,31 +344,33 @@ module Markd
       end
     end
 
-    private def render_code_block_use_tartrazine(node : Node, formatter : Tartrazine::Formatter)
-      languages = node.fence_language ? node.fence_language.split : nil
-      lang = code_block_language(languages)
+    {% if @top_level.has_constant?("Tartrazine") %}
+      private def render_code_block_use_tartrazine(node : Node, formatter : Tartrazine::Formatter)
+        languages = node.fence_language ? node.fence_language.split : nil
+        lang = code_block_language(languages).try(&.lchop("language-").presence)
 
-      newline
+        newline
 
-      if lang
-        lexer = Tartrazine.lexer(lang)
+        if lang
+          lexer = Tartrazine.lexer(lang)
 
-        literal(formatter.format(node.text.chomp, lexer))
-      else
-        code_tag_attrs = attrs(node)
-        pre_tag_attrs = if @options.prettyprint?
-                          {"class" => "prettyprint"}
-                        end
+          literal(formatter.format(node.text.chomp, lexer))
+        else
+          code_tag_attrs = attrs(node)
+          pre_tag_attrs = if @options.prettyprint?
+                            {"class" => "prettyprint"}
+                          end
 
-        tag("pre", pre_tag_attrs) do
-          tag("code", code_tag_attrs) do
-            code_block_body(node, lang)
+          tag("pre", pre_tag_attrs) do
+            tag("code", code_tag_attrs) do
+              code_block_body(node, lang)
+            end
           end
         end
-      end
 
-      newline
-    end
+        newline
+      end
+    {% end %}
 
     private def render_code_block_use_code_tag(node : Node)
       languages = node.fence_language ? node.fence_language.split : nil
