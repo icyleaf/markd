@@ -67,6 +67,7 @@ module Markd::Parser
     end
 
     private def parse_blocks(source)
+      source = source.gsub(/\r\n?/, '\n') if source.byte_index('\r')
       lines_size = 0
       source.each_line do |line|
         process_line(line)
