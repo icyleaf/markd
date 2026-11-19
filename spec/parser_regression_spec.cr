@@ -43,4 +43,11 @@ describe "Markdown parser regressions" do
     Markd.to_html("[a  b]: /url\n\n[a b]").should eq(%(<p><a href="/url">a b</a></p>\n))
     Markd.to_html("[a\tb]: /url\t\n\n[a b]").should eq(%(<p><a href="/url">a b</a></p>\n))
   end
+
+  it "uses Unicode spaces and symbols to determine emphasis boundaries" do
+    Markd.to_html("a*💡*").should eq("<p>a*💡*</p>\n")
+    Markd.to_html("a\u2002*💡*").should eq("<p>a\u2002<em>💡</em></p>\n")
+    Markd.to_html("*a*\u00A0b").should eq("<p><em>a</em>\u00A0b</p>\n")
+    Markd.to_html("*a\u2002* b").should eq("<p>*a\u2002* b</p>\n")
+  end
 end

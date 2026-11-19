@@ -739,14 +739,13 @@ module Markd::Parser
 
       return if num_delims == 0
 
-      char_before = start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)
-      char_after = unicode_char_at?(@pos) || '\n'
+      before = (start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)).to_s
+      after = (unicode_char_at?(@pos) || '\n').to_s
 
-      # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
-      after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
-      after_is_punctuation = !!char_after.to_s.match(Rule::PUNCTUATION)
-      before_is_whitespace = char_before.ascii_whitespace? || char_after == '\u00A0'
-      before_is_punctuation = !!char_before.to_s.match(Rule::PUNCTUATION)
+      after_is_whitespace = after.matches?(Rule::UNICODE_WHITESPACE)
+      after_is_punctuation = after.matches?(Rule::PUNCTUATION)
+      before_is_whitespace = before.matches?(Rule::UNICODE_WHITESPACE)
+      before_is_punctuation = before.matches?(Rule::PUNCTUATION)
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
