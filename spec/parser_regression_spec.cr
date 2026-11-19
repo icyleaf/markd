@@ -82,4 +82,9 @@ describe "Markdown parser regressions" do
       %(<p><strong>Autolink and <a href="http://inlines">http://inlines</a></strong></p>\n)
     )
   end
+
+  it "links a one-character address after an embedded mailto prefix" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("xmailto:a@b.com", options).should eq(%(<p>xmailto:<a href="mailto:a@b.com">a@b.com</a></p>\n))
+  end
 end

@@ -487,7 +487,7 @@ module Markd::Parser
       www = match(Rule::WWW_AUTO_LINK)
       if (matched_text = www || match(Rule::PROTOCOL_AUTO_LINK) ||
                          match(Rule::XMPP_AUTO_LINK) ||
-                         match(Rule::MAILTO_AUTO_LINK))
+                         (match(Rule::MAILTO_AUTO_LINK) if @pos == 0 || !char_at(@pos - 1).ascii_alphanumeric?))
         clean_text = autolink_cleanup(matched_text)
         if clean_text.empty?
           node.append_child(text(matched_text))
