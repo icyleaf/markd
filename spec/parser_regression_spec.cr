@@ -54,4 +54,10 @@ describe "Markdown parser regressions" do
   it "recognizes Setext headings inside block quotes" do
     Markd.to_html("> foo\n> ---").should eq("<blockquote>\n<h2>foo</h2>\n</blockquote>\n")
   end
+
+  it "ends a table before an ATX heading that contains a pipe" do
+    options = Markd::Options.new(gfm: true)
+    html = Markd.to_html("A | B\n--- | ---\n# Heading | Text", options)
+    html.should eq("<table>\n<thead>\n<tr>\n<th>A</th>\n<th>B</th>\n</tr>\n</thead>\n</table>\n<h1>Heading | Text</h1>\n")
+  end
 end
