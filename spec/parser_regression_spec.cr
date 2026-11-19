@@ -50,4 +50,8 @@ describe "Markdown parser regressions" do
     Markd.to_html("*a*\u00A0b").should eq("<p><em>a</em>\u00A0b</p>\n")
     Markd.to_html("*a\u2002* b").should eq("<p>*a\u2002* b</p>\n")
   end
+
+  it "recognizes Setext headings inside block quotes" do
+    Markd.to_html("> foo\n> ---").should eq("<blockquote>\n<h2>foo</h2>\n</blockquote>\n")
+  end
 end

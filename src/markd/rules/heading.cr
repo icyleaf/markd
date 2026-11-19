@@ -22,8 +22,7 @@ module Markd::Rule
 
         MatchValue::Leaf
       elsif (match = match?(parser, SETEXT_HEADING_MARKER)) &&
-            container.type.paragraph? && (parent = container.parent?) &&
-            !parent.type.block_quote?
+            container.type.paragraph? && container.parent?
         # Setext Heading matched
         parser.close_unmatched_blocks
 
