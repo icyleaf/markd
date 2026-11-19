@@ -13,12 +13,14 @@ module Markd::Parser
     def initialize(@options : Options)
       @text = ""
       @pos = 0
+      @extended_links = Set(Node).new
       @refmap = {} of String => Hash(String, String) | String
     end
 
     def parse(node : Node)
       @pos = 0
       @brackets = nil
+      @extended_links.clear
       @delimiters = nil
       @text = node.text.strip
 
@@ -310,7 +312,12 @@ module Markd::Parser
         while tmp
           next_node = tmp.next?
           tmp.unlink
-          child.append_child(tmp)
+          # Extended autolinks have lower precedence than an explicit link.
+          if !is_image && @extended_links.includes?(tmp)
+            child.append_child(tmp.first_child)
+          else
+            child.append_child(tmp)
+          end
           tmp = next_node
         end
 
@@ -319,13 +326,7 @@ module Markd::Parser
         remove_bracket
         opener.node.unlink
 
-        unless is_image
-          opener = @brackets
-          while opener
-            opener.active = false unless opener.image?
-            opener = opener.previous?
-          end
-        end
+        deactivate_link_openers unless is_image
       else
         remove_bracket
         @pos = start_pos
@@ -469,6 +470,14 @@ module Markd::Parser
       end
     end
 
+    private def deactivate_link_openers
+      opener = @brackets
+      while opener
+        opener.active = false unless opener.image?
+        opener = opener.previous?
+      end
+    end
+
     private def auto_link(node : Node)
       if (matched_text = match(Rule::EMAIL_AUTO_LINK))
         node.append_child(link(matched_text, email: true))
@@ -478,6 +487,7 @@ module Markd::Parser
         return extended_autolink(node)
       end
 
+      deactivate_link_openers
       true
     end
 
@@ -488,25 +498,35 @@ module Markd::Parser
       if (matched_text = www || match(Rule::PROTOCOL_AUTO_LINK) ||
                          match(Rule::XMPP_AUTO_LINK) ||
                          (match(Rule::MAILTO_AUTO_LINK) if @pos == 0 || !char_at(@pos - 1).ascii_alphanumeric?))
+        if @brackets && (closing = matched_text.byte_index(']'))
+          # Leave the bracket for the inline link parser.
+          @pos -= matched_text.bytesize - closing
+          matched_text = matched_text.byte_slice(0, closing)
+        end
         clean_text = autolink_cleanup(matched_text)
         if clean_text.empty?
           node.append_child(text(matched_text))
         else
           # Leave any trailing punctuation for the inline parser.
           @pos -= matched_text.bytesize - clean_text.bytesize
-          node.append_child(link(clean_text, add_proto: !www.nil?))
+          append_extended_link(node, link(clean_text, add_proto: !www.nil?))
         end
       elsif (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
         if "-_".includes?(matched_text[-1])
           node.append_child(text(matched_text))
         else
-          node.append_child(link(matched_text, email: true))
+          append_extended_link(node, link(matched_text, email: true))
         end
       else
         return false
       end
 
       true
+    end
+
+    private def append_extended_link(node : Node, child : Node)
+      @extended_links.add(child) if @brackets
+      node.append_child(child)
     end
 
     private def html_tag(node : Node)

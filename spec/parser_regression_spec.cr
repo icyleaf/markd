@@ -93,4 +93,26 @@ describe "Markdown parser regressions" do
     fixtures["Regression tests"].values.find!(&.["markdown"].includes?("[^widely-cited]"))
       .["test_tags"].split.should eq(%w[footnotes autolink pending])
   end
+
+  it "keeps explicit links and autolinks from nesting" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("[www.example.com](/p)", options).should eq(%(<p><a href="/p">www.example.com</a></p>\n))
+    Markd.to_html("[label a@b.com](/p)", options).should eq(%(<p><a href="/p">label a@b.com</a></p>\n))
+    Markd.to_html("[see https://example.com/a](/p)", options).should eq(
+      %(<p><a href="/p">see https://example.com/a</a></p>\n)
+    )
+    Markd.to_html("[<https://example.com>](u)").should eq(
+      %(<p>[<a href="https://example.com">https://example.com</a>](u)</p>\n)
+    )
+  end
+
+  it "autolinks URLs inside literal brackets" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("[see www.example.com", options).should eq(
+      %(<p>[see <a href="http://www.example.com">www.example.com</a></p>\n)
+    )
+    Markd.to_html("[see https://example.com/a]", options).should eq(
+      %(<p>[see <a href="https://example.com/a">https://example.com/a</a>]</p>\n)
+    )
+  end
 end
