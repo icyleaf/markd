@@ -75,4 +75,11 @@ describe "Markdown parser regressions" do
       %(<p>(<a href="http://www.example.com/path">http://www.example.com/path</a>.) end</p>\n)
     )
   end
+
+  it "links a scheme URL with a single-label host" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("**Autolink and http://inlines**", options).should eq(
+      %(<p><strong>Autolink and <a href="http://inlines">http://inlines</a></strong></p>\n)
+    )
+  end
 end

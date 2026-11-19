@@ -66,8 +66,8 @@ module Markd
     # A valid domain name is:
     #
     # segments of alphanumeric characters, underscores (_) and hyphens (-)
-    # separated by periods (.). There must be at least one period, and no
-    # underscores may be present in the last two segments of the domain.
+    # separated by periods (.). No underscores may be present in the last
+    # two segments. A URL with a scheme can have a single-label hostname.
     #
     # Alphanumeric characters in this context include emojis.
     LAST_DOMAIN_SEGMENT   = /(?:[a-zA-Z0-9\-\p{Emoji_Presentation}\-]+)/
@@ -77,7 +77,7 @@ module Markd
     # For example: www.xxx._yyy.zzz is never linked because of the
     # _ in the last segment.
     DOMAIN_NAME       = /(?:#{OTHER_DOMAIN_SEGMENTS}\.)*#{OTHER_DOMAIN_SEGMENTS}/
-    VALID_DOMAIN_NAME = /^(?:#{OTHER_DOMAIN_SEGMENTS}\.)*(?:#{LAST_DOMAIN_SEGMENT}\.)+#{LAST_DOMAIN_SEGMENT}$/
+    VALID_DOMAIN_NAME = /^(?:(?:#{OTHER_DOMAIN_SEGMENTS}\.)*#{LAST_DOMAIN_SEGMENT}\.)?#{LAST_DOMAIN_SEGMENT}$/
     VALID_URL_PATH    = /(?:\/[^\s<]*)?/
 
     AUTOLINK_PROTOCOLS = /^(?:http|https|ftp):\/\//
