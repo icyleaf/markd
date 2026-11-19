@@ -41,7 +41,7 @@ def assert_section(file, section, examples, smart, gfm = false)
 end
 
 def assert_example(file, section, index, example, smart, gfm = false)
-  markdown = example["markdown"].gsub("→", "\t").chomp
+  markdown = example["markdown"].gsub("→", "\t")
   html = example["html"].gsub("→", "\t")
   line = example["line"].to_i
   tags = example["test_tags"].split(" ")
@@ -82,9 +82,9 @@ def extract_spec_tests(file)
       line_number = 0
       test_tags = ""
 
-      while (line = input.read_line)
+      while (raw_line = input.read_line(chomp: false))
         line_number += 1
-        line = line.gsub(/\r\n?/, "\n")
+        line = raw_line.chomp
         break if line.includes?("<!-- END TESTS -->")
 
         if !test_start && !result_start && (match = line.match(/^\#{1,6}\s+(.*)$/))
@@ -109,7 +109,7 @@ def extract_spec_tests(file)
               "test_tags" => test_tags,
             } of String => String
 
-            examples[current_section][example_count]["markdown"] += line + "\n"
+            examples[current_section][example_count]["markdown"] += raw_line
           elsif !test_start && result_start
             examples[current_section][example_count]["html"] += line + "\n"
           end
