@@ -41,7 +41,7 @@ def assert_section(file, section, examples, smart, gfm = false)
 end
 
 def assert_example(file, section, index, example, smart, gfm = false)
-  markdown = example["markdown"].gsub("→", "\t").chomp
+  markdown = example["markdown"].gsub("→", "\t")
   html = example["html"].gsub("→", "\t")
   line = example["line"].to_i
   tags = example["test_tags"].split(" ")
@@ -54,7 +54,7 @@ def assert_example(file, section, index, example, smart, gfm = false)
   )
   options.smart = true if smart
 
-  if example["test_tags"].ends_with?("pending")
+  if tags.includes?("pending")
     pending "- #{index}\n#{show_space(markdown)}", file, line do
       output = Markd.to_html(markdown, options)
       output.should eq(html), file: file, line: line
@@ -82,9 +82,9 @@ def extract_spec_tests(file)
       line_number = 0
       test_tags = ""
 
-      while (line = input.read_line)
+      while (raw_line = input.read_line(chomp: false))
         line_number += 1
-        line = line.gsub(/\r\n?/, "\n")
+        line = raw_line.chomp
         break if line.includes?("<!-- END TESTS -->")
 
         if !test_start && !result_start && (match = line.match(/^\#{1,6}\s+(.*)$/))
@@ -92,9 +92,9 @@ def extract_spec_tests(file)
           examples[current_section] = {} of Int32 => Hash(String, String)
           example_count = 0
         else
-          if !test_start && !result_start && line =~ /^`{32} example([a-z ])*$/
+          if !test_start && !result_start && (example = line.match(/^`{32} example((?: [a-z]+)*)$/))
             test_start = true
-            test_tags = line[line.rindex!(' ') + 1..-1]
+            test_tags = example[1].strip
           elsif test_start && !result_start && line =~ /^\.$/
             test_start = false
             result_start = true
@@ -106,10 +106,10 @@ def extract_spec_tests(file)
               "line"      => line_number.to_s,
               "markdown"  => "",
               "html"      => "",
-              "test_tags" => (test_tags == "example" ? "" : test_tags),
+              "test_tags" => test_tags,
             } of String => String
 
-            examples[current_section][example_count]["markdown"] += line + "\n"
+            examples[current_section][example_count]["markdown"] += raw_line
           elsif !test_start && result_start
             examples[current_section][example_count]["html"] += line + "\n"
           end

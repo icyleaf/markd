@@ -13,11 +13,14 @@ module Markd::Parser
     def initialize(@options : Options)
       @text = ""
       @pos = 0
+      @extended_links = Set(Node).new
       @refmap = {} of String => Hash(String, String) | String
     end
 
     def parse(node : Node)
       @pos = 0
+      @brackets = nil
+      @extended_links.clear
       @delimiters = nil
       @text = node.text.strip
 
@@ -110,8 +113,9 @@ module Markd::Parser
             end
 
       unless res
-        @pos += 1
-        node.append_child(text(char))
+        character = char.ascii? ? char : unicode_char_at?(@pos).not_nil!
+        @pos += character.bytesize
+        node.append_child(text(character))
       end
 
       true
@@ -276,7 +280,7 @@ module Markd::Parser
         # Next, see if there's a link label
         before_label = @pos
         label_size = link_label
-        if label_size > 2
+        if label_size > 1
           ref_label = normalize_reference(@text.byte_slice(before_label, label_size + 1))
         elsif !opener.bracket_after?
           # Empty or missing second label means to use the first label as the reference.
@@ -308,7 +312,12 @@ module Markd::Parser
         while tmp
           next_node = tmp.next?
           tmp.unlink
-          child.append_child(tmp)
+          # Extended autolinks have lower precedence than an explicit link.
+          if !is_image && @extended_links.includes?(tmp)
+            child.append_child(tmp.first_child)
+          else
+            child.append_child(tmp)
+          end
           tmp = next_node
         end
 
@@ -317,13 +326,7 @@ module Markd::Parser
         remove_bracket
         opener.node.unlink
 
-        unless is_image
-          opener = @brackets
-          while opener
-            opener.active = false unless opener.image?
-            opener = opener.previous?
-          end
-        end
+        deactivate_link_openers unless is_image
       else
         remove_bracket
         @pos = start_pos
@@ -467,60 +470,63 @@ module Markd::Parser
       end
     end
 
+    private def deactivate_link_openers
+      opener = @brackets
+      while opener
+        opener.active = false unless opener.image?
+        opener = opener.previous?
+      end
+    end
+
     private def auto_link(node : Node)
       if (matched_text = match(Rule::EMAIL_AUTO_LINK))
-        node.append_child(link(matched_text, true))
-        return true
+        node.append_child(link(matched_text, email: true))
       elsif (matched_text = match(Rule::AUTO_LINK))
-        node.append_child(link(matched_text, false))
-        return true
-      elsif @options.autolink?
-        # These are all the extended autolinks from the
-        # autolink extension
-
-        if (matched_text = match(Rule::WWW_AUTO_LINK))
-          clean_text = autolink_cleanup(matched_text)
-          if clean_text.empty?
-            node.append_child(text(matched_text))
-          else
-            _, post = @text.split(clean_text, 2)
-            node.append_child(link(clean_text, false, true))
-            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
-          end
-          return true
-        elsif (matched_text = (
-                match(Rule::PROTOCOL_AUTO_LINK) ||
-                match(Rule::XMPP_AUTO_LINK) ||
-                match(Rule::MAILTO_AUTO_LINK)
-              ))
-          clean_text = autolink_cleanup(matched_text)
-          if clean_text.empty?
-            node.append_child(text(matched_text))
-          else
-            _, post = @text.split(clean_text, 2)
-            node.append_child(link(clean_text, false, false))
-            node.append_child(text(post)) if post.size > 0 && matched_text != clean_text
-          end
-          return true
-        elsif (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
-          # Emails that end in - or _ are declared not to be links by the spec:
-          #
-          # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
-          # the end of the email address, in which case it will not be considered part of
-          # the address:
-
-          # a.b-c_d@a.b_  => <p>a.b-c_d@a.b_</p>
-
-          if "-_".includes?(matched_text[-1])
-            node.append_child(text(matched_text))
-          else
-            node.append_child(link(matched_text, true, false))
-          end
-          return true
-        end
+        node.append_child(link(matched_text))
+      else
+        return extended_autolink(node)
       end
 
-      false
+      deactivate_link_openers
+      true
+    end
+
+    private def extended_autolink(node : Node)
+      return false if !@options.autolink?
+
+      www = match(Rule::WWW_AUTO_LINK)
+      if (matched_text = www || match(Rule::PROTOCOL_AUTO_LINK) ||
+                         match(Rule::XMPP_AUTO_LINK) ||
+                         (match(Rule::MAILTO_AUTO_LINK) if @pos == 0 || !char_at(@pos - 1).ascii_alphanumeric?))
+        if @brackets && (closing = matched_text.byte_index(']'))
+          # Leave the bracket for the inline link parser.
+          @pos -= matched_text.bytesize - closing
+          matched_text = matched_text.byte_slice(0, closing)
+        end
+        clean_text = autolink_cleanup(matched_text)
+        if clean_text.empty?
+          node.append_child(text(matched_text))
+        else
+          # Leave any trailing punctuation for the inline parser.
+          @pos -= matched_text.bytesize - clean_text.bytesize
+          append_extended_link(node, link(clean_text, add_proto: !www.nil?))
+        end
+      elsif (matched_text = match(Rule::EXTENDED_EMAIL_AUTO_LINK))
+        if "-_".includes?(matched_text[-1])
+          node.append_child(text(matched_text))
+        else
+          append_extended_link(node, link(matched_text, email: true))
+        end
+      else
+        return false
+      end
+
+      true
+    end
+
+    private def append_extended_link(node : Node, child : Node)
+      @extended_links.add(child) if @brackets
+      node.append_child(child)
     end
 
     private def html_tag(node : Node)
@@ -540,32 +546,10 @@ module Markd::Parser
     end
 
     private def entity(node : Node)
-      if char_at?(@pos) == '&'
-        if char_at?(@pos + 1) == '#'
-          text = match(Rule::NUMERIC_HTML_ENTITY) || return false
-          text = text.byte_slice(1, text.bytesize - 2)
-        else
-          pos = @pos + 1
-          loop do
-            char = char_at?(pos)
-            pos += 1
-            case char
-            when ';'
-              break
-            when Char::ZERO, nil
-              return false
-            end
-          end
-          text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
-          @pos = pos
-        end
-
-        decoded_text = HTML.decode_entity text
-        node.append_child(text(decoded_text))
-        true
-      else
-        false
-      end
+      rule = char_at?(@pos + 1) == '#' ? Rule::NUMERIC_HTML_ENTITY : Rule::HTML_ENTITY
+      token = match(rule) || return false
+      node.append_child(text(HTML.decode_entity(token.byte_slice(1, token.bytesize - 2))))
+      true
     end
 
     private def emoji(node : Node)
@@ -760,14 +744,13 @@ module Markd::Parser
 
       return if num_delims == 0
 
-      char_before = start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)
-      char_after = unicode_char_at?(@pos) || '\n'
+      before = (start_pos == 0 ? '\n' : previous_unicode_char_at(start_pos)).to_s
+      after = (unicode_char_at?(@pos) || '\n').to_s
 
-      # Match ASCII code 160 => \xA0 (See http://www.adamkoch.com/2009/07/25/white-space-and-character-160/)
-      after_is_whitespace = char_after.ascii_whitespace? || char_after == '\u00A0'
-      after_is_punctuation = !!char_after.to_s.match(Rule::PUNCTUATION)
-      before_is_whitespace = char_before.ascii_whitespace? || char_after == '\u00A0'
-      before_is_punctuation = !!char_before.to_s.match(Rule::PUNCTUATION)
+      after_is_whitespace = after.matches?(Rule::UNICODE_WHITESPACE)
+      after_is_punctuation = after.matches?(Rule::PUNCTUATION)
+      before_is_whitespace = before.matches?(Rule::UNICODE_WHITESPACE)
+      before_is_punctuation = before.matches?(Rule::PUNCTUATION)
 
       left_flanking = !after_is_whitespace &&
                       (!after_is_punctuation || before_is_whitespace || before_is_punctuation)
@@ -869,7 +852,7 @@ module Markd::Parser
     end
 
     private def space_at_end_of_line?
-      while char_at?(@pos) == ' '
+      while char_at?(@pos).in?(' ', '\t')
         @pos += 1
       end
 
@@ -884,13 +867,13 @@ module Markd::Parser
       true
     end
 
-    # Parse zero or more space characters, including at most one newline
+    # Parse spaces and tabs, including at most one newline.
     private def spnl
       seen_newline = false
       while (c = char_at?(@pos))
         if !seen_newline && c == '\n'
           seen_newline = true
-        elsif c != ' '
+        elsif !c.in?(' ', '\t')
           break
         end
 
@@ -908,82 +891,25 @@ module Markd::Parser
       end
     end
 
-    # This function advances @pos as far as possible until it finds a
-    # "special" character, such as '<', ']', or a special string (like a URL).
-    #
-    # Then it returns the chunk before it found that match, or in the case
-    # of special strings, the chunk matched.
-
     private def match_main : String?
       start_pos = @pos
-      while (char = char_at?(@pos))
-        # If we detected a special string (like a URL), and it's
-        # not the beggining of the string, we need to break right away.
-        #
-        # If we are at the beginning of the string, then we return
-        # the chunk matched
-        if @options.autolink?
-          advance = special_string?(@text, @pos)
-          if advance > 0
-            if @pos > start_pos
-              break
-            else
-              @pos += advance
-              break
-            end
-          end
+      while (char = char_at?(@pos)) && main_char?(char)
+        if @pos > start_pos && char.in?('h', 'f') && @options.autolink? &&
+           starts_extended_protocol?(@pos)
+          break
         end
-
-        # If we detect a special character, we need to break
-        break if !main_char?(char)
-        @pos += 1
+        @pos += char.ascii? ? 1 : unicode_char_at?(@pos).not_nil!.bytesize
       end
 
-      if start_pos == @pos
-        nil
-      else
-        @text.byte_slice(start_pos, @pos - start_pos)
-      end
+      @text.byte_slice(start_pos, @pos - start_pos) if @pos > start_pos
     end
 
-    # Identify "special" strings by matching against
-    # regular expressions. It returns the number of characters
-    # that were matched.
+    private def starts_extended_protocol?(pos : Int32) : Bool
+      return false unless "*_~( \n\t".includes?(char_at(pos - 1))
+      return false unless Rule::AUTOLINK_PROTOCOLS.matches?(@text.byte_slice(pos))
 
-    private def special_string?(full_text : String, pos : Int) : Int
-      text = full_text.byte_slice(pos)
-      # All such recognized autolinks can only come at the beginning of
-      # a line, after whitespace, or any of the delimiting characters `*`, `_`, `~`,
-      # and `(`.
-      if pos > 0 && !("*_~( \n\t".includes? char_at(pos - 1))
-        0
-      elsif text.starts_with?("http://") || text.starts_with?("https://") || text.starts_with?("ftp://")
-        # This should not be an autolink:
-        # < ftp://example.com >
-        if full_text[...pos].includes?("<") && full_text[...pos].matches?(/<\s*$/)
-          return 0
-        end
-
-        m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
-        m.size
-      elsif text.starts_with?("www.") && text.matches?(Rule::WWW_AUTO_LINK)
-        m = autolink_cleanup(text.match(Rule::WWW_AUTO_LINK).to_s)
-        m.size
-      elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
-        # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
-        matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s
-
-        # `.`, `-`, and `_` can occur on both sides of the `@`, but only `.` may occur at
-        # the end of the email address, in which case it will not be considered part of
-        # the address:
-
-        if "-_".includes? char_at(pos + matched_text.size + 1)
-          return 0
-        end
-        matched_text.size
-      else
-        0
-      end
+      # Do not link the URL in text such as < ftp://example.com >.
+      !@text.byte_slice(0, pos).matches?(/<\s*$/)
     end
 
     # These cleanups are defined in the spec
@@ -1072,25 +998,29 @@ module Markd::Parser
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_reference(text : String)
-      text[1..-2].strip.downcase.gsub("\n", " ")
+      text[1..-2].downcase.gsub(/[ \t\r\n]+/, ' ').strip(' ')
     end
 
-    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '\'', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
+    private RESERVED_CHARS = "&+,()'#*!$/:;?@="
 
     def normalize_uri(uri : String)
+      # Preserve the existing rendering of encoded parentheses.
+      uri = uri.gsub(/%2[89]/) { |escape| escape.ends_with?('8') ? '(' : ')' }
+
       String.build(capacity: uri.bytesize) do |io|
-        URI.encode(decode_uri(uri), io) do |byte|
-          URI.unreserved?(byte) || RESERVED_CHARS.includes?(byte.chr)
+        uri.each_byte.with_index do |byte, index|
+          char = byte.unsafe_chr
+          if URI.unreserved?(byte) || RESERVED_CHARS.includes?(char) ||
+             (char == '%' && uri.byte_at?(index + 1).try(&.unsafe_chr.hex?) &&
+             uri.byte_at?(index + 2).try(&.unsafe_chr.hex?))
+            io << char
+          else
+            io << '%'
+            io << '0' if byte < 16
+            byte.to_s(io, 16, upcase: true)
+          end
         end
       end
-    end
-
-    def decode_uri(text : String)
-      decoded = URI.decode(text)
-      if decoded.includes?('&') && decoded.includes?(';')
-        decoded = decoded.gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
-      end
-      decoded
     end
 
     class Bracket
