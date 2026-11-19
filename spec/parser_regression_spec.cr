@@ -34,4 +34,8 @@ describe "Markdown parser regressions" do
       %(<p><a href="https://example.com/a%26b">https://example.com/a%26b</a></p>\n)
     )
   end
+
+  it "resolves one-character labels" do
+    Markd.to_html("[r]: /url\n\n[x][r]").should eq(%(<p><a href="/url">x</a></p>\n))
+  end
 end

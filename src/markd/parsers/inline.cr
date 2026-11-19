@@ -277,7 +277,7 @@ module Markd::Parser
         # Next, see if there's a link label
         before_label = @pos
         label_size = link_label
-        if label_size > 2
+        if label_size > 1
           ref_label = normalize_reference(@text.byte_slice(before_label, label_size + 1))
         elsif !opener.bracket_after?
           # Empty or missing second label means to use the first label as the reference.
