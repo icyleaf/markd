@@ -1054,22 +1054,26 @@ module Markd::Parser
       text[1..-2].strip.downcase.gsub("\n", " ")
     end
 
-    private RESERVED_CHARS = ['&', '+', ',', '(', ')', '\'', '#', '*', '!', '#', '$', '/', ':', ';', '?', '@', '=']
+    private RESERVED_CHARS = "&+,()'#*!$/:;?@="
 
     def normalize_uri(uri : String)
+      # Preserve the existing rendering of encoded parentheses.
+      uri = uri.gsub(/%2[89]/) { |escape| escape.ends_with?('8') ? '(' : ')' }
+
       String.build(capacity: uri.bytesize) do |io|
-        URI.encode(decode_uri(uri), io) do |byte|
-          URI.unreserved?(byte) || RESERVED_CHARS.includes?(byte.chr)
+        uri.each_byte.with_index do |byte, index|
+          char = byte.unsafe_chr
+          if URI.unreserved?(byte) || RESERVED_CHARS.includes?(char) ||
+             (char == '%' && uri.byte_at?(index + 1).try(&.unsafe_chr.hex?) &&
+             uri.byte_at?(index + 2).try(&.unsafe_chr.hex?))
+            io << char
+          else
+            io << '%'
+            io << '0' if byte < 16
+            byte.to_s(io, 16, upcase: true)
+          end
         end
       end
-    end
-
-    def decode_uri(text : String)
-      decoded = URI.decode(text)
-      if decoded.includes?('&') && decoded.includes?(';')
-        decoded = decoded.gsub(/^&(\w+);$/) { |chars| HTML.decode_entities(chars) }
-      end
-      decoded
     end
 
     class Bracket

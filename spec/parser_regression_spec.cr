@@ -26,4 +26,12 @@ describe "Markdown parser regressions" do
     Markd.to_html("[x](&#x1F600;)").should eq(%(<p><a href="%F0%9F%98%80">x</a></p>\n))
     Markd.to_html("&#x110000;").should eq("<p>�</p>\n")
   end
+
+  it "preserves URI escapes in inline links, references, and autolinks" do
+    Markd.to_html("[x](a%2Fb)").should eq(%(<p><a href="a%2Fb">x</a></p>\n))
+    Markd.to_html("[r]: /a%3Fb%26c\n\n[r]").should eq(%(<p><a href="/a%3Fb%26c">r</a></p>\n))
+    Markd.to_html("<https://example.com/a%26b>").should eq(
+      %(<p><a href="https://example.com/a%26b">https://example.com/a%26b</a></p>\n)
+    )
+  end
 end
