@@ -111,8 +111,9 @@ module Markd::Parser
             end
 
       unless res
-        @pos += 1
-        node.append_child(text(char))
+        character = char.ascii? ? char : unicode_char_at?(@pos).not_nil!
+        @pos += character.bytesize
+        node.append_child(text(character))
       end
 
       true
@@ -914,7 +915,7 @@ module Markd::Parser
 
         # If we detect a special character, we need to break
         break if !main_char?(char)
-        @pos += 1
+        @pos += char.ascii? ? 1 : unicode_char_at?(@pos).not_nil!.bytesize
       end
 
       if start_pos == @pos
@@ -943,10 +944,10 @@ module Markd::Parser
         end
 
         m = autolink_cleanup(text.match(Rule::PROTOCOL_AUTO_LINK).to_s)
-        m.size
+        m.bytesize
       elsif text.starts_with?("www.") && text.matches?(Rule::WWW_AUTO_LINK)
         m = autolink_cleanup(text.match(Rule::WWW_AUTO_LINK).to_s)
-        m.size
+        m.bytesize
       elsif text.includes?("@") && text.matches?(Rule::EXTENDED_EMAIL_AUTO_LINK)
         # m = autolink_cleanup(text.match(Rule::EMAIL_AUTO_LINK).to_s)
         matched_text = text.match(Rule::EMAIL_AUTO_LINK).to_s

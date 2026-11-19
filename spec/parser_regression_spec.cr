@@ -60,4 +60,9 @@ describe "Markdown parser regressions" do
     html = Markd.to_html("A | B\n--- | ---\n# Heading | Text", options)
     html.should eq("<table>\n<thead>\n<tr>\n<th>A</th>\n<th>B</th>\n</tr>\n</thead>\n</table>\n<h1>Heading | Text</h1>\n")
   end
+
+  it "preserves UTF-8 characters while scanning autolinks" do
+    options = Markd::Options.new(autolink: true)
+    Markd.to_html("ä @foo", options).should eq("<p>ä @foo</p>\n")
+  end
 end
