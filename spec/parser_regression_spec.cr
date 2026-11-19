@@ -11,4 +11,8 @@ describe "Markdown parser regressions" do
       Markd.to_html(input, options).should eq(%(<p data-source-pos="1:1-1:1">a</p>\n))
     end
   end
+
+  it "keeps unmatched link openers from crossing paragraphs" do
+    Markd.to_html("[open\n\nclose](url)").should eq("<p>[open</p>\n<p>close](url)</p>\n")
+  end
 end

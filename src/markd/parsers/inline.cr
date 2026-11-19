@@ -18,6 +18,7 @@ module Markd::Parser
 
     def parse(node : Node)
       @pos = 0
+      @brackets = nil
       @delimiters = nil
       @text = node.text.strip
 
