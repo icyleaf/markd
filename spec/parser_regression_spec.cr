@@ -38,4 +38,9 @@ describe "Markdown parser regressions" do
   it "resolves one-character labels" do
     Markd.to_html("[r]: /url\n\n[x][r]").should eq(%(<p><a href="/url">x</a></p>\n))
   end
+
+  it "collapses whitespace in reference labels" do
+    Markd.to_html("[a  b]: /url\n\n[a b]").should eq(%(<p><a href="/url">a b</a></p>\n))
+    Markd.to_html("[a\tb]: /url\t\n\n[a b]").should eq(%(<p><a href="/url">a b</a></p>\n))
+  end
 end

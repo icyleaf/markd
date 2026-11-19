@@ -848,7 +848,7 @@ module Markd::Parser
     end
 
     private def space_at_end_of_line?
-      while char_at?(@pos) == ' '
+      while char_at?(@pos).in?(' ', '\t')
         @pos += 1
       end
 
@@ -863,13 +863,13 @@ module Markd::Parser
       true
     end
 
-    # Parse zero or more space characters, including at most one newline
+    # Parse spaces and tabs, including at most one newline.
     private def spnl
       seen_newline = false
       while (c = char_at?(@pos))
         if !seen_newline && c == '\n'
           seen_newline = true
-        elsif c != ' '
+        elsif !c.in?(' ', '\t')
           break
         end
 
@@ -1051,7 +1051,7 @@ module Markd::Parser
     # Normalize reference label: collapse internal whitespace
     # to single space, remove leading/trailing whitespace, case fold.
     def normalize_reference(text : String)
-      text[1..-2].strip.downcase.gsub("\n", " ")
+      text[1..-2].downcase.gsub(/[ \t\r\n]+/, ' ').strip(' ')
     end
 
     private RESERVED_CHARS = "&+,()'#*!$/:;?@="
