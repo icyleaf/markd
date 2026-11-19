@@ -399,7 +399,8 @@ module Markd
       # <a href="#fnref-label" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1" aria-label="Back to reference 1">↩</a>
       # <a href="#fnref-label-2" class="footnote-backref" data-footnote-backref data-footnote-backref-idx="1-2" aria-label="Back to reference 1-2">↩<sup class="footnote-ref">2</sup></a>
       if entering
-        if !node.prev.type.footnote_definition?
+        prev_sibling = node.prev?
+        if prev_sibling.nil? || !prev_sibling.type.footnote_definition?
           newline
           tag("section", {"class" => "footnotes", "data-footnotes" => nil})
           newline

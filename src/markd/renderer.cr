@@ -55,8 +55,16 @@ module Markd
     abstract def code_block(node : Node, entering : Bool, formatter : T?) : Nil forall T
     abstract def code(node : Node, entering : Bool) : Nil
     abstract def emphasis(node : Node, entering : Bool) : Nil
-    abstract def footnote(node : Node, entering : Bool) : Nil
-    abstract def footnote_definition(node : Node, entering : Bool) : Nil
+
+    # Footnote hooks are intentionally not abstract: existing custom
+    # Renderer subclasses should keep compiling (and render footnotes as
+    # plain content) without implementing them.
+    def footnote(node : Node, entering : Bool) : Nil
+    end
+
+    def footnote_definition(node : Node, entering : Bool) : Nil
+    end
+
     abstract def heading(node : Node, entering : Bool) : Nil
     abstract def html_block(node : Node, entering : Bool) : Nil
     abstract def html_inline(node : Node, entering : Bool) : Nil

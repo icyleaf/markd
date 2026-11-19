@@ -89,7 +89,14 @@ module Markd::Parser
           footnotes[title] ||= [] of Node
           footnotes[title] << node
         elsif !entering && node.type.footnote_definition?
-          footnote_definitions[node.data["title"].to_s] = node
+          title = node.data["title"].to_s
+          # Duplicate definitions: only the last one per title is kept, so
+          # discard earlier ones (they would otherwise render without
+          # numbering data and crash backref generation).
+          if (existing = footnote_definitions[title]?)
+            existing.unlink
+          end
+          footnote_definitions[title] = node
         end
       end
 
@@ -112,25 +119,59 @@ module Markd::Parser
               n, entering = event
               if entering && n.type.text?
                 replaced = false
-                n.text = n.text.gsub(/\[\^([^\]]+)\]/) do |m|
-                  nested_label = $1
-                  if footnote_definitions[nested_label]?
-                    fn = Node.new(Node::Type::Footnote)
-                    fn.data["title"] = nested_label
-                    n.insert_after(fn)
-                    footnotes[nested_label] ||= [] of Node
-                    footnotes[nested_label] << fn
-                    replaced = true
+                # Collect the nested references first, then split the text
+                # node around each marker so the reference node lands at
+                # the marker's position (in order), not after the whole
+                # text node.
+                insertions = [] of {Int32, Int32, Node}
+                n.text.scan(/\[\^([^\]]+)\]/) do |match_data|
+                  byte_start = match_data.begin(0)
+                  byte_end = match_data.end(0)
+                  nested_label = match_data[1]
+                  next unless byte_start && byte_end
+                  next unless footnote_definitions[nested_label]?
+                  fn = Node.new(Node::Type::Footnote)
+                  fn.data["title"] = nested_label
+                  insertions << {byte_start, byte_end, fn}
+                end
+
+                unless insertions.empty?
+                  replaced = true
+                  original_text = n.text
+                  cursor = n
+                  last_byte = 0
+                  insertions.each do |(byte_start, byte_end, fn)|
+                    gap = original_text.byte_slice(last_byte, byte_start - last_byte)
+                    if cursor == n
+                      n.text = gap
+                    else
+                      gap_node = Node.new(Node::Type::Text)
+                      gap_node.text = gap
+                      cursor.insert_after(gap_node)
+                      cursor = gap_node
+                    end
+                    cursor.insert_after(fn)
+                    cursor = fn
+                    title = fn.data["title"].to_s
+                    footnotes[title] ||= [] of Node
+                    footnotes[title] << fn
                     new_nodes += 1
-                    ""
-                  else
-                    m
+                    last_byte = byte_end
+                  end
+                  rest = original_text.byte_slice(last_byte)
+                  unless rest.empty?
+                    rest_node = Node.new(Node::Type::Text)
+                    rest_node.text = rest
+                    cursor.insert_after(rest_node)
                   end
                 end
+
                 if replaced && n.parent?
                   @inline_lexer.parse(n.parent)
                 end
-                n.unlink if n.text.empty?
+                # Note: don't unlink an emptied text node here — the walker
+                # is positioned on it, and unlinking mid-walk would stop
+                # the walk early.
               end
             end
           end

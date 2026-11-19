@@ -231,7 +231,7 @@ module Markd::Parser
       child = text("[")
       node.append_child(child)
 
-      if char_at(@pos) == '^' && @options.gfm?
+      if char_at?(@pos) == '^' && @options.gfm?
         add_bracket(child, start_pos, footnote: true)
       else
         add_bracket(child, start_pos)
