@@ -15,4 +15,9 @@ describe "Markdown parser regressions" do
   it "keeps unmatched link openers from crossing paragraphs" do
     Markd.to_html("[open\n\nclose](url)").should eq("<p>[open</p>\n<p>close](url)</p>\n")
   end
+
+  it "treats malformed entity references as text without swallowing inlines" do
+    Markd.to_html("&;").should eq("<p>&amp;;</p>\n")
+    Markd.to_html("x & *hi* &amp;").should eq("<p>x &amp; <em>hi</em> &amp;</p>\n")
+  end
 end

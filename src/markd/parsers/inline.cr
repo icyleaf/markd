@@ -541,32 +541,10 @@ module Markd::Parser
     end
 
     private def entity(node : Node)
-      if char_at?(@pos) == '&'
-        if char_at?(@pos + 1) == '#'
-          text = match(Rule::NUMERIC_HTML_ENTITY) || return false
-          text = text.byte_slice(1, text.bytesize - 2)
-        else
-          pos = @pos + 1
-          loop do
-            char = char_at?(pos)
-            pos += 1
-            case char
-            when ';'
-              break
-            when Char::ZERO, nil
-              return false
-            end
-          end
-          text = @text.byte_slice((@pos + 1), (pos - 1) - (@pos + 1))
-          @pos = pos
-        end
-
-        decoded_text = HTML.decode_entity text
-        node.append_child(text(decoded_text))
-        true
-      else
-        false
-      end
+      rule = char_at?(@pos + 1) == '#' ? Rule::NUMERIC_HTML_ENTITY : Rule::HTML_ENTITY
+      token = match(rule) || return false
+      node.append_child(text(HTML.decode_entity(token.byte_slice(1, token.bytesize - 2))))
+      true
     end
 
     private def emoji(node : Node)
