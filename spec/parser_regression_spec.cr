@@ -87,4 +87,10 @@ describe "Markdown parser regressions" do
     options = Markd::Options.new(autolink: true)
     Markd.to_html("xmailto:a@b.com", options).should eq(%(<p>xmailto:<a href="mailto:a@b.com">a@b.com</a></p>\n))
   end
+
+  it "retains autolink alongside the pending fixture tag" do
+    fixtures = extract_spec_tests(File.join(__DIR__, "fixtures/gfm-regression.txt"))
+    fixtures["Regression tests"].values.find!(&.["markdown"].includes?("[^widely-cited]"))
+      .["test_tags"].split.should eq(%w[footnotes autolink pending])
+  end
 end
