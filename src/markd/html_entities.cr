@@ -46,7 +46,7 @@ module Markd::HTMLEntities
     end
 
     def self.decode_codepoint(codepoint)
-      return "\uFFFD" if codepoint >= 0xD800 && codepoint <= 0xDFFF || codepoint > 0x10FFF
+      return "\uFFFD" if codepoint.in?(0xD800..0xDFFF) || codepoint > 0x10FFFF
 
       if (decoded = Markd::HTMLEntities::DECODE_MAPPINGS[codepoint]?)
         codepoint = decoded

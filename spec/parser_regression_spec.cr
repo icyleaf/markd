@@ -20,4 +20,10 @@ describe "Markdown parser regressions" do
     Markd.to_html("&;").should eq("<p>&amp;;</p>\n")
     Markd.to_html("x & *hi* &amp;").should eq("<p>x &amp; <em>hi</em> &amp;</p>\n")
   end
+
+  it "decodes numeric entities above the basic multilingual plane" do
+    Markd.to_html("&#x1F600;").should eq("<p>😀</p>\n")
+    Markd.to_html("[x](&#x1F600;)").should eq(%(<p><a href="%F0%9F%98%80">x</a></p>\n))
+    Markd.to_html("&#x110000;").should eq("<p>�</p>\n")
+  end
 end
